@@ -14,13 +14,13 @@
 
 ## โครงโปรเจกต์
 ```
-src/Api/            ASP.NET Core API (เสิร์ฟหน้าเว็บที่ build แล้วด้วย)
-src/Api.Tests/      xUnit
-web/                React (Vite + Bun)
-Dockerfile          build web + api เป็น image เดียว
-docker-compose.yml  app + postgres สำหรับเครื่องที่มี Docker
-dotnet-tools.json   local tools (dotnet-ef)
-.env.example        ตัวอย่าง env
+backend/src/Api/     ASP.NET Core API (เสิร์ฟหน้าเว็บที่ build แล้วด้วย)
+backend/tests/       xUnit
+frontend/            React (Vite + Bun)
+Dockerfile           build frontend + api เป็น image เดียว
+docker-compose.yml   app + postgres สำหรับเครื่องที่มี Docker
+dotnet-tools.json    local tools (dotnet-ef)
+.env.example         ตัวอย่าง env
 ```
 
 ---
@@ -42,12 +42,12 @@ git clone https://github.com/PeerapongMala/Krugift-chiangmai.git
 cd Krugift-chiangmai
 
 dotnet tool restore          # ลง dotnet-ef ตามเวอร์ชันใน dotnet-tools.json
-cd web && bun install && cd ..
+cd frontend && bun install && cd ..
 ```
 
 ตั้งค่า secret ด้วย user-secrets (ค่าจะเก็บในเครื่อง ไม่เข้า git):
 ```bash
-cd src/Api
+cd backend/src/Api
 dotnet user-secrets set "ConnectionStrings:Default" "<Neon connection string>"
 dotnet user-secrets set "Google:ClientId" "<client id>"
 dotnet user-secrets set "Google:ClientSecret" "<client secret>"
@@ -57,10 +57,10 @@ dotnet user-secrets set "TEACHER_EMAILS" "teacher@gmail.com"
 ### รัน (เปิด 2 terminal)
 ```bash
 # terminal 1 — API (migration รันอัตโนมัติตอน start)
-dotnet run --project src/Api
+dotnet run --project backend/src/Api
 
 # terminal 2 — หน้าเว็บ
-cd web && bun run dev
+cd frontend && bun run dev
 ```
 เปิดเว็บที่ http://localhost:5173 (Vite ส่ง `/api` ต่อไปให้ API)
 
@@ -91,11 +91,11 @@ docker compose up postgres   # รันแค่ DB
 ## คำสั่งที่ใช้บ่อย
 | งาน | คำสั่ง |
 |---|---|
-| สร้าง migration | `dotnet ef migrations add <ชื่อ> --project src/Api` |
-| อัปเดต DB ด้วยมือ | `dotnet ef database update --project src/Api` |
+| สร้าง migration | `dotnet ef migrations add <ชื่อ> --project backend/src/Api` |
+| อัปเดต DB ด้วยมือ | `dotnet ef database update --project backend/src/Api` |
 | รันเทสต์ backend | `dotnet test` |
-| build หน้าเว็บ | `cd web && bun run build` |
-| เพิ่ม component shadcn | `cd web && bunx shadcn@latest add button` |
+| build หน้าเว็บ | `cd frontend && bun run build` |
+| เพิ่ม component shadcn | `cd frontend && bunx shadcn@latest add button` |
 
 ## ข้อควรระวัง
 - **ห้าม commit** connection string, Google secret, `.env` หรือไฟล์ Excel ที่มีข้อมูลนักเรียนจริง

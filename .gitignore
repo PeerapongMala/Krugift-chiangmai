@@ -482,8 +482,8 @@ $RECYCLE.BIN/
 *.swp
 
 # --- Krugift ---
-web/dist/
-src/Api/wwwroot/
+frontend/dist/
+backend/src/Api/wwwroot/
 .env.*
 !.env.example
 # ข้อมูลนักเรียนจริง ห้ามเข้า git

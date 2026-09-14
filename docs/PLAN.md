@@ -31,12 +31,12 @@
 
 ## โครง repo — `D:\Peerapong\Projects\Krugift-chiangmai`
 ```
-src/Api/            ASP.NET Core (Program.cs, Data/, Endpoints/, Import/, Auth/)
-src/Api.Tests/      xUnit — เทสต์ import parser + การสร้าง/ตรวจรหัส
-web/                Vite React TS (components/ui = shadcn, pages/, components/)
-Dockerfile          multi-stage: build web → copy ไป Api/wwwroot → dotnet publish
-docker-compose.yml  postgres:17 + app (สำหรับเครื่องที่มี Docker)
-.env.example        ตัวอย่าง env ที่ต้องตั้ง (ไม่มีค่าจริง)
+backend/src/Api/     ASP.NET Core (Program.cs, Data/, Endpoints/, Import/, Auth/)
+backend/tests/       xUnit — เทสต์ import parser + การสร้าง/ตรวจรหัส
+frontend/            Vite React TS (components/ui = shadcn, pages/, components/)
+Dockerfile           multi-stage: build frontend → copy ไป Api/wwwroot → dotnet publish
+docker-compose.yml   postgres:17 + app (สำหรับเครื่องที่มี Docker)
+.env.example         ตัวอย่าง env ที่ต้องตั้ง (ไม่มีค่าจริง)
 .gitignore  README.md  (README อธิบายวิธีรันทั้ง 2 แบบ)
 ```
 
@@ -46,7 +46,7 @@ docker-compose.yml  postgres:17 + app (สำหรับเครื่อง�
 | | ไม่มี Docker (เครื่องนี้) | มี Docker (เครื่องอื่น) |
 |---|---|---|
 | DB | Neon dev branch (หรือลง PostgreSQL บน Windows ก็ได้) | `postgres` ใน compose |
-| รัน | `dotnet run --project src/Api` + `cd web && npm run dev` (Vite proxy `/api`) | `docker compose up --build` → เปิดที่ `localhost:8080` |
+| รัน | `dotnet run --project backend/src/Api` + `cd frontend && bun run dev` (Vite proxy `/api`) | `docker compose up --build` → เปิดที่ `localhost:8080` |
 | Hot reload | ได้ทั้ง 2 ฝั่ง | ไม่มี (compose ใช้ลองแบบใกล้ production) · อยากได้ hot reload ให้ใช้ `docker compose up postgres` แล้วรัน dotnet/npm บนเครื่องแทน |
 
 - App รัน migration อัตโนมัติตอน start (`db.Database.Migrate()`) ใช้ได้ทั้ง 2 แบบ และใช้บน Render ด้วย
@@ -85,7 +85,7 @@ docker-compose.yml  postgres:17 + app (สำหรับเครื่อง�
 
 ## Excel template
 แถว 1 เป็นหัวตาราง: `รหัสนักเรียน | ชื่อ | นามสกุล | ควิซ1 (10) | สอบกลางภาค (30) | ...` ตัวเลขในวงเล็บคือคะแนนเต็ม
-Parser (`src/Api/Import/ScoreSheetParser.cs`) เป็นฟังก์ชันที่ไม่แตะ DB: รับ stream คืน rows + errors (แถว/คอลัมน์ + ข้อความ) เช่น รหัสซ้ำ, คะแนนเกินเต็ม, ช่องไม่ใช่ตัวเลข, ไม่มีหัวคะแนนเต็ม
+Parser (`backend/src/Api/Import/ScoreSheetParser.cs`) เป็นฟังก์ชันที่ไม่แตะ DB: รับ stream คืน rows + errors (แถว/คอลัมน์ + ข้อความ) เช่น รหัสซ้ำ, คะแนนเกินเต็ม, ช่องไม่ใช่ตัวเลข, ไม่มีหัวคะแนนเต็ม
 Commit: upsert นักเรียนตามรหัส, สร้างรายการที่ยังไม่มี, เขียนคะแนนทับของเดิม + บันทึก audit, นักเรียนใหม่ได้รหัสส่วนตัวแล้วแสดงหน้าใบแจกรหัส
 
 ## Frontend pages

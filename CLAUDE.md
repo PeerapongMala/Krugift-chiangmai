@@ -7,9 +7,9 @@
 - วิธีรันทั้งแบบมีและไม่มี Docker: `README.md`
 
 ## Stack
-- **API:** .NET 10 Minimal API + EF Core 10 (Npgsql) · `src/Api`
-- **Tests:** xUnit · `src/Api.Tests`
-- **Web:** React 19 + Vite 8 + TypeScript + Tailwind v4 + shadcn/ui (style base-nova ใช้ Base UI) + TanStack Query + react-router v8 · `web/` · **ใช้ Bun ไม่ใช้ npm**
+- **API:** .NET 10 Minimal API + EF Core 10 (Npgsql) · `backend/src/Api`
+- **Tests:** xUnit · `backend/tests/Api.Tests`
+- **Web:** React 19 + Vite 8 + TypeScript + Tailwind v4 + shadcn/ui (style base-nova ใช้ Base UI) + TanStack Query + react-router v8 · `frontend/` · **ใช้ Bun ไม่ใช้ npm**
 - **DB:** PostgreSQL บน Neon (เลือก Neon แทน Supabase เพราะ Supabase ฟรีจะ pause project ถ้าไม่มีคนใช้ 7 วัน ซึ่งเจอแน่ช่วงปิดเทอม)
 - **Deploy:** Docker image เดียว (build web แล้ว copy ไปไว้ใน `wwwroot` ของ API) → Render ฟรี
 
@@ -17,24 +17,25 @@
 ```bash
 dotnet tool restore                          # dotnet-ef (local tool, ต้องรันจาก root)
 dotnet build ; dotnet test
-dotnet run --project src/Api                 # http://localhost:5080, migrate + seed ครูตอน start
-dotnet ef migrations add <Name> --project src/Api -o Data/Migrations
-cd web && bun install && bun run dev         # http://localhost:5173, proxy /api → 5080
-cd web && bun run build ; bun run lint       # lint = oxlint
-cd web && bunx --bun shadcn@latest add <component> -y
+dotnet run --project backend/src/Api         # http://localhost:5080, migrate + seed ครูตอน start
+dotnet ef migrations add <Name> --project backend/src/Api -o Data/Migrations
+cd frontend && bun install && bun run dev    # http://localhost:5173, proxy /api → 5080
+cd frontend && bun run build ; bun run lint  # lint = oxlint
+cd frontend && bunx --bun shadcn@latest add <component> -y
 ```
-Secrets ใช้ `dotnet user-secrets` (`--project src/Api`) ห้ามใส่ใน appsettings: `ConnectionStrings:Default`, `Google:ClientId`, `Google:ClientSecret`, `TEACHER_EMAILS` (คั่นด้วย comma)
+Secrets ใช้ `dotnet user-secrets` (`--project backend/src/Api`) ห้ามใส่ใน appsettings: `ConnectionStrings:Default`, `Google:ClientId`, `Google:ClientSecret`, `TEACHER_EMAILS` (คั่นด้วย comma)
 
 ## โครงสร้าง
 ```
-src/Api/Program.cs              DI, middleware, migrate + SeedTeachers ตอน start
-src/Api/Data/                   Entities.cs (ทุก entity), AppDbContext.cs, Migrations/
-src/Api/Auth/                   AccessCode.cs (รหัสส่วนตัว + lockout), AuthSetup.cs (cookie/Google/policy/rate limit)
-src/Api/Endpoints/              *Endpoints.cs — extension MapXxx() ต่อ feature
-web/src/lib/                    api.ts (fetch + ApiError), auth.ts (useMe, homeOf)
-web/src/components/             ใช้ร่วมกันหลายหน้า (AppLayout, RequireRole, AuthCard, CodeForm)
-web/src/components/ui/          shadcn (โค้ดของเรา แก้ได้)
-web/src/pages/                  1 ไฟล์ต่อ 1 หน้า
+backend/src/Api/Program.cs      DI, middleware, migrate + SeedTeachers ตอน start
+backend/src/Api/Data/           Entities.cs (ทุก entity), AppDbContext.cs, Migrations/
+backend/src/Api/Auth/           AccessCode.cs (รหัสส่วนตัว + lockout), AuthSetup.cs (cookie/Google/policy/rate limit)
+backend/src/Api/Endpoints/      *Endpoints.cs — extension MapXxx() ต่อ feature
+backend/tests/Api.Tests/        xUnit
+frontend/src/lib/               api.ts (fetch + ApiError), auth.ts (useMe, homeOf)
+frontend/src/components/        ใช้ร่วมกันหลายหน้า (AppLayout, RequireRole, AuthCard, CodeForm)
+frontend/src/components/ui/     shadcn (โค้ดของเรา แก้ได้)
+frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
 ```
 
 ## กฎของโปรเจกต์
