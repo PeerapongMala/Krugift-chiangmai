@@ -5,6 +5,7 @@ export const routes = {
   claim: '/claim',
   teacher: '/teacher',
   staff: '/teacher/staff',
+  term: (termId: number) => `/teacher/terms/${termId}`,
   student: '/student',
 } as const
 
