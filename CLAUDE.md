@@ -8,7 +8,7 @@
 
 ## Stack
 - **API:** .NET 10 Minimal API + EF Core 10 (Npgsql) · `backend/src/Api`
-- **Tests:** xUnit · `backend/tests/Api.Tests`
+- **Tests:** xUnit **v3** (รันเป็น .exe) · `backend/tests/Api.Tests`
 - **Web:** React 19 + Vite 8 + TypeScript + Tailwind v4 + shadcn/ui (style base-nova ใช้ Base UI) + TanStack Query + react-router v8 · `frontend/` · **ใช้ Bun ไม่ใช้ npm**
 - **DB:** PostgreSQL บน Neon (เลือก Neon แทน Supabase เพราะ Supabase ฟรีจะ pause project ถ้าไม่มีคนใช้ 7 วัน ซึ่งเจอแน่ช่วงปิดเทอม)
 - **Deploy:** Docker image เดียว (build web แล้ว copy ไปไว้ใน `wwwroot` ของ API) → Render ฟรี
@@ -59,6 +59,8 @@ frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
 - ปุ่ม Google ต้องเป็น `<a href="/api/auth/google">` ใช้ fetch ไม่ได้ เพราะ OAuth ต้อง redirect ทั้งหน้า
 - `/api/auth/dev-login?email=` มีเฉพาะ Development ใช้ทดสอบเป็นครูโดยไม่ต้องตั้ง Google
 - API สั่ง `Migrate()` ตอน start ถ้ายังไม่ได้ตั้ง connection string แอปจะ crash ทันที
+- เทสต์ต้องเป็น **xUnit v3** (`<OutputType>Exe</OutputType>`) + `global.json` ตั้ง `test.runner = "Microsoft.Testing.Platform"` — **ห้ามย้อนกลับไป xunit v2 + Microsoft.NET.Test.Sdk** เพราะ Smart App Control ของ Windows บล็อก `testhost` ตอนโหลด dll ด้วย reflection (`FileLoadException 0x800711C7`) v3 คอมไพล์เป็น .exe รันตรงจึงผ่าน
+- ภาพคาปิบาร่าใน `frontend/public/capybara/` มาจาก Freepik license ฟรี **ต้องคงเครดิต** (`components/Credit.tsx`) ไว้ ถ้าเอาออกต้องอัปเป็น Premium ก่อน
 
 ## สถานะ (อัปเดตทุกครั้งที่จบ milestone)
 - [x] M1 Scaffold
