@@ -70,6 +70,11 @@ public static class AuthSetup
         builder.Services.Configure<ForwardedHeadersOptions>(o =>
         {
             o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            // ตอน dev เว็บอยู่ที่ Vite (5173) แต่ API อยู่ 5080 ถ้าไม่เชื่อ X-Forwarded-Host
+            // redirect_uri ที่ส่งให้ Google จะเป็น 5080 แล้วหลังล็อกอินเสร็จจะเด้งไปพอร์ตที่ไม่มีหน้าเว็บ
+            // เปิดเฉพาะ Development เพราะการเชื่อ Host จากภายนอกเสี่ยง host header injection
+            if (builder.Environment.IsDevelopment())
+                o.ForwardedHeaders |= ForwardedHeaders.XForwardedHost;
             // ponytail: เชื่อ proxy ทุกตัว (Render อยู่หน้าเสมอ) ถ้าเรียกตรงจะปลอม IP หลบ rate limit ได้ แต่ยังมี lockout ต่อนักเรียนกันไว้
             o.KnownIPNetworks.Clear();
             o.KnownProxies.Clear();
