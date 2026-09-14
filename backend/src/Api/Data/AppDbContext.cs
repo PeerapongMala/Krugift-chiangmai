@@ -23,7 +23,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder b)
     {
-        b.Entity<Teacher>().HasIndex(x => x.Email).IsUnique();
+        b.Entity<Teacher>(e =>
+        {
+            e.HasIndex(x => x.Email).IsUnique();
+            e.Property(x => x.Role).HasConversion<string>().HasMaxLength(20);
+        });
 
         b.Entity<Term>().HasIndex(x => new { x.TeacherId, x.Name }).IsUnique();
 

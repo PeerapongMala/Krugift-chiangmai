@@ -24,6 +24,26 @@ public class ValidateTests
         Assert.Null(Validate.Name("  ม.2/1  ", "ห้องเรียน"));
 
     [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Email_ว่าง_ต้องไม่ผ่าน(string? value) =>
+        Assert.Equal("กรุณากรอกอีเมล", Validate.Email(value));
+
+    [Theory]
+    [InlineData("ไม่ใช่อีเมล")]
+    [InlineData("a@")]
+    [InlineData("@b.com")]
+    public void Email_รูปแบบผิด_ต้องไม่ผ่าน(string value) =>
+        Assert.Equal("รูปแบบอีเมลไม่ถูกต้อง", Validate.Email(value));
+
+    [Theory]
+    [InlineData("teacher@gmail.com")]
+    [InlineData("  teacher@gmail.com  ")]
+    public void Email_ถูกต้อง_ต้องผ่าน(string value) =>
+        Assert.Null(Validate.Email(value));
+
+    [Theory]
     [InlineData(0)]
     [InlineData(-1)]
     public void MaxScore_ไม่เป็นบวก_ต้องไม่ผ่าน(double value) =>

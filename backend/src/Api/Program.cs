@@ -28,6 +28,7 @@ app.UseRateLimiter();
 
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 app.MapAuth();
+app.MapStaff();
 
 // หน้าเว็บที่ build แล้ว (frontend/dist) ถูก copy มาไว้ใน wwwroot ตอน build Docker
 app.MapFallbackToFile("index.html");
@@ -45,6 +46,17 @@ static async Task SeedTeachers(AppDbContext db, string? emails)
         if (!await db.Teachers.AnyAsync(t => t.Email == email))
             db.Teachers.Add(new Teacher { Email = email });
     await db.SaveChangesAsync();
+
+    // ต้องมีเจ้าของอย่างน้อย 1 คนเสมอ ไม่งั้นจะไม่มีใครเพิ่ม/ลบครูได้เลย
+    if (!await db.Teachers.AnyAsync(t => t.Role == TeacherRole.Owner))
+    {
+        var first = await db.Teachers.OrderBy(t => t.Id).FirstOrDefaultAsync();
+        if (first is not null)
+        {
+            first.Role = TeacherRole.Owner;
+            await db.SaveChangesAsync();
+        }
+    }
 }
 
 public partial class Program;

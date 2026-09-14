@@ -25,6 +25,7 @@ public static class AuthEndpoints
                 {
                     role = http.User.FindFirstValue(ClaimTypes.Role),
                     name = http.User.FindFirstValue(ClaimTypes.Name),
+                    isOwner = http.User.IsOwner(),
                 });
             // ล็อกอิน Google แล้วแต่ยังไม่ได้ผูกกับนักเรียน
             var ext = await http.AuthenticateAsync(AuthSetup.External);
@@ -47,7 +48,7 @@ public static class AuthEndpoints
             var teacher = email is null ? null : await db.Teachers.FirstOrDefaultAsync(t => t.Email == email);
             if (teacher is not null)
             {
-                await SignIn(http, AuthSetup.Teacher, teacher.Id, teacher.Name is "" ? teacher.Email : teacher.Name);
+                await SignIn(http, AuthSetup.Teacher, teacher.Id, teacher.Name is "" ? teacher.Email : teacher.Name, teacher.Role is TeacherRole.Owner);
                 return Results.Redirect("/teacher");
             }
 
@@ -104,16 +105,16 @@ public static class AuthEndpoints
             {
                 var t = await db.Teachers.FirstOrDefaultAsync(x => x.Email == email.ToLowerInvariant());
                 if (t is null) return Results.NotFound();
-                await SignIn(http, AuthSetup.Teacher, t.Id, t.Email);
+                await SignIn(http, AuthSetup.Teacher, t.Id, t.Email, t.Role is TeacherRole.Owner);
                 return Results.Ok(new { role = AuthSetup.Teacher });
             });
         }
     }
 
-    static async Task SignIn(HttpContext http, string role, int id, string name)
+    static async Task SignIn(HttpContext http, string role, int id, string name, bool isOwner = false)
     {
         await http.SignOutAsync(AuthSetup.External);
-        await http.SignInAsync(role, id, name);
+        await http.SignInAsync(role, id, name, isOwner);
     }
 
     static async Task<(Student? Student, string Error)> Verify(AppDbContext db, CodeLoginRequest req)

@@ -12,6 +12,10 @@ public static class AuthSetup
     public const string LoginLimit = "login";
     public const string Teacher = "teacher";
     public const string Student = "student";
+    public const string OwnerPolicy = "owner";
+    /// claim บอกว่าครูคนนี้เป็นเจ้าของระบบ เก็บใน cookie จะได้ไม่ต้อง query DB ทุก request
+    /// หมายเหตุ: claim ค้างได้ถึง 30 วัน endpoint ที่อันตรายจึงต้องเช็คยศจาก DB ซ้ำอีกชั้น
+    public const string OwnerClaim = "krugift:owner";
 
     public static void AddAppAuth(this WebApplicationBuilder builder)
     {
@@ -48,7 +52,8 @@ public static class AuthSetup
 
         builder.Services.AddAuthorizationBuilder()
             .AddPolicy(Teacher, p => p.RequireRole(Teacher))
-            .AddPolicy(Student, p => p.RequireRole(Student));
+            .AddPolicy(Student, p => p.RequireRole(Student))
+            .AddPolicy(OwnerPolicy, p => p.RequireRole(Teacher).RequireClaim(OwnerClaim, "true"));
 
         builder.Services.AddRateLimiter(o =>
         {
@@ -67,10 +72,21 @@ public static class AuthSetup
         });
     }
 
-    public static Task SignInAsync(this HttpContext http, string role, int id, string name) =>
-        http.SignInAsync(new ClaimsPrincipal(new ClaimsIdentity(
-            [new(ClaimTypes.Role, role), new(ClaimTypes.NameIdentifier, id.ToString()), new(ClaimTypes.Name, name)],
-            CookieAuthenticationDefaults.AuthenticationScheme)));
+    public static Task SignInAsync(this HttpContext http, string role, int id, string name, bool isOwner = false)
+    {
+        List<Claim> claims =
+        [
+            new(ClaimTypes.Role, role),
+            new(ClaimTypes.NameIdentifier, id.ToString()),
+            new(ClaimTypes.Name, name),
+        ];
+        if (isOwner) claims.Add(new Claim(OwnerClaim, "true"));
+
+        return http.SignInAsync(new ClaimsPrincipal(
+            new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)));
+    }
+
+    public static bool IsOwner(this ClaimsPrincipal user) => user.HasClaim(OwnerClaim, "true");
 
     public static int UserId(this ClaimsPrincipal user) =>
         int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);

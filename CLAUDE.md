@@ -30,6 +30,7 @@ Secrets ใช้ `dotnet user-secrets` (`--project backend/src/Api`) ห้า�
 backend/src/Api/Program.cs      DI, middleware, migrate + SeedTeachers ตอน start
 backend/src/Api/Data/           Entities.cs (ทุก entity), AppDbContext.cs, Migrations/
 backend/src/Api/Auth/           AccessCode.cs (รหัสส่วนตัว + lockout), AuthSetup.cs (cookie/Google/policy/rate limit)
+backend/src/Api/Common/         TeacherScope (กัน IDOR), ScoreWriter (บังคับเขียน audit), Validate, Problems, Limits
 backend/src/Api/Endpoints/      *Endpoints.cs — extension MapXxx() ต่อ feature
 backend/tests/Api.Tests/        xUnit
 frontend/src/lib/               api.ts (fetch + ApiError), auth.ts (useMe, homeOf)
@@ -41,7 +42,9 @@ frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
 ## กฎของโปรเจกต์
 - **Security (ห้ามลัด):**
   - endpoint ของนักเรียนต้องดึง studentId จาก cookie claim (`User.UserId()`) เท่านั้น ห้ามรับ id จาก URL หรือ body
-  - endpoint ของครูต้องเช็คว่า Term เป็นของ `TeacherId` ที่ล็อกอินอยู่
+  - endpoint ของครูต้องเช็คว่า Term เป็นของ `TeacherId` ที่ล็อกอินอยู่ — ใช้ `db.TermsOf(user)` / `db.FindClassroom(user, id)` จาก `Common/TeacherScope.cs` ห้ามเรียก `db.Terms` ตรง ๆ
+  - ครูมี 2 ยศ: **Owner** เห็นข้อมูลของครูทุกคน + จัดการรายชื่อครูได้ · **Teacher** เห็นเฉพาะเทอมของตัวเอง (`TeacherScope` จัดการให้แล้ว)
+  - endpoint ใน `/api/staff` ต้องเช็คยศจาก **DB ซ้ำ** ไม่เชื่อ claim อย่างเดียว เพราะ cookie อยู่ได้ 30 วัน คนที่เพิ่งโดนลดยศจะยังถือ claim เดิม
   - login endpoint ต้องมี `.RequireRateLimiting(AuthSetup.LoginLimit)`
   - API ตอบ JSON เท่านั้น (ใช้ SameSite=Lax + JSON กัน CSRF แทน antiforgery)
 - **Error:** ใช้ `Results.Problem("ข้อความภาษาไทย", statusCode: …)` แล้ว `api()` ฝั่งเว็บจะเอา `detail` ไปแสดงให้ผู้ใช้เอง

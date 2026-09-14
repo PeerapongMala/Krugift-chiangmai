@@ -1,3 +1,5 @@
+using System.Net.Mail;
+
 namespace Api.Common;
 
 /// ตรวจ input ที่ขอบระบบ · คืน null = ผ่าน, คืน string = ข้อความไทยที่เอาไปโชว์ได้เลย
@@ -10,6 +12,14 @@ public static class Validate
         { Length: > Limits.NameLength } => $"ชื่อ{what}ยาวเกิน {Limits.NameLength} ตัวอักษร",
         _ => null,
     };
+
+    public static string? Email(string? value)
+    {
+        var email = value?.Trim();
+        if (string.IsNullOrEmpty(email)) return "กรุณากรอกอีเมล";
+        if (email.Length > Limits.NameLength) return $"อีเมลยาวเกิน {Limits.NameLength} ตัวอักษร";
+        return MailAddress.TryCreate(email, out _) ? null : "รูปแบบอีเมลไม่ถูกต้อง";
+    }
 
     public static string? Message(string? value) => value?.Trim() switch
     {
