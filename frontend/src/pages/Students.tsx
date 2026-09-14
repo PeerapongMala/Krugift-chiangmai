@@ -116,9 +116,17 @@ export default function Students() {
 
   return (
     <>
-      <Link to={routes.teacher} className="mb-3 inline-block text-sm text-muted-foreground hover:text-foreground">
-        ← กลับไปหน้าเทอม
-      </Link>
+      <div className="mb-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
+        <Link to={routes.teacher} className="hover:text-foreground">
+          ← กลับไปหน้าเทอม
+        </Link>
+        <Link to={routes.classroomItems(classroomId)} className="hover:text-foreground">
+          รายการคะแนน →
+        </Link>
+        <Link to={routes.classroomScores(classroomId)} className="hover:text-foreground">
+          ตารางคะแนน →
+        </Link>
+      </div>
 
       <PageHeader
         title="นักเรียนในห้อง"

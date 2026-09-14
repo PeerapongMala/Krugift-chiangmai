@@ -7,6 +7,8 @@ export const routes = {
   staff: '/teacher/staff',
   term: (termId: number) => `/teacher/terms/${termId}`,
   classroom: (classroomId: number) => `/teacher/classrooms/${classroomId}`,
+  classroomItems: (classroomId: number) => `/teacher/classrooms/${classroomId}/items`,
+  classroomScores: (classroomId: number) => `/teacher/classrooms/${classroomId}/scores`,
   student: '/student',
 } as const
 
