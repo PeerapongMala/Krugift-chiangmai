@@ -16,7 +16,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
-    await SeedTeachers(db, app.Configuration["TEACHER_EMAILS"]);
+    await SeedFirstOwner(db, app.Configuration["TEACHER_EMAILS"]);
 }
 
 app.UseForwardedHeaders();
@@ -35,27 +35,36 @@ app.MapFallbackToFile("index.html");
 
 app.Run();
 
-// ครูคนแรกมาจาก env TEACHER_EMAILS="a@gmail.com,b@gmail.com" เพิ่มอย่างเดียว ไม่ลบ
-static async Task SeedTeachers(AppDbContext db, string? emails)
+// สร้างครูจาก env TEACHER_EMAILS="a@gmail.com,b@gmail.com" — คนแรกในลิสต์เป็นเจ้าของ
+// ใช้ตอน bootstrap เท่านั้น ถ้ามีครูในตารางแล้วจะไม่แตะอะไรเลย
+// เหตุผล: หลัง bootstrap เจ้าของจัดการรายชื่อครูผ่าน /api/staff ถ้ายัง seed ทุกครั้งที่ start
+// ครูที่เจ้าของลบไปแล้วจะฟื้นกลับมาเองตอน restart
+static async Task SeedFirstOwner(AppDbContext db, string? emails)
 {
-    var list = (emails ?? "")
-        .Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        .Select(e => e.ToLowerInvariant())
-        .Distinct();
-    foreach (var email in list)
-        if (!await db.Teachers.AnyAsync(t => t.Email == email))
-            db.Teachers.Add(new Teacher { Email = email });
-    await db.SaveChangesAsync();
+    if (!await db.Teachers.AnyAsync())
+    {
+        var list = (emails ?? "")
+            .Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(e => e.ToLowerInvariant())
+            .Distinct()
+            .ToList();
+        if (list.Count == 0) return;
 
-    // ต้องมีเจ้าของอย่างน้อย 1 คนเสมอ ไม่งั้นจะไม่มีใครเพิ่ม/ลบครูได้เลย
+        db.Teachers.AddRange(list.Select((email, i) => new Teacher
+        {
+            Email = email,
+            Role = i == 0 ? TeacherRole.Owner : TeacherRole.Teacher,
+        }));
+        await db.SaveChangesAsync();
+        return;
+    }
+
+    // กันระบบล็อกตัวเอง: มีครูอยู่แต่ไม่เหลือเจ้าของเลย (เช่นข้อมูลถูกแก้จากนอกแอป)
     if (!await db.Teachers.AnyAsync(t => t.Role == TeacherRole.Owner))
     {
-        var first = await db.Teachers.OrderBy(t => t.Id).FirstOrDefaultAsync();
-        if (first is not null)
-        {
-            first.Role = TeacherRole.Owner;
-            await db.SaveChangesAsync();
-        }
+        var first = await db.Teachers.OrderBy(t => t.Id).FirstAsync();
+        first.Role = TeacherRole.Owner;
+        await db.SaveChangesAsync();
     }
 }
 

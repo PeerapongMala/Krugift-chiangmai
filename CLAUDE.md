@@ -23,11 +23,11 @@ cd frontend && bun install && bun run dev    # http://localhost:5173, proxy /api
 cd frontend && bun run build ; bun run lint  # lint = oxlint
 cd frontend && bunx --bun shadcn@latest add <component> -y
 ```
-Secrets ใช้ `dotnet user-secrets` (`--project backend/src/Api`) ห้ามใส่ใน appsettings: `ConnectionStrings:Default`, `Google:ClientId`, `Google:ClientSecret`, `TEACHER_EMAILS` (คั่นด้วย comma)
+Secrets ใช้ `dotnet user-secrets` (`--project backend/src/Api`) ห้ามใส่ใน appsettings: `ConnectionStrings:Default`, `Google:ClientId`, `Google:ClientSecret`, `TEACHER_EMAILS` (คั่นด้วย comma · **ใช้ตอน bootstrap เท่านั้น** คนแรกในลิสต์เป็นเจ้าของ · ถ้ามีครูในตารางแล้วจะไม่ทำอะไร หลังจากนั้นเพิ่ม/ลบครูผ่านหน้า `/teacher/staff`)
 
 ## โครงสร้าง
 ```
-backend/src/Api/Program.cs      DI, middleware, migrate + SeedTeachers ตอน start
+backend/src/Api/Program.cs      DI, middleware, migrate + SeedFirstOwner ตอน start
 backend/src/Api/Data/           Entities.cs (ทุก entity), AppDbContext.cs, Migrations/
 backend/src/Api/Auth/           AccessCode.cs (รหัสส่วนตัว + lockout), AuthSetup.cs (cookie/Google/policy/rate limit)
 backend/src/Api/Common/         TeacherScope (กัน IDOR), ScoreWriter (บังคับเขียน audit), Validate, Problems, Limits
