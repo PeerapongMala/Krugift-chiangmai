@@ -35,7 +35,7 @@ backend/src/Api/     ASP.NET Core (Program.cs, Data/, Endpoints/, Import/, Auth/
 backend/tests/       xUnit — เทสต์ import parser + การสร้าง/ตรวจรหัส
 frontend/            Vite React TS (components/ui = shadcn, pages/, components/)
 Dockerfile           multi-stage: build frontend → copy ไป Api/wwwroot → dotnet publish
-docker-compose.yml   postgres:17 + app (สำหรับเครื่องที่มี Docker)
+docker-compose.yml   postgres:18 + app (สำหรับเครื่องที่มี Docker)
 .env.example         ตัวอย่าง env ที่ต้องตั้ง (ไม่มีค่าจริง)
 .gitignore  README.md  (README อธิบายวิธีรันทั้ง 2 แบบ)
 ```
