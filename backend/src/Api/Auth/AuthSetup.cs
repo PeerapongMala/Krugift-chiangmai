@@ -55,6 +55,20 @@ public static class AuthSetup
                 // บังคับให้ Google ถามทุกครั้งว่าจะใช้บัญชีไหน
                 // ค่า default จะหยิบบัญชีที่ค้างอยู่ในเบราว์เซอร์มาใช้เงียบ ๆ ซึ่งอันตรายมาก
                 // เพราะเด็กใช้ iPad/คอมร่วมกันที่โรงเรียน คนถัดไปจะเข้าเป็นบัญชีคนก่อนโดยไม่รู้ตัว
+                // correlation cookie เดินทางกลับมาพร้อม redirect จาก Google ซึ่งเป็น GET ระดับ top-level
+                // Lax จึงส่งถึงแน่นอน และไม่ต้องพึ่ง Secure ตอน dev ที่ยังเป็น http
+                o.CorrelationCookie.SameSite = SameSiteMode.Lax;
+
+                // กันหน้า error ดิบของ ASP.NET โผล่ให้ผู้ใช้เห็น
+                // เคสที่เจอบ่อยสุดคือกดปุ่มย้อนกลับของเบราว์เซอร์ ทำให้ callback เดิมถูกยิงซ้ำ
+                // แต่ correlation cookie ใช้ได้ครั้งเดียวและถูกลบไปแล้ว -> "Correlation failed"
+                o.Events.OnRemoteFailure = ctx =>
+                {
+                    ctx.Response.Redirect("/login?error=google");
+                    ctx.HandleResponse();
+                    return Task.CompletedTask;
+                };
+
                 o.Events.OnRedirectToAuthorizationEndpoint = ctx =>
                 {
                     ctx.Response.Redirect(ctx.RedirectUri + "&prompt=select_account");

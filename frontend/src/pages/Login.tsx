@@ -15,7 +15,9 @@ export default function Login() {
     <AuthCard title="Krugift คะแนนคณิต" description="เข้าสู่ระบบเพื่อดูหรือจัดการคะแนน">
       {params.get('error') && (
         <Alert variant="destructive">
-          <AlertDescription>เข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณาลองใหม่</AlertDescription>
+          <AlertDescription>
+            เข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณากดปุ่มด้านล่างเพื่อเริ่มใหม่ (อย่ากดย้อนกลับของเบราว์เซอร์)
+          </AlertDescription>
         </Alert>
       )}
 

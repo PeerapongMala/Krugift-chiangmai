@@ -1,23 +1,15 @@
-import { useQueryClient } from '@tanstack/react-query'
 import { Navigate } from 'react-router'
 import { AuthCard } from '@/components/AuthCard'
 import { CodeForm } from '@/components/CodeForm'
-import { Button } from '@/components/ui/button'
-import { api } from '@/lib/api'
+import { buttonVariants } from '@/components/ui/button'
 import { homeOf, useMe } from '@/lib/auth'
 
 export default function Claim() {
   const { data: me, isPending } = useMe()
-  const queryClient = useQueryClient()
 
   if (isPending) return null
   if (!me) return <Navigate to="/login" replace />
   if (me.role !== 'pending') return <Navigate to={homeOf(me.role)} replace />
-
-  async function switchAccount() {
-    await api('/auth/logout', { method: 'POST' })
-    await queryClient.invalidateQueries({ queryKey: ['me'] })
-  }
 
   return (
     <AuthCard
@@ -32,9 +24,10 @@ export default function Claim() {
       <p className="text-xs text-muted-foreground">
         ถ้าคุณเป็นครูแต่มาอยู่หน้านี้ แปลว่าอีเมลนี้ยังไม่อยู่ในรายชื่อครู ให้แจ้งผู้ดูแลระบบ
       </p>
-      <Button variant="ghost" onClick={switchAccount}>
+      {/* พาไปเลือกบัญชีใหม่เลย · server ล้าง cookie เดิมและบังคับ Google ถามบัญชีให้อยู่แล้ว */}
+      <a href="/api/auth/google" className={buttonVariants({ variant: 'ghost' })}>
         ใช้บัญชี Google อื่น
-      </Button>
+      </a>
     </AuthCard>
   )
 }
