@@ -75,7 +75,7 @@ export default function Students() {
     if (!form.check(bad)) return
 
     const ok = await form.run(async () => {
-      await api(`/students/${editing.studentId}`, {
+      await api(`/classrooms/${classroomId}/students/${editing.studentId}`, {
         method: 'PATCH',
         json: { firstName: v.firstName, lastName: v.lastName, no: v.no },
       })

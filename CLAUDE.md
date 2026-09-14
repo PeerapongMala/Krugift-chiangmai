@@ -16,7 +16,9 @@
 ## คำสั่ง
 ```bash
 dotnet tool restore                          # dotnet-ef (local tool, ต้องรันจาก root)
-dotnet build ; dotnet test
+dotnet build ; dotnet test                   # unit test (ฟังก์ชันบริสุทธิ์)
+python backend/tests/e2e/api_tests.py        # e2e + snapshot 125 เคส (ต้องรัน API ก่อน)
+python backend/tests/e2e/api_tests.py --update   # บันทึก snapshot ใหม่เมื่อเปลี่ยนโดยตั้งใจ
 dotnet run --project backend/src/Api         # http://localhost:5080, migrate + seed ครูตอน start
 dotnet ef migrations add <Name> --project backend/src/Api -o Data/Migrations
 cd frontend && bun install && bun run dev    # http://localhost:5173, proxy /api → 5080

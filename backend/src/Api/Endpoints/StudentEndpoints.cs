@@ -85,7 +85,9 @@ public static class StudentEndpoints
             });
         });
 
-        g.MapPatch("/students/{id:int}", async (int id, EditStudentRequest req, ClaimsPrincipal user, AppDbContext db) =>
+        // ต้องระบุห้องด้วย เพราะนักเรียนคนเดียวอยู่ได้หลายห้องและมีเลขที่คนละตัวในแต่ละห้อง
+        g.MapPatch("/classrooms/{classroomId:int}/students/{id:int}",
+            async (int classroomId, int id, EditStudentRequest req, ClaimsPrincipal user, AppDbContext db) =>
         {
             var error = Validate.Name(req.FirstName, "ชื่อนักเรียน")
                         ?? Validate.Name(req.LastName, "นามสกุลนักเรียน")
@@ -94,11 +96,11 @@ public static class StudentEndpoints
 
             var enrollment = await db.EnrollmentsOf(user)
                 .Include(e => e.Student)
-                .FirstOrDefaultAsync(e => e.StudentId == id);
-            if (enrollment is null) return Problems.NotFound("นักเรียนคนนี้");
+                .FirstOrDefaultAsync(e => e.ClassroomId == classroomId && e.StudentId == id);
+            if (enrollment is null) return Problems.NotFound("นักเรียนคนนี้ในห้องนี้");
 
             if (await db.Enrollments.AnyAsync(e =>
-                    e.ClassroomId == enrollment.ClassroomId && e.No == req.No && e.StudentId != id))
+                    e.ClassroomId == classroomId && e.No == req.No && e.StudentId != id))
                 return Problems.Conflict($"มีนักเรียนเลขที่ {req.No} ในห้องนี้แล้ว");
 
             enrollment.Student.FirstName = req.FirstName.Trim();
