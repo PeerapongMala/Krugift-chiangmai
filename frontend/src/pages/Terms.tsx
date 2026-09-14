@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
+import { validate } from '@/lib/validate'
 
 type Term = { id: number; name: string; createdAt: string; classroomCount: number }
 
@@ -26,8 +27,11 @@ export default function Terms() {
   const refresh = () => queryClient.invalidateQueries({ queryKey: qk.terms })
 
   async function create(f: FormData) {
+    const name = String(f.get('name') ?? '')
+    if (!form.check(validate.name(name, 'เทอม'))) return
+
     const ok = await form.run(async () => {
-      await api('/terms', { method: 'POST', json: { name: f.get('name') } })
+      await api('/terms', { method: 'POST', json: { name } })
       await refresh()
     })
     if (ok) setAdding(false)
@@ -35,8 +39,11 @@ export default function Terms() {
 
   async function rename(f: FormData) {
     if (!editing) return
+    const name = String(f.get('name') ?? '')
+    if (!form.check(validate.name(name, 'เทอม'))) return
+
     const ok = await form.run(async () => {
-      await api(`/terms/${editing.id}`, { method: 'PATCH', json: { name: f.get('name') } })
+      await api(`/terms/${editing.id}`, { method: 'PATCH', json: { name } })
       await refresh()
     })
     if (ok) setEditing(null)

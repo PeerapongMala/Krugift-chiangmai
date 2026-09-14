@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ApiError } from '@/lib/api'
+import { errorMessage } from '@/lib/api'
 
 /**
  * จัดการสถานะ busy/error ของการส่งฟอร์ม
@@ -17,12 +17,22 @@ export function useSubmit() {
       await action()
       return true
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'เกิดข้อผิดพลาด กรุณาลองใหม่')
+      setError(errorMessage(err))
       return false
     } finally {
       setBusy(false)
     }
   }
 
-  return { busy, error, setError, run }
+  /** ตรวจ input ก่อนยิง API · ถ้าไม่ผ่านจะโชว์ error แล้วคืน false */
+  function check(message: string | null): boolean {
+    if (message) {
+      setError(message)
+      return false
+    }
+    setError('')
+    return true
+  }
+
+  return { busy, error, setError, run, check }
 }

@@ -12,6 +12,7 @@ import { api } from '@/lib/api'
 import { useMe } from '@/lib/auth'
 import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
+import { validate } from '@/lib/validate'
 
 type StaffRole = 'Owner' | 'Teacher'
 type Staff = { id: number; email: string; name: string; role: StaffRole; isMe: boolean }
@@ -40,8 +41,11 @@ export default function StaffPage() {
   const refresh = () => queryClient.invalidateQueries({ queryKey: qk.staff })
 
   async function add(form: FormData) {
+    const email = String(form.get('email') ?? '')
+    if (!addForm.check(validate.email(email))) return
+
     const ok = await addForm.run(async () => {
-      await api('/staff', { method: 'POST', json: { email: form.get('email'), role: 'Teacher' } })
+      await api('/staff', { method: 'POST', json: { email, role: 'Teacher' } })
       await refresh()
     })
     if (ok) setAdding(false)

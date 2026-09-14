@@ -2,7 +2,7 @@ import type { UseQueryResult } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { Mascot } from '@/components/Mascot'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { ApiError } from '@/lib/api'
+import { errorMessage } from '@/lib/api'
 
 /**
  * ครอบสถานะ loading / error / ไม่มีข้อมูล ของ TanStack Query ไว้ที่เดียว
@@ -22,7 +22,7 @@ export function QueryState<T>({
   }
 
   if (query.isError) {
-    const message = query.error instanceof ApiError ? query.error.message : 'โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่'
+    const message = errorMessage(query.error)
     return (
       <Alert variant="destructive">
         <AlertDescription>{message}</AlertDescription>

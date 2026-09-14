@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
+import { validate } from '@/lib/validate'
 
 type Classroom = { id: number; name: string; studentCount: number; itemCount: number }
 
@@ -36,8 +37,11 @@ export default function Classrooms() {
     ])
 
   async function create(f: FormData) {
+    const name = String(f.get('name') ?? '')
+    if (!form.check(validate.name(name, 'ห้องเรียน'))) return
+
     const ok = await form.run(async () => {
-      await api(`/terms/${termId}/classrooms`, { method: 'POST', json: { name: f.get('name') } })
+      await api(`/terms/${termId}/classrooms`, { method: 'POST', json: { name } })
       await refresh()
     })
     if (ok) setAdding(false)
@@ -45,8 +49,11 @@ export default function Classrooms() {
 
   async function rename(f: FormData) {
     if (!editing) return
+    const name = String(f.get('name') ?? '')
+    if (!form.check(validate.name(name, 'ห้องเรียน'))) return
+
     const ok = await form.run(async () => {
-      await api(`/classrooms/${editing.id}`, { method: 'PATCH', json: { name: f.get('name') } })
+      await api(`/classrooms/${editing.id}`, { method: 'PATCH', json: { name } })
       await refresh()
     })
     if (ok) setEditing(null)
