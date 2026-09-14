@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Api.Auth;
+using Api.Common;
 using Api.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -7,13 +8,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Endpoints;
 
-public record CodeLoginRequest(string StudentCode, string Code);
+public record ClaimRequest(string StudentCode);
 
 public static class AuthEndpoints
 {
-    const string WrongCode = "รหัสนักเรียนหรือรหัสส่วนตัวไม่ถูกต้อง";
-    const string Locked = "ใส่รหัสผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่";
-
     public static void MapAuth(this WebApplication app)
     {
         var g = app.MapGroup("/api/auth");
@@ -27,9 +25,12 @@ public static class AuthEndpoints
                     name = http.User.FindFirstValue(ClaimTypes.Name),
                     isOwner = http.User.IsOwner(),
                 });
+
             // ล็อกอิน Google แล้วแต่ยังไม่ได้ผูกกับนักเรียน
             var ext = await http.AuthenticateAsync(AuthSetup.External);
-            return ext.Succeeded ? Results.Ok(new { role = "pending", name = ext.Principal.FindFirstValue(ClaimTypes.Email) }) : Results.Unauthorized();
+            return ext.Succeeded
+                ? Results.Ok(new { role = "pending", name = ext.Principal.FindFirstValue(ClaimTypes.Email), isOwner = false })
+                : Results.Unauthorized();
         });
 
         g.MapGet("/google", async (HttpContext http, IAuthenticationSchemeProvider schemes) =>
@@ -53,7 +54,16 @@ public static class AuthEndpoints
             var teacher = email is null ? null : await db.Teachers.FirstOrDefaultAsync(t => t.Email == email);
             if (teacher is not null)
             {
-                await SignIn(http, AuthSetup.Teacher, teacher.Id, teacher.Name is "" ? teacher.Email : teacher.Name, teacher.Role is TeacherRole.Owner);
+                // เก็บชื่อจาก Google ไว้แสดงผล จะได้ไม่ต้องโชว์อีเมลเปล่า ๆ
+                var displayName = ext.Principal.FindFirstValue(ClaimTypes.Name);
+                if (!string.IsNullOrWhiteSpace(displayName) && teacher.Name != displayName)
+                {
+                    teacher.Name = displayName;
+                    await db.SaveChangesAsync();
+                }
+
+                await SignIn(http, AuthSetup.Teacher, teacher.Id,
+                    teacher.Name is "" ? teacher.Email : teacher.Name, teacher.Role is TeacherRole.Owner);
                 return Results.Redirect("/teacher");
             }
 
@@ -67,31 +77,29 @@ public static class AuthEndpoints
             return Results.Redirect("/claim"); // เก็บ External cookie ไว้ใช้ตอน claim
         });
 
-        g.MapPost("/claim", async (CodeLoginRequest req, HttpContext http, AppDbContext db) =>
+        // ผูกบัญชี Google กับนักเรียนครั้งแรก — กรอกแค่รหัสนักเรียน
+        // ตัวยืนยันตัวตนจริงคือบัญชี Google ของเจ้าตัว รหัสนักเรียนเป็นแค่ตัวชี้ว่าเป็นใครในระบบ
+        g.MapPost("/claim", async (ClaimRequest req, HttpContext http, AppDbContext db) =>
         {
             var ext = await http.AuthenticateAsync(AuthSetup.External);
             if (!ext.Succeeded) return Results.Unauthorized();
             var sub = ext.Principal.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-            var (student, error) = await Verify(db, req);
-            if (student is null) return Results.Problem(error, statusCode: 400);
+            if (Validate.StudentCode(req.StudentCode) is { } error) return Problems.Invalid(error);
+            var code = req.StudentCode.Trim();
+
+            var student = await db.Students.FirstOrDefaultAsync(s => s.StudentCode == code);
+            if (student is null)
+                return Problems.Invalid("ไม่พบรหัสนักเรียนนี้ในระบบ กรุณาตรวจสอบตัวเลขอีกครั้ง หรือติดต่อครู");
 
             if (student.GoogleSub is not null && student.GoogleSub != sub)
-                return Results.Problem("นักเรียนคนนี้ผูกกับบัญชี Google อื่นไปแล้ว กรุณาติดต่อครู", statusCode: 409);
+                return Problems.Conflict("รหัสนักเรียนนี้ผูกกับบัญชี Google อื่นไปแล้ว กรุณาให้ครูยกเลิกการผูกก่อน");
+
             if (await db.Students.AnyAsync(s => s.GoogleSub == sub && s.Id != student.Id))
-                return Results.Problem("บัญชี Google นี้ผูกกับนักเรียนคนอื่นไปแล้ว", statusCode: 409);
+                return Problems.Conflict("บัญชี Google นี้ผูกกับนักเรียนคนอื่นไปแล้ว");
 
             student.GoogleSub = sub;
             await db.SaveChangesAsync();
-            await SignIn(http, AuthSetup.Student, student.Id, $"{student.FirstName} {student.LastName}");
-            return Results.Ok(new { role = AuthSetup.Student });
-        }).RequireRateLimiting(AuthSetup.LoginLimit);
-
-        g.MapPost("/code-login", async (CodeLoginRequest req, HttpContext http, AppDbContext db) =>
-        {
-            var (student, error) = await Verify(db, req);
-            if (student is null) return Results.Problem(error, statusCode: 400);
-
             await SignIn(http, AuthSetup.Student, student.Id, $"{student.FirstName} {student.LastName}");
             return Results.Ok(new { role = AuthSetup.Student });
         }).RequireRateLimiting(AuthSetup.LoginLimit);
@@ -105,13 +113,22 @@ public static class AuthEndpoints
 
         if (app.Environment.IsDevelopment())
         {
-            // เอาไว้ทดสอบบนเครื่องตอนยังไม่มี Google OAuth — มีเฉพาะ Development
+            // ใช้ทดสอบบนเครื่องโดยไม่ต้องตั้ง Google OAuth — มีเฉพาะ Development
             g.MapPost("/dev-login", async (string email, HttpContext http, AppDbContext db) =>
             {
                 var t = await db.Teachers.FirstOrDefaultAsync(x => x.Email == email.ToLowerInvariant());
                 if (t is null) return Results.NotFound();
                 await SignIn(http, AuthSetup.Teacher, t.Id, t.Email, t.Role is TeacherRole.Owner);
                 return Results.Ok(new { role = AuthSetup.Teacher });
+            });
+
+            // ทดสอบสิทธิ์ฝั่งนักเรียนโดยไม่ต้องมีบัญชี Google
+            g.MapPost("/dev-login-student", async (string studentCode, HttpContext http, AppDbContext db) =>
+            {
+                var s = await db.Students.FirstOrDefaultAsync(x => x.StudentCode == studentCode);
+                if (s is null) return Results.NotFound();
+                await SignIn(http, AuthSetup.Student, s.Id, $"{s.FirstName} {s.LastName}");
+                return Results.Ok(new { role = AuthSetup.Student });
             });
         }
     }
@@ -120,19 +137,5 @@ public static class AuthEndpoints
     {
         await http.SignOutAsync(AuthSetup.External);
         await http.SignInAsync(role, id, name, isOwner);
-    }
-
-    static async Task<(Student? Student, string Error)> Verify(AppDbContext db, CodeLoginRequest req)
-    {
-        var code = req.StudentCode?.Trim() ?? "";
-        var student = await db.Students.FirstOrDefaultAsync(s => s.StudentCode == code);
-        if (student is null) return (null, WrongCode);
-
-        var now = DateTime.UtcNow;
-        if (AccessCode.IsLocked(student, now)) return (null, Locked);
-
-        var ok = AccessCode.TryVerify(student, req.Code ?? "", now);
-        await db.SaveChangesAsync();
-        return ok ? (student, "") : (null, AccessCode.IsLocked(student, now) ? Locked : WrongCode);
     }
 }

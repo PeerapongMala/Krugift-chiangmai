@@ -21,6 +21,19 @@ public static class Validate
         return MailAddress.TryCreate(email, out _) ? null : "รูปแบบอีเมลไม่ถูกต้อง";
     }
 
+    /// รหัสนักเรียนของโรงเรียน · เป็นตัวชี้ว่าเป็นใคร ไม่ใช่ความลับ ตัวยืนยันตัวตนจริงคือบัญชี Google
+    public static string? StudentCode(string? value)
+    {
+        var code = value?.Trim();
+        if (string.IsNullOrEmpty(code)) return "กรุณากรอกรหัสนักเรียน";
+        if (code.Length > Limits.StudentCodeLength) return $"รหัสนักเรียนยาวเกิน {Limits.StudentCodeLength} ตัวอักษร";
+        return code.All(char.IsLetterOrDigit) ? null : "รหัสนักเรียนใช้ได้เฉพาะตัวเลขและตัวอักษร";
+    }
+
+    /// เลขที่ในห้อง
+    public static string? No(int value) =>
+        value is < 1 or > Limits.MaxStudentNo ? $"เลขที่ต้องอยู่ระหว่าง 1 ถึง {Limits.MaxStudentNo}" : null;
+
     public static string? Message(string? value) => value?.Trim() switch
     {
         null or "" => "กรุณากรอกข้อความ",

@@ -10,6 +10,7 @@
 export const LIMITS = {
   name: 200,
   message: 2000,
+  studentCode: 20,
   scoreCeiling: 9999.99,
 } as const
 
@@ -29,6 +30,14 @@ export const validate = {
     if (v.length > LIMITS.name) return `อีเมลยาวเกิน ${LIMITS.name} ตัวอักษร`
     // เช็คหยาบ ๆ พอให้รู้ตัวเร็ว ตัวตัดสินจริงคือ MailAddress ฝั่ง backend
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'รูปแบบอีเมลไม่ถูกต้อง'
+    return null
+  },
+
+  studentCode(value: string | null | undefined): string | null {
+    const v = trimmed(value)
+    if (!v) return 'กรุณากรอกรหัสนักเรียน'
+    if (v.length > LIMITS.studentCode) return `รหัสนักเรียนยาวเกิน ${LIMITS.studentCode} ตัวอักษร`
+    if (!/^[A-Za-z0-9]+$/.test(v)) return 'รหัสนักเรียนใช้ได้เฉพาะตัวเลขและตัวอักษร'
     return null
   },
 

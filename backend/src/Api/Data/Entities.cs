@@ -40,9 +40,6 @@ public class Student
     public required string FirstName { get; set; }
     public required string LastName { get; set; }
     public string? GoogleSub { get; set; }
-    public required string CodeHash { get; set; }
-    public int FailedAttempts { get; set; }
-    public DateTime? LockedUntil { get; set; }
 }
 
 public class Enrollment

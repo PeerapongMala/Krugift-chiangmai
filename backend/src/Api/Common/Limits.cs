@@ -14,4 +14,10 @@ public static class Limits
 
     /// กันไฟล์ Excel ที่ใหญ่ผิดปกติ (ห้องนึงมีไม่เกิน ~50 คน เผื่อไว้เยอะแล้ว)
     public const int ImportMaxRows = 2000;
+
+    /// รหัสนักเรียนของโรงเรียน เช่น 12345
+    public const int StudentCodeLength = 20;
+
+    /// เลขที่ในห้อง
+    public const int MaxStudentNo = 999;
 }

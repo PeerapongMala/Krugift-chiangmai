@@ -1,6 +1,5 @@
 import { Navigate, useSearchParams } from 'react-router'
 import { AuthCard } from '@/components/AuthCard'
-import { CodeForm } from '@/components/CodeForm'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { buttonVariants } from '@/components/ui/button'
 import { homeOf, useMe } from '@/lib/auth'
@@ -27,13 +26,9 @@ export default function Login() {
         เข้าสู่ระบบด้วย Google
       </a>
 
-      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-        <span className="h-px flex-1 bg-border" />
-        นักเรียนที่ไม่มี Google ใช้รหัสนักเรียน
-        <span className="h-px flex-1 bg-border" />
-      </div>
-
-      <CodeForm endpoint="/auth/code-login" submitLabel="เข้าสู่ระบบ" />
+      <p className="text-center text-xs text-muted-foreground">
+        นักเรียนเข้าครั้งแรกจะให้กรอกรหัสนักเรียนเพื่อผูกกับบัญชี Google ครั้งเดียว
+      </p>
     </AuthCard>
   )
 }
