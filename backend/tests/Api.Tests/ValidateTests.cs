@@ -9,19 +9,19 @@ public class ValidateTests
     [InlineData("")]
     [InlineData("   ")]
     public void Name_ว่าง_ต้องไม่ผ่าน(string? value) =>
-        Assert.Equal("กรุณากรอกชื่อเทอม", Validate.Name(value, "เทอม"));
+        Assert.Equal("กรุณากรอกชื่อเทอม", Validate.Name(value, "ชื่อเทอม"));
 
     [Fact]
     public void Name_ยาวเกิน_ต้องไม่ผ่าน() =>
-        Assert.NotNull(Validate.Name(new string('ก', Limits.NameLength + 1), "ห้องเรียน"));
+        Assert.NotNull(Validate.Name(new string('ก', Limits.NameLength + 1), "ชื่อห้องเรียน"));
 
     [Fact]
     public void Name_ยาวพอดีขอบ_ต้องผ่าน() =>
-        Assert.Null(Validate.Name(new string('ก', Limits.NameLength), "ห้องเรียน"));
+        Assert.Null(Validate.Name(new string('ก', Limits.NameLength), "ชื่อห้องเรียน"));
 
     [Fact]
     public void Name_มีช่องว่างหน้าหลัง_ตัดแล้วต้องผ่าน() =>
-        Assert.Null(Validate.Name("  ม.2/1  ", "ห้องเรียน"));
+        Assert.Null(Validate.Name("  ม.2/1  ", "ชื่อห้องเรียน"));
 
     [Theory]
     [InlineData(null)]

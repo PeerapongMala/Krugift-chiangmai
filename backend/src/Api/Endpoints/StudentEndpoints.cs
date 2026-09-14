@@ -40,8 +40,8 @@ public static class StudentEndpoints
         g.MapPost("/classrooms/{id:int}/students", async (int id, AddStudentRequest req, ClaimsPrincipal user, AppDbContext db) =>
         {
             var error = Validate.StudentCode(req.StudentCode)
-                        ?? Validate.Name(req.FirstName, "นักเรียน")
-                        ?? Validate.Name(req.LastName, "สกุลนักเรียน")
+                        ?? Validate.Name(req.FirstName, "ชื่อนักเรียน")
+                        ?? Validate.Name(req.LastName, "นามสกุลนักเรียน")
                         ?? Validate.No(req.No);
             if (error is not null) return Problems.Invalid(error);
 
@@ -87,8 +87,8 @@ public static class StudentEndpoints
 
         g.MapPatch("/students/{id:int}", async (int id, EditStudentRequest req, ClaimsPrincipal user, AppDbContext db) =>
         {
-            var error = Validate.Name(req.FirstName, "นักเรียน")
-                        ?? Validate.Name(req.LastName, "สกุลนักเรียน")
+            var error = Validate.Name(req.FirstName, "ชื่อนักเรียน")
+                        ?? Validate.Name(req.LastName, "นามสกุลนักเรียน")
                         ?? Validate.No(req.No);
             if (error is not null) return Problems.Invalid(error);
 

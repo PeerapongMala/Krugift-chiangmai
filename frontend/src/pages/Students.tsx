@@ -56,8 +56,8 @@ export default function Students() {
     const v = read(f)
     const bad = firstError(
       validate.studentCode(v.studentCode),
-      validate.name(v.firstName, 'นักเรียน'),
-      validate.name(v.lastName, 'สกุลนักเรียน'),
+      validate.name(v.firstName, 'ชื่อนักเรียน'),
+      validate.name(v.lastName, 'นามสกุลนักเรียน'),
     )
     if (!form.check(bad)) return
 
@@ -71,7 +71,7 @@ export default function Students() {
   async function save(f: FormData) {
     if (!editing) return
     const v = read(f)
-    const bad = firstError(validate.name(v.firstName, 'นักเรียน'), validate.name(v.lastName, 'สกุลนักเรียน'))
+    const bad = firstError(validate.name(v.firstName, 'ชื่อนักเรียน'), validate.name(v.lastName, 'นามสกุลนักเรียน'))
     if (!form.check(bad)) return
 
     const ok = await form.run(async () => {

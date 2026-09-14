@@ -19,8 +19,8 @@ const trimmed = (value: string | null | undefined) => (value ?? '').trim()
 export const validate = {
   name(value: string | null | undefined, what: string): string | null {
     const v = trimmed(value)
-    if (!v) return `กรุณากรอกชื่อ${what}`
-    if (v.length > LIMITS.name) return `ชื่อ${what}ยาวเกิน ${LIMITS.name} ตัวอักษร`
+    if (!v) return `กรุณากรอก${what}`
+    if (v.length > LIMITS.name) return `${what}ยาวเกิน ${LIMITS.name} ตัวอักษร`
     return null
   },
 

@@ -8,8 +8,8 @@ public static class Validate
 {
     public static string? Name(string? value, string what) => value?.Trim() switch
     {
-        null or "" => $"กรุณากรอกชื่อ{what}",
-        { Length: > Limits.NameLength } => $"ชื่อ{what}ยาวเกิน {Limits.NameLength} ตัวอักษร",
+        null or "" => $"กรุณากรอก{what}",
+        { Length: > Limits.NameLength } => $"{what}ยาวเกิน {Limits.NameLength} ตัวอักษร",
         _ => null,
     };
 

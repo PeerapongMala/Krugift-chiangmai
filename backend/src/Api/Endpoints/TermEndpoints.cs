@@ -25,7 +25,7 @@ public static class TermEndpoints
 
         g.MapPost("/terms", async (NameRequest req, ClaimsPrincipal user, AppDbContext db) =>
         {
-            if (Validate.Name(req.Name, "เทอม") is { } error) return Problems.Invalid(error);
+            if (Validate.Name(req.Name, "ชื่อเทอม") is { } error) return Problems.Invalid(error);
 
             var name = req.Name.Trim();
             var teacherId = user.UserId();
@@ -40,7 +40,7 @@ public static class TermEndpoints
 
         g.MapPatch("/terms/{id:int}", async (int id, NameRequest req, ClaimsPrincipal user, AppDbContext db) =>
         {
-            if (Validate.Name(req.Name, "เทอม") is { } error) return Problems.Invalid(error);
+            if (Validate.Name(req.Name, "ชื่อเทอม") is { } error) return Problems.Invalid(error);
 
             var term = await db.FindTerm(user, id);
             if (term is null) return Problems.NotFound("เทอมนี้");
@@ -89,7 +89,7 @@ public static class TermEndpoints
 
         g.MapPost("/terms/{termId:int}/classrooms", async (int termId, NameRequest req, ClaimsPrincipal user, AppDbContext db) =>
         {
-            if (Validate.Name(req.Name, "ห้องเรียน") is { } error) return Problems.Invalid(error);
+            if (Validate.Name(req.Name, "ชื่อห้องเรียน") is { } error) return Problems.Invalid(error);
             if (await db.FindTerm(user, termId) is null) return Problems.NotFound("เทอมนี้");
 
             var name = req.Name.Trim();
@@ -104,7 +104,7 @@ public static class TermEndpoints
 
         g.MapPatch("/classrooms/{id:int}", async (int id, NameRequest req, ClaimsPrincipal user, AppDbContext db) =>
         {
-            if (Validate.Name(req.Name, "ห้องเรียน") is { } error) return Problems.Invalid(error);
+            if (Validate.Name(req.Name, "ชื่อห้องเรียน") is { } error) return Problems.Invalid(error);
 
             var room = await db.FindClassroom(user, id);
             if (room is null) return Problems.NotFound("ห้องเรียนนี้");

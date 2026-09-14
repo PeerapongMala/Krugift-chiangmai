@@ -38,7 +38,7 @@ export default function Classrooms() {
 
   async function create(f: FormData) {
     const name = String(f.get('name') ?? '')
-    if (!form.check(validate.name(name, 'ห้องเรียน'))) return
+    if (!form.check(validate.name(name, 'ชื่อห้องเรียน'))) return
 
     const ok = await form.run(async () => {
       await api(`/terms/${termId}/classrooms`, { method: 'POST', json: { name } })
@@ -50,7 +50,7 @@ export default function Classrooms() {
   async function rename(f: FormData) {
     if (!editing) return
     const name = String(f.get('name') ?? '')
-    if (!form.check(validate.name(name, 'ห้องเรียน'))) return
+    if (!form.check(validate.name(name, 'ชื่อห้องเรียน'))) return
 
     const ok = await form.run(async () => {
       await api(`/classrooms/${editing.id}`, { method: 'PATCH', json: { name } })

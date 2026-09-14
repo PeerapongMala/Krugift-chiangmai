@@ -28,7 +28,7 @@ export default function Terms() {
 
   async function create(f: FormData) {
     const name = String(f.get('name') ?? '')
-    if (!form.check(validate.name(name, 'เทอม'))) return
+    if (!form.check(validate.name(name, 'ชื่อเทอม'))) return
 
     const ok = await form.run(async () => {
       await api('/terms', { method: 'POST', json: { name } })
@@ -40,7 +40,7 @@ export default function Terms() {
   async function rename(f: FormData) {
     if (!editing) return
     const name = String(f.get('name') ?? '')
-    if (!form.check(validate.name(name, 'เทอม'))) return
+    if (!form.check(validate.name(name, 'ชื่อเทอม'))) return
 
     const ok = await form.run(async () => {
       await api(`/terms/${editing.id}`, { method: 'PATCH', json: { name } })
