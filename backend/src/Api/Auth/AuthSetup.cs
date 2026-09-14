@@ -48,6 +48,10 @@ public static class AuthSetup
                 o.ClientId = google["ClientId"]!;
                 o.ClientSecret = google["ClientSecret"]!;
                 o.SignInScheme = External;
+                // ค่า default คือ /signin-google ซึ่งอยู่นอก /api ทำให้ตอน dev ที่เปิดผ่าน Vite (5173)
+                // Google จะ redirect กลับมาที่ 5173/signin-google ซึ่ง Vite ไม่ได้ proxy ไปหา API -> 404
+                // ย้ายมาไว้ใต้ /api ให้ proxy ส่งต่อได้ และบน production (origin เดียวกัน) ก็ใช้ path นี้เหมือนกัน
+                o.CallbackPath = "/api/signin-google";
             });
 
         builder.Services.AddAuthorizationBuilder()

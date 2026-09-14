@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Api.Auth;
 using Api.Data;
 using Api.Endpoints;
@@ -8,6 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(o =>
     o.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddProblemDetails();
+// enum ใน JSON ใช้ชื่อ ไม่ใช่ตัวเลข — ฝั่งเว็บจะได้ส่ง {"role":"Owner"} และอ่านค่ากลับมาแบบเดียวกัน
+builder.Services.ConfigureHttpJsonOptions(o =>
+    o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.AddAppAuth();
 
 var app = builder.Build();
