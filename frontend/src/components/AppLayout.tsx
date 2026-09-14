@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Outlet, useNavigate } from 'react-router'
+import { Credit } from '@/components/Credit'
 import { Mascot } from '@/components/Mascot'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
@@ -18,7 +19,7 @@ export function AppLayout() {
   }
 
   return (
-    <div className="min-h-svh">
+    <div className="flex min-h-svh flex-col">
       <header className="border-b bg-card">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
           <span className="flex min-w-0 items-center gap-2 font-semibold">
@@ -33,9 +34,14 @@ export function AppLayout() {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-6">
+
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
         <Outlet />
       </main>
+
+      <footer className="px-4 py-6">
+        <Credit />
+      </footer>
     </div>
   )
 }
