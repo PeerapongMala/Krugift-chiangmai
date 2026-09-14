@@ -39,6 +39,8 @@ app.MapAuth();
 app.MapStaff();
 app.MapTerms();
 app.MapStudents();
+app.MapItems();
+app.MapScores();
 
 // หน้าเว็บที่ build แล้ว (frontend/dist) ถูก copy มาไว้ใน wwwroot ตอน build Docker
 app.MapFallbackToFile("index.html");
