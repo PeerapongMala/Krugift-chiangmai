@@ -492,3 +492,7 @@ src/Api/wwwroot/
 *.csv
 *.dump
 *.sql.gpg
+
+# Claude Code — ค่าส่วนตัวของแต่ละเครื่อง
+CLAUDE.local.md
+.claude/settings.local.json
