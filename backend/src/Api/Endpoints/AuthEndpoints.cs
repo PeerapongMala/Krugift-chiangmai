@@ -32,10 +32,15 @@ public static class AuthEndpoints
             return ext.Succeeded ? Results.Ok(new { role = "pending", name = ext.Principal.FindFirstValue(ClaimTypes.Email) }) : Results.Unauthorized();
         });
 
-        g.MapGet("/google", async (IAuthenticationSchemeProvider schemes) =>
-            await schemes.GetSchemeAsync("Google") is null
-                ? Results.Problem("ยังไม่ได้ตั้งค่า Google login", statusCode: 503)
-                : Results.Challenge(new AuthenticationProperties { RedirectUri = "/api/auth/google/done" }, ["Google"]));
+        g.MapGet("/google", async (HttpContext http, IAuthenticationSchemeProvider schemes) =>
+        {
+            if (await schemes.GetSchemeAsync("Google") is null)
+                return Results.Problem("ยังไม่ได้ตั้งค่า Google login", statusCode: 503);
+
+            // ล้าง cookie ชั่วคราวของรอบก่อน กันสถานะค้างจากการล็อกอินที่ทำไม่จบ
+            await http.SignOutAsync(AuthSetup.External);
+            return Results.Challenge(new AuthenticationProperties { RedirectUri = "/api/auth/google/done" }, ["Google"]);
+        });
 
         g.MapGet("/google/done", async (HttpContext http, AppDbContext db) =>
         {

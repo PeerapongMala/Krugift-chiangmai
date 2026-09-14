@@ -52,6 +52,14 @@ public static class AuthSetup
                 // Google จะ redirect กลับมาที่ 5173/signin-google ซึ่ง Vite ไม่ได้ proxy ไปหา API -> 404
                 // ย้ายมาไว้ใต้ /api ให้ proxy ส่งต่อได้ และบน production (origin เดียวกัน) ก็ใช้ path นี้เหมือนกัน
                 o.CallbackPath = "/api/signin-google";
+                // บังคับให้ Google ถามทุกครั้งว่าจะใช้บัญชีไหน
+                // ค่า default จะหยิบบัญชีที่ค้างอยู่ในเบราว์เซอร์มาใช้เงียบ ๆ ซึ่งอันตรายมาก
+                // เพราะเด็กใช้ iPad/คอมร่วมกันที่โรงเรียน คนถัดไปจะเข้าเป็นบัญชีคนก่อนโดยไม่รู้ตัว
+                o.Events.OnRedirectToAuthorizationEndpoint = ctx =>
+                {
+                    ctx.Response.Redirect(ctx.RedirectUri + "&prompt=select_account");
+                    return Task.CompletedTask;
+                };
             });
 
         builder.Services.AddAuthorizationBuilder()
