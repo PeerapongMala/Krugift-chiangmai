@@ -45,7 +45,7 @@ export function AppLayout() {
         <Outlet />
       </main>
 
-      <footer className="px-4 py-6">
+      <footer className="px-4 pt-2 pb-4">
         <Credit />
       </footer>
     </div>
