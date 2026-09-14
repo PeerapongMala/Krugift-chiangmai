@@ -33,6 +33,7 @@ app.UseRateLimiter();
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 app.MapAuth();
 app.MapStaff();
+app.MapTerms();
 
 // หน้าเว็บที่ build แล้ว (frontend/dist) ถูก copy มาไว้ใน wwwroot ตอน build Docker
 app.MapFallbackToFile("index.html");
