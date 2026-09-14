@@ -9,6 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(o =>
     o.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddProblemDetails();
+// ถ้า body พังตั้งแต่ชั้น model binding (ไม่ใช่ JSON / ว่าง / enum ไม่รู้จัก)
+// ค่า default จะโยน exception แล้วข้อความภายในภาษาอังกฤษของ ASP.NET จะรั่วไปถึงผู้ใช้
+// ปิดไว้ให้ตอบ 400 เปล่า ๆ แทน แล้วฝั่งเว็บจะเติมข้อความไทยตามรหัสสถานะเอง
+builder.Services.Configure<RouteHandlerOptions>(o => o.ThrowOnBadRequest = false);
 // enum ใน JSON ใช้ชื่อ ไม่ใช่ตัวเลข — ฝั่งเว็บจะได้ส่ง {"role":"Owner"} และอ่านค่ากลับมาแบบเดียวกัน
 builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
