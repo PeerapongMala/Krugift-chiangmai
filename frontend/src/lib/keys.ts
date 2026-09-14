@@ -4,6 +4,7 @@ export const routes = {
   login: '/login',
   claim: '/claim',
   teacher: '/teacher',
+  staff: '/teacher/staff',
   student: '/student',
 } as const
 
@@ -14,6 +15,8 @@ export const routes = {
  */
 export const qk = {
   me: ['me'] as const,
+
+  staff: ['staff'] as const,
 
   terms: ['terms'] as const,
   term: (termId: number) => ['terms', termId] as const,

@@ -4,7 +4,7 @@ import { qk, routes } from '@/lib/keys'
 
 /** pending = ล็อกอิน Google แล้วแต่ยังไม่ได้ผูกกับนักเรียน */
 export type Role = 'teacher' | 'student' | 'pending'
-export type Me = { role: Role; name: string }
+export type Me = { role: Role; name: string; isOwner: boolean }
 
 export function useMe() {
   return useQuery({

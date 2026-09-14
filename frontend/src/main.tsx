@@ -7,6 +7,7 @@ import { AppLayout } from '@/components/AppLayout'
 import { RequireRole } from '@/components/RequireRole'
 import Claim from '@/pages/Claim'
 import Login from '@/pages/Login'
+import StaffPage from '@/pages/Staff'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
@@ -21,7 +22,10 @@ const router = createBrowserRouter([
       {
         element: <AppLayout />,
         // ponytail: หน้าชั่วคราว จะแทนด้วยหน้าจริงใน milestone ครู
-        children: [{ path: '/teacher', element: <p>หน้าครู — กำลังทำ</p> }],
+        children: [
+          { path: '/teacher', element: <p>หน้าครู — กำลังทำ</p> },
+          { path: '/teacher/staff', element: <StaffPage /> },
+        ],
       },
     ],
   },

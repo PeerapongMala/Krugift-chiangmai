@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Outlet, useNavigate } from 'react-router'
+import { Link, Outlet, useNavigate } from 'react-router'
 import { Credit } from '@/components/Credit'
 import { Mascot } from '@/components/Mascot'
 import { Button } from '@/components/ui/button'
@@ -26,8 +26,14 @@ export function AppLayout() {
             <Mascot name="orange" priority className="h-9 w-auto shrink-0" />
             <span className="truncate">Krugift คะแนนคณิต</span>
           </span>
-          <div className="flex min-w-0 items-center gap-3 text-sm">
-            <span className="truncate text-muted-foreground">{me?.name}</span>
+          <div className="flex min-w-0 items-center gap-2 text-sm sm:gap-3">
+            {me?.isOwner && (
+              <Link to={routes.staff} className="shrink-0 underline-offset-4 hover:underline">
+                จัดการครู
+              </Link>
+            )}
+            {/* จอ 400px ไม่มีที่พอ ซ่อนชื่อไว้ก่อน */}
+            <span className="hidden truncate text-muted-foreground sm:inline">{me?.name}</span>
             <Button variant="outline" size="sm" onClick={logout}>
               ออกจากระบบ
             </Button>
