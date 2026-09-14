@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, Outlet, useNavigate } from 'react-router'
 import { Credit } from '@/components/Credit'
+import { Avatar } from '@/components/Avatar'
 import { Mascot } from '@/components/Mascot'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
@@ -32,6 +33,7 @@ export function AppLayout() {
                 จัดการครู
               </Link>
             )}
+            <Avatar />
             {/* จอ 400px ไม่มีที่พอ ซ่อนชื่อไว้ก่อน */}
             <span className="hidden truncate text-muted-foreground sm:inline">{me?.name}</span>
             <Button variant="outline" size="sm" onClick={logout}>
