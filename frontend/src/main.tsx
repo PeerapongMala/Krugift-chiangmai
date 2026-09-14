@@ -9,6 +9,7 @@ import Claim from '@/pages/Claim'
 import Login from '@/pages/Login'
 import Classrooms from '@/pages/Classrooms'
 import StaffPage from '@/pages/Staff'
+import Students from '@/pages/Students'
 import Terms from '@/pages/Terms'
 
 const queryClient = new QueryClient({
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
         children: [
           { path: '/teacher', element: <Terms /> },
           { path: '/teacher/terms/:termId', element: <Classrooms /> },
+          { path: '/teacher/classrooms/:classroomId', element: <Students /> },
           { path: '/teacher/staff', element: <StaffPage /> },
         ],
       },

@@ -6,6 +6,7 @@ export const routes = {
   teacher: '/teacher',
   staff: '/teacher/staff',
   term: (termId: number) => `/teacher/terms/${termId}`,
+  classroom: (classroomId: number) => `/teacher/classrooms/${classroomId}`,
   student: '/student',
 } as const
 

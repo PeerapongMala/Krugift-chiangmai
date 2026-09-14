@@ -91,12 +91,12 @@ export default function Classrooms() {
           <ul className="grid gap-2">
             {list.map((room) => (
               <li key={room.id} className="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-3">
-                <div className="min-w-0 flex-1">
+                <Link to={routes.classroom(room.id)} className="min-w-0 flex-1 hover:underline">
                   <p className="truncate font-medium">{room.name}</p>
                   <p className="text-xs text-muted-foreground">
                     นักเรียน {room.studentCount} คน · รายการคะแนน {room.itemCount} รายการ
                   </p>
-                </div>
+                </Link>
 
                 <div className="flex shrink-0 gap-2">
                   <Button variant="outline" size="sm" disabled={rowAction.busy} onClick={() => setEditing(room)}>
