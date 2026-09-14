@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Outlet, useNavigate } from 'react-router'
-import { Capybara } from '@/components/Capybara'
+import { Mascot } from '@/components/Mascot'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { useMe } from '@/lib/auth'
+import { routes } from '@/lib/keys'
 
 export function AppLayout() {
   const { data: me } = useMe()
@@ -13,7 +14,7 @@ export function AppLayout() {
   async function logout() {
     await api('/auth/logout', { method: 'POST' })
     queryClient.clear()
-    navigate('/login', { replace: true })
+    navigate(routes.login, { replace: true })
   }
 
   return (
@@ -21,7 +22,7 @@ export function AppLayout() {
       <header className="border-b bg-card">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
           <span className="flex min-w-0 items-center gap-2 font-semibold">
-            <Capybara className="size-7 shrink-0" />
+            <Mascot name="orange" priority className="h-9 w-auto shrink-0" />
             <span className="truncate">Krugift คะแนนคณิต</span>
           </span>
           <div className="flex min-w-0 items-center gap-3 text-sm">

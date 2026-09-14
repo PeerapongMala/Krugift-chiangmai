@@ -496,3 +496,8 @@ backend/src/Api/wwwroot/
 # Claude Code — ค่าส่วนตัวของแต่ละเครื่อง
 CLAUDE.local.md
 .claude/settings.local.json
+
+# ต้นฉบับ Freepik (.eps/.jpg ~6MB) ไม่ต้องขึ้น git — ใช้ไฟล์ที่แปลงแล้วใน frontend/public/capybara/
+/adorable-capybara-characters-cartoon-style/
+/cute-capibara-character-different-poses/
+/cute-capybara-character-funny-flat-animal-vector/
