@@ -20,7 +20,7 @@ type AppealRow = {
   lastMessage: string | null
 }
 
-/** รายการเรื่องท้วงคะแนน · ครูเห็นเรื่องในห้องของตัวเอง นักเรียนเห็นเรื่องของตัวเอง (server คัดให้) */
+/** รายการคำถามเรื่องคะแนน · ครูเห็นคำถามในห้องของตัวเอง นักเรียนเห็นคำถามของตัวเอง (server คัดให้) */
 export default function Appeals() {
   const { data: me } = useMe()
   const isTeacher = me?.role === 'teacher'
@@ -30,15 +30,15 @@ export default function Appeals() {
   return (
     <>
       <PageHeader
-        title="ท้วงคะแนน"
+        title="สอบถามคะแนน"
         description={
           isTeacher
-            ? 'เรื่องที่นักเรียนท้วงเข้ามา เรื่องที่ยังไม่ปิดอยู่บนสุด'
-            : 'เรื่องที่คุณท้วงไว้ · จะท้วงใหม่ให้กดปุ่ม "ท้วง" ข้างคะแนนในหน้าคะแนนของฉัน'
+            ? 'คำถามเรื่องคะแนนจากนักเรียน · คำถามที่ยังไม่เสร็จสิ้นอยู่บนสุด'
+            : 'คำถามที่คุณส่งถึงครู · จะถามเรื่องใหม่ให้กดปุ่ม "สอบถาม" ข้างคะแนนในหน้าคะแนนของฉัน'
         }
       />
 
-      <QueryState query={appeals} empty="ยังไม่มีเรื่องท้วงคะแนน">
+      <QueryState query={appeals} empty="ยังไม่มีคำถามเรื่องคะแนน">
         {(list) => (
           <ul className="grid gap-2">
             {list.map((appeal) => (

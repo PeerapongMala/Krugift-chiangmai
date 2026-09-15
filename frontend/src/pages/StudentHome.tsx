@@ -47,7 +47,7 @@ export default function StudentHome() {
 
   return (
     <>
-      <PageHeader title="คะแนนของฉัน" description="คะแนนทุกห้องที่เรียน เรียงจากภาคเรียนล่าสุด · คะแนนไม่ตรง กด ท้วง ข้างรายการนั้น" />
+      <PageHeader title="คะแนนของฉัน" description="คะแนนทุกห้องที่เรียน เรียงจากภาคเรียนล่าสุด · สงสัยคะแนนรายการไหน กด สอบถาม ข้างรายการนั้น" />
 
       <QueryState query={rooms} empty="ยังไม่มีห้องเรียนที่มีชื่อคุณอยู่ ถ้าคิดว่าผิด ให้แจ้งครู">
         {(list) => (
@@ -70,10 +70,10 @@ export default function StudentHome() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      aria-label={`ท้วงคะแนน ${item.name}`}
+                      aria-label={`สอบถามคะแนน ${item.name}`}
                       onClick={() => openModal({ item, classroom: room.classroom })}
                     >
-                      ท้วง
+                      สอบถาม
                     </Button>
                   )}
                 />
@@ -83,29 +83,29 @@ export default function StudentHome() {
         )}
       </QueryState>
 
-      {/* key ทำให้ช่องเหตุผลว่างใหม่ทุกครั้งที่เปลี่ยนรายการ */}
+      {/* key ทำให้ช่องคำถามว่างใหม่ทุกครั้งที่เปลี่ยนรายการ */}
       <Modal
         key={target?.item.id}
         open={target !== null}
         onOpenChange={(open) => !open && setTarget(null)}
-        title="ท้วงคะแนน"
+        title="สอบถามคะแนน"
         description={
           target && `${target.classroom} · ${target.item.name} · ได้ ${target.item.value ?? '—'} / ${target.item.maxScore}`
         }
         onSubmit={openAppeal}
-        submitLabel="ส่งเรื่องท้วง"
+        submitLabel="ส่งคำถาม"
         busy={form.busy}
         error={form.error}
       >
         <label htmlFor="appeal-body" className="text-sm font-medium">
-          เหตุผลที่ท้วง
+          คำถามถึงครู
         </label>
         <textarea
           id="appeal-body"
           name="body"
           rows={4}
           maxLength={2000}
-          placeholder="เช่น ข้อ 3 ตอบถูกแต่ไม่ได้คะแนน"
+          placeholder="เช่น ข้อ 3 ตอบถูกแต่ยังไม่ได้คะแนน รบกวนครูช่วยตรวจอีกครั้ง"
           className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       </Modal>

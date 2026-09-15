@@ -12,7 +12,7 @@ import { useSubmit } from '@/lib/useSubmit'
 import { validate } from '@/lib/validate'
 
 /**
- * ผูกบัญชี Google กับนักเรียนครั้งแรก — กรอกแค่รหัสนักเรียน
+ * เชื่อมบัญชี Google กับนักเรียนครั้งแรก — กรอกแค่รหัสนักเรียน
  * บัญชี Google คือตัวยืนยันตัวตน รหัสนักเรียนเป็นแค่ตัวชี้ว่าเป็นใครในระบบ
  */
 export default function Claim() {
@@ -42,7 +42,7 @@ export default function Claim() {
       title="ยืนยันตัวตนครั้งแรก"
       description={
         <>
-          บัญชี <b>{me.name}</b> ยังไม่ได้ผูกกับนักเรียนคนไหน กรอกรหัสนักเรียนของตัวเองเพื่อผูกบัญชี ทำครั้งเดียวจบ
+          บัญชี <b>{me.name}</b> ยังไม่ได้เชื่อมกับนักเรียนคนไหน กรอกรหัสนักเรียนของตัวเองเพื่อเชื่อมบัญชี ทำครั้งเดียวจบ
           ครั้งต่อไปกดปุ่ม Google ได้เลย
         </>
       }
@@ -58,7 +58,7 @@ export default function Claim() {
         />
         <FormError message={error} />
         <Button type="submit" disabled={busy}>
-          {busy ? 'กำลังตรวจสอบ...' : 'ยืนยันและผูกบัญชี'}
+          {busy ? 'กำลังตรวจสอบ...' : 'ยืนยันและเชื่อมบัญชี'}
         </Button>
       </form>
 

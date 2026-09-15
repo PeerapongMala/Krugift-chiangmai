@@ -5,10 +5,10 @@ export type AppealStatus = 'Open' | 'Answered' | 'Closed'
 const LABEL: Record<AppealStatus, string> = {
   Open: 'รอครูตอบ',
   Answered: 'ครูตอบแล้ว',
-  Closed: 'ปิดแล้ว',
+  Closed: 'เสร็จสิ้น',
 }
 
-/** ป้ายสถานะเรื่องท้วงคะแนน ใช้ทั้งหน้ารายการและหน้า thread */
+/** ป้ายสถานะคำถามเรื่องคะแนน ใช้ทั้งหน้ารายการและหน้า thread */
 export function AppealStatusBadge({ status }: { status: AppealStatus }) {
   return (
     <span

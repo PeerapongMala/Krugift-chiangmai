@@ -87,9 +87,9 @@ export default function Students() {
 
   async function takeOut(s: Student) {
     const ok = await confirm({
-      title: 'เอานักเรียนออกจากห้อง?',
-      description: `${s.firstName} ${s.lastName} (${s.studentCode}) · เอาออกจากห้องนี้เท่านั้น ประวัติคะแนนภาคเรียนอื่นยังอยู่`,
-      confirmLabel: 'เอาออก',
+      title: 'ย้ายนักเรียนออกจากห้องนี้?',
+      description: `${s.firstName} ${s.lastName} (${s.studentCode}) · ย้ายออกจากห้องนี้เท่านั้น ข้อมูลนักเรียนและคะแนนภาคเรียนอื่นยังอยู่`,
+      confirmLabel: 'ย้ายออก',
       destructive: true,
     })
     if (!ok) return
@@ -102,9 +102,9 @@ export default function Students() {
 
   async function unlink(s: Student) {
     const ok = await confirm({
-      title: 'ยกเลิกการผูกบัญชี Google?',
-      description: `${s.firstName} ${s.lastName} จะต้องกรอกรหัสนักเรียนผูกบัญชีใหม่อีกครั้ง · ใช้ตอนเด็กผูกผิดบัญชี หรือมีคนอื่นเผลอไปผูกรหัสนี้`,
-      confirmLabel: 'ยกเลิกการผูก',
+      title: 'ยกเลิกการเชื่อมบัญชี Google?',
+      description: `${s.firstName} ${s.lastName} จะต้องกรอกรหัสนักเรียนเพื่อเชื่อมบัญชีใหม่อีกครั้ง · ใช้ตอนนักเรียนเชื่อมผิดบัญชี หรือมีคนอื่นเผลอใช้รหัสนี้เชื่อมบัญชี`,
+      confirmLabel: 'ยกเลิกการเชื่อม',
       destructive: true,
     })
     if (!ok) return
@@ -123,7 +123,7 @@ export default function Students() {
 
       <PageHeader
         title="นักเรียนในห้อง"
-        description="นักเรียนเข้าระบบด้วย Google แล้วกรอกรหัสนักเรียนผูกบัญชีเอง ครูไม่ต้องแจกรหัสอะไร"
+        description="นักเรียนเข้าสู่ระบบด้วย Google แล้วกรอกรหัสนักเรียนเพื่อเชื่อมบัญชีเอง ครูไม่ต้องแจกรหัสใด ๆ"
       >
         <Link to={routes.classroomImport(classroomId, 'students')} className={buttonVariants({ variant: 'outline' })}>
           นำเข้าจาก Excel
@@ -149,7 +149,7 @@ export default function Students() {
                   <p className="truncate text-xs text-muted-foreground">
                     {s.studentCode}
                     {' · '}
-                    {s.hasGoogle ? 'ผูกบัญชี Google แล้ว' : 'ยังไม่เคยเข้าระบบ'}
+                    {s.hasGoogle ? 'เชื่อมบัญชี Google แล้ว' : 'ยังไม่เคยเข้าสู่ระบบ'}
                   </p>
                 </div>
 
@@ -159,11 +159,11 @@ export default function Students() {
                   </Button>
                   {s.hasGoogle && (
                     <Button variant="outline" size="sm" disabled={rowAction.busy} onClick={() => unlink(s)}>
-                      ยกเลิกการผูก
+                      ยกเลิกการเชื่อม
                     </Button>
                   )}
                   <Button variant="ghost" size="sm" disabled={rowAction.busy} onClick={() => takeOut(s)}>
-                    เอาออก
+                    ย้ายออก
                   </Button>
                 </div>
               </li>
@@ -176,7 +176,7 @@ export default function Students() {
         open={adding}
         onOpenChange={setAdding}
         title="เพิ่มนักเรียน"
-        description="ถ้ารหัสนักเรียนนี้เคยอยู่ในห้องอื่นมาก่อน ระบบจะดึงคนเดิมมาเข้าห้องนี้ ไม่สร้างซ้ำ"
+        description="ถ้ารหัสนักเรียนนี้มีในระบบแล้ว ระบบจะใช้ข้อมูลเดิมเพิ่มเข้าห้องนี้ ไม่สร้างนักเรียนซ้ำ"
         onSubmit={create}
         submitLabel="เพิ่ม"
         busy={form.busy}

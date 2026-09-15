@@ -15,7 +15,7 @@ type NavItem = {
   label: string
   icon: LucideIcon
   isActive: (path: string) => boolean
-  /** แสดง badge จำนวนเรื่องท้วงที่มีข้อความใหม่ */
+  /** แสดง badge จำนวนคำถามที่มีข้อความใหม่ */
   showsUnread?: boolean
 }
 
@@ -34,7 +34,7 @@ function navFor(me: Me | null | undefined): NavItem[] {
       },
       {
         to: routes.teacherAppeals,
-        label: 'ท้วงคะแนน',
+        label: 'สอบถามคะแนน',
         icon: MessagesSquare,
         showsUnread: true,
         isActive: (p) => p.startsWith(routes.teacherAppeals),
@@ -53,7 +53,7 @@ function navFor(me: Me | null | undefined): NavItem[] {
       },
       {
         to: routes.studentAppeals,
-        label: 'ท้วงคะแนน',
+        label: 'สอบถามคะแนน',
         icon: MessagesSquare,
         showsUnread: true,
         isActive: (p) => p.startsWith(routes.studentAppeals),

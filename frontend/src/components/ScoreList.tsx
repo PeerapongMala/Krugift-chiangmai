@@ -14,7 +14,7 @@ export function ScoreList({
   action,
 }: {
   items: ScoreRow[]
-  /** ปุ่มต่อท้ายแต่ละรายการ เช่น "ท้วง" บนหน้าคะแนนของฉัน */
+  /** ปุ่มต่อท้ายแต่ละรายการ เช่น "สอบถาม" บนหน้าคะแนนของฉัน */
   action?: (item: ScoreRow) => ReactNode
 }) {
   if (items.length === 0) {

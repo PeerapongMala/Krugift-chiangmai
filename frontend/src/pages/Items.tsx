@@ -70,7 +70,7 @@ export default function Items() {
       description:
         item.scoredCount > 0
           ? `${item.name} · มีคะแนนที่กรอกไว้ ${item.scoredCount} คน ระบบจะไม่ให้ลบจนกว่าจะล้างคะแนนหมด`
-          : `${item.name} · ยังไม่มีใครได้คะแนน ลบได้เลย`,
+          : `${item.name} · ยังไม่ได้กรอกคะแนนใคร ลบได้เลย`,
       confirmLabel: 'ลบ',
       destructive: true,
     })
@@ -88,7 +88,7 @@ export default function Items() {
         ← ภาคเรียน
       </Link>
 
-      <PageHeader title="รายการคะแนน" description="สิ่งที่เอาไว้ให้คะแนน เช่น สอบกลางภาค 20 คะแนน">
+      <PageHeader title="รายการคะแนน" description="งานหรือการสอบที่เก็บคะแนน เช่น สอบกลางภาค เต็ม 20 คะแนน">
         <Button onClick={() => setAdding(true)}>เพิ่มรายการ</Button>
       </PageHeader>
 
@@ -106,7 +106,7 @@ export default function Items() {
                   <p className="text-xs text-muted-foreground">
                     เต็ม {item.maxScore} คะแนน
                     {' · '}
-                    {item.scoredCount > 0 ? `กรอกแล้ว ${item.scoredCount} คน` : 'ยังไม่มีใครได้คะแนน'}
+                    {item.scoredCount > 0 ? `กรอกแล้ว ${item.scoredCount} คน` : 'ยังไม่ได้กรอกคะแนน'}
                   </p>
                 </div>
 

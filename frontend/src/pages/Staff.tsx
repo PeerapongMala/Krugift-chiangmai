@@ -17,7 +17,7 @@ import { validate } from '@/lib/validate'
 type StaffRole = 'Owner' | 'Teacher'
 type Staff = { id: number; email: string; name: string; role: StaffRole; isMe: boolean }
 
-const ROLE_LABEL: Record<StaffRole, string> = { Owner: 'เจ้าของ', Teacher: 'ครูทั่วไป' }
+const ROLE_LABEL: Record<StaffRole, string> = { Owner: 'ผู้ดูแลระบบ', Teacher: 'ครู' }
 
 export default function StaffPage() {
   const { data: me, isPending: mePending } = useMe()
@@ -56,10 +56,10 @@ export default function StaffPage() {
     const promoting = next === 'Owner'
 
     const ok = await confirm({
-      title: promoting ? 'ตั้งเป็นเจ้าของ?' : 'ลดเป็นครูทั่วไป?',
+      title: promoting ? 'ตั้งเป็นผู้ดูแลระบบ?' : 'ยกเลิกสิทธิ์ผู้ดูแลระบบ?',
       description: promoting
-        ? `${person.email} จะเห็นข้อมูลของครูทุกคน และจัดการรายชื่อครูได้`
-        : `${person.email} จะเห็นเฉพาะภาคเรียนของตัวเอง และจัดการรายชื่อครูไม่ได้`,
+        ? `${person.email} จะเห็นข้อมูลของครูทุกคน และเพิ่ม/ลบครูได้`
+        : `${person.email} จะกลับเป็นครู เห็นเฉพาะภาคเรียนของตัวเอง และเพิ่ม/ลบครูไม่ได้`,
     })
     if (!ok) return
 
@@ -72,7 +72,7 @@ export default function StaffPage() {
   async function remove(person: Staff) {
     const ok = await confirm({
       title: 'ลบครูคนนี้?',
-      description: `${person.email} จะเข้าระบบไม่ได้อีก · ถ้ามีภาคเรียนอยู่จะลบไม่ได้`,
+      description: `${person.email} จะเข้าสู่ระบบไม่ได้อีก · ถ้ามีภาคเรียนอยู่จะลบไม่ได้`,
       confirmLabel: 'ลบ',
       destructive: true,
     })
@@ -86,7 +86,7 @@ export default function StaffPage() {
 
   return (
     <>
-      <PageHeader title="จัดการครู" description="เจ้าของเห็นข้อมูลของครูทุกคน ครูทั่วไปเห็นเฉพาะภาคเรียนของตัวเอง">
+      <PageHeader title="จัดการครู" description="ผู้ดูแลระบบเห็นข้อมูลของครูทุกคนและเพิ่ม/ลบครูได้ · ครูเห็นเฉพาะภาคเรียนของตัวเอง">
         <Button onClick={() => setAdding(true)}>เพิ่มครู</Button>
       </PageHeader>
 
@@ -119,11 +119,11 @@ export default function StaffPage() {
                     {ROLE_LABEL[person.role]}
                   </span>
 
-                  {/* ตัวเองเปลี่ยนยศหรือลบตัวเองไม่ได้ ตรงกับที่ server กันไว้ */}
+                  {/* เปลี่ยนสิทธิ์หรือลบตัวเองไม่ได้ ตรงกับที่ server กันไว้ */}
                   {!person.isMe && (
                     <>
                       <Button variant="outline" size="sm" disabled={rowAction.busy} onClick={() => toggleRole(person)}>
-                        {person.role === 'Owner' ? 'ลดยศ' : 'ตั้งเป็นเจ้าของ'}
+                        {person.role === 'Owner' ? 'ยกเลิกสิทธิ์ผู้ดูแล' : 'ตั้งเป็นผู้ดูแลระบบ'}
                       </Button>
                       <Button variant="ghost" size="sm" disabled={rowAction.busy} onClick={() => remove(person)}>
                         ลบ
@@ -141,7 +141,7 @@ export default function StaffPage() {
         open={adding}
         onOpenChange={setAdding}
         title="เพิ่มครู"
-        description="ครูที่เพิ่มจะเข้าระบบด้วย Google ด้วยอีเมลนี้ · เพิ่มมาเป็นครูทั่วไปก่อน แล้วค่อยตั้งเป็นเจ้าของทีหลังได้"
+        description="ครูจะเข้าสู่ระบบด้วยบัญชี Google ของอีเมลนี้ · เพิ่มเป็นครูก่อน แล้วค่อยตั้งเป็นผู้ดูแลระบบทีหลังได้"
         onSubmit={add}
         submitLabel="เพิ่ม"
         busy={addForm.busy}

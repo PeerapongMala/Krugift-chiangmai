@@ -29,7 +29,7 @@ type Thread = {
   messages: { id: number; fromTeacher: boolean; body: string; at: string }[]
 }
 
-/** หน้า thread ของเรื่องท้วงหนึ่งเรื่อง ใช้ร่วมกันทั้งครูและนักเรียน */
+/** หน้า thread ของคำถามเรื่องคะแนนหนึ่งคำถาม ใช้ร่วมกันทั้งครูและนักเรียน */
 export default function AppealThread() {
   const appealId = Number(useParams().appealId)
   const { data: me } = useMe()
@@ -68,9 +68,9 @@ export default function AppealThread() {
 
   async function closeAppeal() {
     const ok = await confirm({
-      title: 'ปิดเรื่องนี้?',
-      description: 'ปิดแล้วจะตอบต่อไม่ได้ ถ้ายังไม่เคลียร์ต้องเปิดเรื่องท้วงใหม่',
-      confirmLabel: 'ปิดเรื่อง',
+      title: 'จบคำถามนี้?',
+      description: 'เมื่อเสร็จสิ้นแล้วจะตอบต่อไม่ได้ ถ้ายังมีข้อสงสัยให้ส่งคำถามใหม่',
+      confirmLabel: 'เสร็จสิ้น',
     })
     if (!ok) return
 
@@ -83,7 +83,7 @@ export default function AppealThread() {
   return (
     <>
       <Link to={base} className="mb-3 inline-block text-sm text-muted-foreground hover:text-foreground">
-        ← ท้วงคะแนน
+        ← สอบถามคะแนน
       </Link>
 
       <QueryState query={thread}>
@@ -130,7 +130,7 @@ export default function AppealThread() {
             </ol>
 
             {t.status === 'Closed' ? (
-              <p className="text-center text-sm text-muted-foreground">เรื่องนี้ปิดแล้ว</p>
+              <p className="text-center text-sm text-muted-foreground">คำถามนี้เสร็จสิ้นแล้ว</p>
             ) : (
               <form onSubmit={send} className="grid gap-2">
                 <label htmlFor="reply" className="text-sm font-medium">
@@ -147,7 +147,7 @@ export default function AppealThread() {
                 <FormError message={reply.error || closing.error} />
                 <div className="flex flex-wrap justify-end gap-2">
                   <Button type="button" variant="outline" onClick={closeAppeal} disabled={closing.busy}>
-                    ปิดเรื่อง
+                    เสร็จสิ้น
                   </Button>
                   <Button type="submit" disabled={reply.busy}>
                     {reply.busy ? 'กำลังส่ง...' : 'ส่ง'}

@@ -30,7 +30,7 @@ const KINDS: Record<Kind, { title: string; howTo: string; back: (classroomId: nu
   students: {
     title: 'นำเข้ารายชื่อนักเรียนจาก Excel',
     howTo:
-      'คอลัมน์ เลขที่ · รหัสนักเรียน · ชื่อ · นามสกุล — นักเรียนใหม่จะถูกเพิ่มเข้าห้อง คนที่มีในระบบแล้วจะถูกดึงเข้าห้องหรือแก้เลขที่ · คนที่อยู่ในห้องแต่ไม่มีในไฟล์จะไม่ถูกเอาออก',
+      'ไฟล์มีคอลัมน์ เลขที่ · รหัสนักเรียน · ชื่อ · นามสกุล — นักเรียนใหม่จะถูกเพิ่มเข้าห้อง นักเรียนที่มีในระบบแล้วจะถูกเพิ่มเข้าห้องหรือแก้เลขที่ · นักเรียนที่อยู่ในห้องแต่ไม่มีในไฟล์จะยังอยู่ในห้องตามเดิม',
     back: routes.classroom,
     backLabel: '← นักเรียนในห้อง',
     doneLabel: 'ไปดูรายชื่อนักเรียน',
@@ -149,12 +149,12 @@ function ImportForm({ classroomId, kind }: { classroomId: number; kind: Kind }) 
       <div className="grid gap-4 md:grid-cols-2">
         <section aria-labelledby="import-template" className="rounded-lg border bg-card p-4">
           <h2 id="import-template" className="font-medium">
-            1. ดาวน์โหลด template
+            1. ดาวน์โหลดไฟล์ตัวอย่าง
           </h2>
           <p className="mt-1 mb-3 text-sm text-muted-foreground">{info.howTo}</p>
           {/* ข้อมูลปัจจุบันของห้องใส่ไว้ให้แล้ว แก้แล้วอัปโหลดกลับได้เลย */}
           <a href={`/api${base}/template`} download className={buttonVariants({ variant: 'outline' })}>
-            ดาวน์โหลด template (.xlsx)
+            ดาวน์โหลดไฟล์ตัวอย่าง (.xlsx)
           </a>
         </section>
 

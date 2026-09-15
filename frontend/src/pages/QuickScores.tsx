@@ -66,7 +66,7 @@ export default function QuickScores() {
             กรอกใหม่
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            อยากท้วงคะแนน?{' '}
+            มีคำถามเรื่องคะแนน?{' '}
             <Link to={routes.login} className="underline underline-offset-2">
               เข้าสู่ระบบด้วย Google
             </Link>
