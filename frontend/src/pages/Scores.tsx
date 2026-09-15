@@ -116,7 +116,7 @@ function GridTable({
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="border-b bg-muted/50">
-            <th className="sticky left-0 z-10 bg-muted/50 px-3 py-2 text-left font-medium">นักเรียน</th>
+            <th className="sticky left-0 z-10 max-w-36 bg-muted/50 px-3 py-2 text-left font-medium sm:max-w-none">นักเรียน</th>
             {data.items.map((item) => (
               <th key={item.id} className="min-w-24 px-2 py-2 text-center font-medium">
                 <span className="block truncate">{item.name}</span>
@@ -136,7 +136,7 @@ function GridTable({
 
             return (
               <tr key={pupil.studentId} className="border-b last:border-0">
-                <th scope="row" className="sticky left-0 z-10 bg-card px-3 py-1.5 text-left font-normal">
+                <th scope="row" className="sticky left-0 z-10 max-w-36 bg-card px-3 py-1.5 text-left font-normal sm:max-w-none">
                   <span className="block truncate">
                     <span className="text-muted-foreground">{pupil.no}.</span> {pupil.firstName} {pupil.lastName}
                   </span>

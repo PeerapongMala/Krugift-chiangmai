@@ -83,7 +83,8 @@ export async function api<T = void>(path: string, init: ApiInit = {}): Promise<T
       detail ??
       `${BY_STATUS[res.status] ?? (res.status >= 500 ? 'เซิร์ฟเวอร์มีปัญหา กรุณาลองใหม่ภายหลัง' : 'เกิดข้อผิดพลาด')} (รหัส ${res.status})`
 
-    console.error(`[api] ${method} ${path} → ${res.status}`, problem ?? raw)
+    // 401 เป็นเรื่องปกติของคนที่ยังไม่ล็อกอิน (useMe เช็คทุกหน้า) ไม่ต้องรก console
+    if (res.status !== 401) console.error(`[api] ${method} ${path} → ${res.status}`, problem ?? raw)
     throw new ApiError(res.status, message, detail)
   }
 
