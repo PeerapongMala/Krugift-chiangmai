@@ -87,7 +87,7 @@ export default function Students() {
   async function takeOut(s: Student) {
     const ok = await confirm({
       title: 'เอานักเรียนออกจากห้อง?',
-      description: `${s.firstName} ${s.lastName} (${s.studentCode}) · เอาออกจากห้องนี้เท่านั้น ประวัติคะแนนเทอมอื่นยังอยู่`,
+      description: `${s.firstName} ${s.lastName} (${s.studentCode}) · เอาออกจากห้องนี้เท่านั้น ประวัติคะแนนภาคเรียนอื่นยังอยู่`,
       confirmLabel: 'เอาออก',
       destructive: true,
     })
@@ -118,7 +118,7 @@ export default function Students() {
     <>
       <div className="mb-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
         <Link to={routes.teacher} className="hover:text-foreground">
-          ← กลับไปหน้าเทอม
+          ← กลับไปหน้าภาคเรียน
         </Link>
         <Link to={routes.classroomItems(classroomId)} className="hover:text-foreground">
           รายการคะแนน →

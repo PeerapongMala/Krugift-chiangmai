@@ -96,8 +96,8 @@ def run():
     # ---------------------------------------------------------------- ไม่ล็อกอิน
     g = "ANON"
     for label, method, path, body in [
-        ("ดูเทอม", "GET", "/api/terms", None),
-        ("สร้างเทอม", "POST", "/api/terms", {"name": "x"}),
+        ("ดูภาคเรียน", "GET", "/api/terms", None),
+        ("สร้างภาคเรียน", "POST", "/api/terms", {"name": "x"}),
         ("ดูรายชื่อครู", "GET", "/api/staff", None),
         ("แก้คะแนน", "PUT", "/api/scores", {"itemId": 1, "studentId": 1, "value": 1, "expected": None}),
         ("ผูกบัญชีโดยไม่ผ่าน Google", "POST", "/api/auth/claim", {"studentCode": "1"}),
@@ -105,20 +105,20 @@ def run():
         record(g, label, *anon(method, path, body))
     record(g, "ดูสถานะตัวเอง", *anon("GET", "/api/auth/me"))
 
-    # ---------------------------------------------------------------- เทอม
+    # ---------------------------------------------------------------- ภาคเรียน
     g = "TERM"
-    status, term = owner("POST", "/api/terms", {"name": "E2E เทอมทดสอบ"})
-    record(g, "สร้างเทอม", status)
+    status, term = owner("POST", "/api/terms", {"name": "E2E ภาคเรียนทดสอบ"})
+    record(g, "สร้างภาคเรียน", status)
     term_id = term["id"]
-    record(g, "ชื่อซ้ำ (มีช่องว่างหน้าหลัง)", *owner("POST", "/api/terms", {"name": "  E2E เทอมทดสอบ  "}))
+    record(g, "ชื่อซ้ำ (มีช่องว่างหน้าหลัง)", *owner("POST", "/api/terms", {"name": "  E2E ภาคเรียนทดสอบ  "}))
     record(g, "ชื่อว่าง", *owner("POST", "/api/terms", {"name": ""}))
     record(g, "ชื่อเว้นวรรคล้วน", *owner("POST", "/api/terms", {"name": "    "}))
     record(g, "ชื่อยาว 201 ตัว", *owner("POST", "/api/terms", {"name": "ก" * 201}))
     record(g, "ไม่มี field name", *owner("POST", "/api/terms", {"wrong": 1}))
     record(g, "body ไม่ใช่ JSON", *owner("POST", "/api/terms", raw=b"<<<>>>"))
     record(g, "body ว่างเปล่า", *owner("POST", "/api/terms", raw=b""))
-    record(g, "เปลี่ยนชื่อเทอมที่ไม่มีอยู่", *owner("PATCH", "/api/terms/999999", {"name": "x"}))
-    record(g, "ลบเทอมที่ไม่มีอยู่", *owner("DELETE", "/api/terms/999999"))
+    record(g, "เปลี่ยนชื่อภาคเรียนที่ไม่มีอยู่", *owner("PATCH", "/api/terms/999999", {"name": "x"}))
+    record(g, "ลบภาคเรียนที่ไม่มีอยู่", *owner("DELETE", "/api/terms/999999"))
 
     # ---------------------------------------------------------------- ห้องเรียน
     g = "ROOM"
@@ -129,8 +129,8 @@ def run():
     room2_id = room2["id"]
     record(g, "ชื่อห้องซ้ำ", *owner("POST", "/api/terms/%d/classrooms" % term_id, {"name": "ม.3/1"}))
     record(g, "ชื่อห้องว่าง", *owner("POST", "/api/terms/%d/classrooms" % term_id, {"name": " "}))
-    record(g, "เพิ่มห้องในเทอมที่ไม่มีอยู่", *owner("POST", "/api/terms/999999/classrooms", {"name": "x"}))
-    record(g, "ลบเทอมที่ยังมีห้อง", *owner("DELETE", "/api/terms/%d" % term_id))
+    record(g, "เพิ่มห้องในภาคเรียนที่ไม่มีอยู่", *owner("POST", "/api/terms/999999/classrooms", {"name": "x"}))
+    record(g, "ลบภาคเรียนที่ยังมีห้อง", *owner("DELETE", "/api/terms/%d" % term_id))
     record(g, "แก้ห้องที่ไม่มีอยู่", *owner("PATCH", "/api/classrooms/999999", {"name": "x"}))
 
     # ---------------------------------------------------------------- นักเรียน
@@ -277,12 +277,12 @@ def run():
     record(g, "ดูรายชื่อครู", *other("GET", "/api/staff"))
     record(g, "เพิ่มครู", *other("POST", "/api/staff", {"email": "a@b.com", "role": "Teacher"}))
     status, mine = other("GET", "/api/terms")
-    record(g, "ดูเทอมของตัวเอง", status)
-    value(g, "  ต้องไม่เห็นเทอมของคนอื่น", len(mine))
+    record(g, "ดูภาคเรียนของตัวเอง", status)
+    value(g, "  ต้องไม่เห็นภาคเรียนของคนอื่น", len(mine))
 
     g = "IDOR"
-    record(g, "แก้เทอมของครูอื่น", *other("PATCH", "/api/terms/%d" % term_id, {"name": "แอบแก้"}))
-    record(g, "ลบเทอมของครูอื่น", *other("DELETE", "/api/terms/%d" % term_id))
+    record(g, "แก้ภาคเรียนของครูอื่น", *other("PATCH", "/api/terms/%d" % term_id, {"name": "แอบแก้"}))
+    record(g, "ลบภาคเรียนของครูอื่น", *other("DELETE", "/api/terms/%d" % term_id))
     record(g, "ดูห้องของครูอื่น", *other("GET", "/api/terms/%d/classrooms" % term_id))
     record(g, "ดูนักเรียนของครูอื่น", *other("GET", "/api/classrooms/%d/students" % room_id))
     record(g, "เพิ่มนักเรียนในห้องครูอื่น", *other("POST", "/api/classrooms/%d/students" % room_id,
@@ -304,8 +304,8 @@ def run():
     status, me = pupil("GET", "/api/auth/me")
     value(g, "  role ที่ได้", me["role"])
     value(g, "  ไม่ใช่เจ้าของ", me["isOwner"])
-    record(g, "นักเรียนดูเทอม", *pupil("GET", "/api/terms"))
-    record(g, "นักเรียนสร้างเทอม", *pupil("POST", "/api/terms", {"name": "x"}))
+    record(g, "นักเรียนดูภาคเรียน", *pupil("GET", "/api/terms"))
+    record(g, "นักเรียนสร้างภาคเรียน", *pupil("POST", "/api/terms", {"name": "x"}))
     record(g, "นักเรียนดูรายชื่อครู", *pupil("GET", "/api/staff"))
     record(g, "นักเรียนดูนักเรียนในห้อง", *pupil("GET", "/api/classrooms/%d/students" % room_id))
     record(g, "นักเรียนดูตารางคะแนน", *pupil("GET", "/api/classrooms/%d/scores" % room_id))
@@ -315,7 +315,7 @@ def run():
     record(g, "นักเรียนลบห้อง", *pupil("DELETE", "/api/classrooms/%d" % room_id))
     record(g, "นักเรียนยกเลิกการผูกตัวเอง", *pupil("POST", "/api/students/%d/unlink" % sid1))
     record(g, "นักเรียนออกจากระบบ", *pupil("POST", "/api/auth/logout"))
-    record(g, "ออกแล้วดูเทอมอีก", *pupil("GET", "/api/terms"))
+    record(g, "ออกแล้วดูภาคเรียนอีก", *pupil("GET", "/api/terms"))
 
     # ---------------------------------------------------------------- เจ้าของ
     g = "OWNER"
@@ -331,7 +331,7 @@ def run():
     record(g, "แก้ยศครูที่ไม่มีอยู่", *owner("PATCH", "/api/staff/999999", {"role": "Owner"}))
 
     # ---------------------------------------------------------------- เก็บกวาด
-    # คืนชื่อเดิมก่อน เพราะแถว Student อยู่ข้ามเทอม ถ้าไม่คืนรอบหน้าจะอ่านได้ชื่อที่แก้ไว้
+    # คืนชื่อเดิมก่อน เพราะแถว Student อยู่ข้ามภาคเรียน ถ้าไม่คืนรอบหน้าจะอ่านได้ชื่อที่แก้ไว้
     owner("PATCH", "/api/classrooms/%d/students/%d" % (room_id, sid1),
           {"firstName": "เอ", "lastName": "หนึ่ง", "no": 1})
     owner("PUT", "/api/scores", {"itemId": item_id, "studentId": sid1, "value": None, "expected": 18})

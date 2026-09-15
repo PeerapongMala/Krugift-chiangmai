@@ -59,7 +59,7 @@ export default function StaffPage() {
       title: promoting ? 'ตั้งเป็นเจ้าของ?' : 'ลดเป็นครูทั่วไป?',
       description: promoting
         ? `${person.email} จะเห็นข้อมูลของครูทุกคน และจัดการรายชื่อครูได้`
-        : `${person.email} จะเห็นเฉพาะเทอมของตัวเอง และจัดการรายชื่อครูไม่ได้`,
+        : `${person.email} จะเห็นเฉพาะภาคเรียนของตัวเอง และจัดการรายชื่อครูไม่ได้`,
     })
     if (!ok) return
 
@@ -72,7 +72,7 @@ export default function StaffPage() {
   async function remove(person: Staff) {
     const ok = await confirm({
       title: 'ลบครูคนนี้?',
-      description: `${person.email} จะเข้าระบบไม่ได้อีก · ถ้ามีเทอมอยู่จะลบไม่ได้`,
+      description: `${person.email} จะเข้าระบบไม่ได้อีก · ถ้ามีภาคเรียนอยู่จะลบไม่ได้`,
       confirmLabel: 'ลบ',
       destructive: true,
     })
@@ -86,7 +86,7 @@ export default function StaffPage() {
 
   return (
     <>
-      <PageHeader title="จัดการครู" description="เจ้าของเห็นข้อมูลของครูทุกคน ครูทั่วไปเห็นเฉพาะเทอมของตัวเอง">
+      <PageHeader title="จัดการครู" description="เจ้าของเห็นข้อมูลของครูทุกคน ครูทั่วไปเห็นเฉพาะภาคเรียนของตัวเอง">
         <Button onClick={() => setAdding(true)}>เพิ่มครู</Button>
       </PageHeader>
 

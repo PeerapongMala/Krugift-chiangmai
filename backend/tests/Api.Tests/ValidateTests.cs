@@ -9,7 +9,7 @@ public class ValidateTests
     [InlineData("")]
     [InlineData("   ")]
     public void Name_ว่าง_ต้องไม่ผ่าน(string? value) =>
-        Assert.Equal("กรุณากรอกชื่อเทอม", Validate.Name(value, "ชื่อเทอม"));
+        Assert.Equal("กรุณากรอกชื่อภาคเรียน", Validate.Name(value, "ชื่อภาคเรียน"));
 
     [Fact]
     public void Name_ยาวเกิน_ต้องไม่ผ่าน() =>

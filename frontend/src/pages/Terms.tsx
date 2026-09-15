@@ -28,7 +28,7 @@ export default function Terms() {
 
   async function create(f: FormData) {
     const name = String(f.get('name') ?? '')
-    if (!form.check(validate.name(name, 'ชื่อเทอม'))) return
+    if (!form.check(validate.name(name, 'ชื่อภาคเรียน'))) return
 
     const ok = await form.run(async () => {
       await api('/terms', { method: 'POST', json: { name } })
@@ -40,7 +40,7 @@ export default function Terms() {
   async function rename(f: FormData) {
     if (!editing) return
     const name = String(f.get('name') ?? '')
-    if (!form.check(validate.name(name, 'ชื่อเทอม'))) return
+    if (!form.check(validate.name(name, 'ชื่อภาคเรียน'))) return
 
     const ok = await form.run(async () => {
       await api(`/terms/${editing.id}`, { method: 'PATCH', json: { name } })
@@ -51,7 +51,7 @@ export default function Terms() {
 
   async function remove(term: Term) {
     const ok = await confirm({
-      title: 'ลบเทอมนี้?',
+      title: 'ลบภาคเรียนนี้?',
       description: `${term.name} · ถ้ายังมีห้องเรียนอยู่จะลบไม่ได้ ต้องลบห้องให้หมดก่อน`,
       confirmLabel: 'ลบ',
       destructive: true,
@@ -66,13 +66,13 @@ export default function Terms() {
 
   return (
     <>
-      <PageHeader title="เทอม" description="สร้างเทอมใหม่ทุกครั้งที่ขึ้นเทอม แล้วเพิ่มห้องเรียนเข้าไป">
-        <Button onClick={() => setAdding(true)}>สร้างเทอม</Button>
+      <PageHeader title="ภาคเรียน" description="สร้างภาคเรียนใหม่ทุกครั้งที่ขึ้นภาคเรียน แล้วเพิ่มห้องเรียนเข้าไป">
+        <Button onClick={() => setAdding(true)}>สร้างภาคเรียน</Button>
       </PageHeader>
 
       <FormError message={rowAction.error} />
 
-      <QueryState query={terms} empty="ยังไม่มีเทอม กด “สร้างเทอม” เพื่อเริ่มต้น">
+      <QueryState query={terms} empty="ยังไม่มีภาคเรียน กด “สร้างภาคเรียน” เพื่อเริ่มต้น">
         {(list) => (
           <ul className="grid gap-2">
             {list.map((term) => (
@@ -103,27 +103,27 @@ export default function Terms() {
       <Modal
         open={adding}
         onOpenChange={setAdding}
-        title="สร้างเทอม"
-        description="ตั้งชื่อให้รู้ว่าเป็นเทอมไหน เช่น 1/2569"
+        title="สร้างภาคเรียน"
+        description="ตั้งชื่อให้รู้ว่าเป็นภาคเรียนไหน เช่น 1/2569"
         onSubmit={create}
         submitLabel="สร้าง"
         busy={form.busy}
         error={form.error}
       >
-        <Field label="ชื่อเทอม" name="name" placeholder="1/2569" required />
+        <Field label="ชื่อภาคเรียน" name="name" placeholder="1/2569" required />
       </Modal>
 
-      {/* key ทำให้ modal สร้างใหม่ทุกครั้งที่เปลี่ยนเทอม defaultValue จะได้อัปเดตตาม */}
+      {/* key ทำให้ modal สร้างใหม่ทุกครั้งที่เปลี่ยนภาคเรียน defaultValue จะได้อัปเดตตาม */}
       <Modal
         key={editing?.id}
         open={editing !== null}
         onOpenChange={(open) => !open && setEditing(null)}
-        title="เปลี่ยนชื่อเทอม"
+        title="เปลี่ยนชื่อภาคเรียน"
         onSubmit={rename}
         busy={form.busy}
         error={form.error}
       >
-        <Field label="ชื่อเทอม" name="name" defaultValue={editing?.name} required />
+        <Field label="ชื่อภาคเรียน" name="name" defaultValue={editing?.name} required />
       </Modal>
 
       {dialog}

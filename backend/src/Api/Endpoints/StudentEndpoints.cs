@@ -50,7 +50,7 @@ public static class StudentEndpoints
             if (await db.Enrollments.AnyAsync(e => e.ClassroomId == id && e.No == req.No))
                 return Problems.Conflict($"มีนักเรียนเลขที่ {req.No} ในห้องนี้แล้ว");
 
-            // รหัสนักเรียน unique ทั้งโรงเรียนและใช้ข้ามเทอม ถ้ามีอยู่แล้วให้ดึงคนเดิมมาเข้าห้อง
+            // รหัสนักเรียน unique ทั้งโรงเรียนและใช้ข้ามภาคเรียน ถ้ามีอยู่แล้วให้ดึงคนเดิมมาเข้าห้อง
             // ไม่สร้างซ้ำ ไม่งั้นประวัติคะแนนของเด็กคนเดียวจะแตกเป็นหลายคน
             var code = req.StudentCode.Trim();
             var student = await db.Students.FirstOrDefaultAsync(s => s.StudentCode == code);
@@ -117,7 +117,7 @@ public static class StudentEndpoints
                     .FirstOrDefaultAsync(e => e.ClassroomId == classroomId && e.StudentId == studentId);
                 if (enrollment is null) return Problems.NotFound("นักเรียนคนนี้ในห้องนี้");
 
-                // เอาออกจากห้องเท่านั้น ไม่ลบตัวนักเรียน เพราะยังมีคะแนนเทอมอื่นผูกอยู่
+                // เอาออกจากห้องเท่านั้น ไม่ลบตัวนักเรียน เพราะยังมีคะแนนภาคเรียนอื่นผูกอยู่
                 db.Enrollments.Remove(enrollment);
                 await db.SaveChangesAsync();
                 return Results.NoContent();

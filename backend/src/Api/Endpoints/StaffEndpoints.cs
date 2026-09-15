@@ -70,9 +70,9 @@ public static class StaffEndpoints
             var target = await db.Teachers.FindAsync(id);
             if (target is null) return Problems.NotFound("ครูคนนี้");
 
-            // เทอมผูกกับ TeacherId อยู่ ลบครูทิ้งเฉย ๆ จะทำให้ข้อมูลคะแนนหาย
+            // ภาคเรียนผูกกับ TeacherId อยู่ ลบครูทิ้งเฉย ๆ จะทำให้ข้อมูลคะแนนหาย
             if (await db.Terms.AnyAsync(t => t.TeacherId == id))
-                return Problems.Conflict("ครูคนนี้มีเทอมอยู่ ลบไม่ได้ ให้ลบหรือย้ายเทอมก่อน");
+                return Problems.Conflict("ครูคนนี้มีภาคเรียนอยู่ ลบไม่ได้ ให้ลบหรือย้ายภาคเรียนก่อน");
 
             if (await WouldRemoveLastOwner(db, target, TeacherRole.Teacher))
                 return Problems.Conflict("ต้องมีเจ้าของอย่างน้อย 1 คน");

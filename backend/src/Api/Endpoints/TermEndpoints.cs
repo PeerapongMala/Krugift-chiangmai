@@ -8,14 +8,14 @@ namespace Api.Endpoints;
 
 public record NameRequest(string Name);
 
-/// เทอมและห้องเรียนของครู · ทุก query ผ่าน TeacherScope เพื่อกันครูดึงข้อมูลข้ามกัน
+/// ภาคเรียนและห้องเรียนของครู · ทุก query ผ่าน TeacherScope เพื่อกันครูดึงข้อมูลข้ามกัน
 public static class TermEndpoints
 {
     public static void MapTerms(this WebApplication app)
     {
         var g = app.MapGroup("/api").RequireAuthorization(AuthSetup.Teacher);
 
-        // ---------- เทอม ----------
+        // ---------- ภาคเรียน ----------
 
         g.MapGet("/terms", async (ClaimsPrincipal user, AppDbContext db) =>
             Results.Ok(await db.TermsOf(user)
@@ -25,12 +25,12 @@ public static class TermEndpoints
 
         g.MapPost("/terms", async (NameRequest req, ClaimsPrincipal user, AppDbContext db) =>
         {
-            if (Validate.Name(req.Name, "ชื่อเทอม") is { } error) return Problems.Invalid(error);
+            if (Validate.Name(req.Name, "ชื่อภาคเรียน") is { } error) return Problems.Invalid(error);
 
             var name = req.Name.Trim();
             var teacherId = user.UserId();
             if (await db.Terms.AnyAsync(t => t.TeacherId == teacherId && t.Name == name))
-                return Problems.Duplicate("เทอม");
+                return Problems.Duplicate("ภาคเรียน");
 
             var term = new Term { TeacherId = teacherId, Name = name };
             db.Terms.Add(term);
@@ -40,14 +40,14 @@ public static class TermEndpoints
 
         g.MapPatch("/terms/{id:int}", async (int id, NameRequest req, ClaimsPrincipal user, AppDbContext db) =>
         {
-            if (Validate.Name(req.Name, "ชื่อเทอม") is { } error) return Problems.Invalid(error);
+            if (Validate.Name(req.Name, "ชื่อภาคเรียน") is { } error) return Problems.Invalid(error);
 
             var term = await db.FindTerm(user, id);
-            if (term is null) return Problems.NotFound("เทอมนี้");
+            if (term is null) return Problems.NotFound("ภาคเรียนนี้");
 
             var name = req.Name.Trim();
             if (await db.Terms.AnyAsync(t => t.TeacherId == term.TeacherId && t.Name == name && t.Id != id))
-                return Problems.Duplicate("เทอม");
+                return Problems.Duplicate("ภาคเรียน");
 
             term.Name = name;
             await db.SaveChangesAsync();
@@ -57,11 +57,11 @@ public static class TermEndpoints
         g.MapDelete("/terms/{id:int}", async (int id, ClaimsPrincipal user, AppDbContext db) =>
         {
             var term = await db.FindTerm(user, id);
-            if (term is null) return Problems.NotFound("เทอมนี้");
+            if (term is null) return Problems.NotFound("ภาคเรียนนี้");
 
             // ไม่ให้ลบทั้งที่มีห้องอยู่ เพราะ cascade จะลากคะแนนหายไปทั้งหมดโดยที่ครูไม่ทันรู้ตัว
             if (await db.Classrooms.AnyAsync(c => c.TermId == id))
-                return Problems.Conflict("เทอมนี้ยังมีห้องเรียนอยู่ ต้องลบห้องเรียนให้หมดก่อน");
+                return Problems.Conflict("ภาคเรียนนี้ยังมีห้องเรียนอยู่ ต้องลบห้องเรียนให้หมดก่อน");
 
             db.Terms.Remove(term);
             await db.SaveChangesAsync();
@@ -72,7 +72,7 @@ public static class TermEndpoints
 
         g.MapGet("/terms/{termId:int}/classrooms", async (int termId, ClaimsPrincipal user, AppDbContext db) =>
         {
-            if (await db.FindTerm(user, termId) is null) return Problems.NotFound("เทอมนี้");
+            if (await db.FindTerm(user, termId) is null) return Problems.NotFound("ภาคเรียนนี้");
 
             return Results.Ok(await db.ClassroomsOf(user)
                 .Where(c => c.TermId == termId)
@@ -90,7 +90,7 @@ public static class TermEndpoints
         g.MapPost("/terms/{termId:int}/classrooms", async (int termId, NameRequest req, ClaimsPrincipal user, AppDbContext db) =>
         {
             if (Validate.Name(req.Name, "ชื่อห้องเรียน") is { } error) return Problems.Invalid(error);
-            if (await db.FindTerm(user, termId) is null) return Problems.NotFound("เทอมนี้");
+            if (await db.FindTerm(user, termId) is null) return Problems.NotFound("ภาคเรียนนี้");
 
             var name = req.Name.Trim();
             if (await db.Classrooms.AnyAsync(c => c.TermId == termId && c.Name == name))

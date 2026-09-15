@@ -32,7 +32,7 @@ export default function Classrooms() {
   const refresh = () =>
     Promise.all([
       queryClient.invalidateQueries({ queryKey: qk.classrooms(termId) }),
-      // จำนวนห้องบนหน้ารายการเทอมต้องอัปเดตตามด้วย
+      // จำนวนห้องบนหน้ารายการภาคเรียนต้องอัปเดตตามด้วย
       queryClient.invalidateQueries({ queryKey: qk.terms }),
     ])
 
@@ -77,16 +77,16 @@ export default function Classrooms() {
   return (
     <>
       <Link to={routes.teacher} className="mb-3 inline-block text-sm text-muted-foreground hover:text-foreground">
-        ← กลับไปหน้าเทอม
+        ← กลับไปหน้าภาคเรียน
       </Link>
 
-      <PageHeader title="ห้องเรียน" description="เพิ่มห้องที่สอนในเทอมนี้ แล้วเข้าไปจัดการนักเรียนกับคะแนน">
+      <PageHeader title="ห้องเรียน" description="เพิ่มห้องที่สอนในภาคเรียนนี้ แล้วเข้าไปจัดการนักเรียนกับคะแนน">
         <Button onClick={() => setAdding(true)}>เพิ่มห้องเรียน</Button>
       </PageHeader>
 
       <FormError message={rowAction.error} />
 
-      <QueryState query={rooms} empty="ยังไม่มีห้องเรียนในเทอมนี้">
+      <QueryState query={rooms} empty="ยังไม่มีห้องเรียนในภาคเรียนนี้">
         {(list) => (
           <ul className="grid gap-2">
             {list.map((room) => (

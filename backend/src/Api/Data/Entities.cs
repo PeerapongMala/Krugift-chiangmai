@@ -2,7 +2,7 @@ namespace Api.Data;
 
 // เวลาทั้งหมดเก็บเป็น UTC (Npgsql map DateTime Kind=Utc → timestamptz)
 
-/// Owner = จัดการรายชื่อครูได้ และเห็นข้อมูลของครูทุกคน · Teacher = เห็นเฉพาะเทอมของตัวเอง
+/// Owner = จัดการรายชื่อครูได้ และเห็นข้อมูลของครูทุกคน · Teacher = เห็นเฉพาะภาคเรียนของตัวเอง
 public enum TeacherRole { Owner, Teacher }
 
 public class Teacher
