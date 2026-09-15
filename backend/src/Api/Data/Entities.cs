@@ -21,7 +21,7 @@ public class Teacher
     [Comment("ชื่อที่แสดง · ว่างได้ ถ้าว่างระบบแสดงอีเมลแทน")]
     public string Name { get; set; } = "";
 
-    [Comment("ยศ: Owner = เห็นข้อมูลครูทุกคน + จัดการรายชื่อครู · Teacher = เห็นเฉพาะภาคเรียนของตัวเอง")]
+    [Comment("สิทธิ์: Owner = ผู้ดูแลระบบ (เห็นข้อมูลครูทุกคน + เพิ่ม/ลบครู) · Teacher = ครู (เห็นเฉพาะภาคเรียนของตัวเอง)")]
     public TeacherRole Role { get; set; } = TeacherRole.Teacher;
 }
 
@@ -82,7 +82,7 @@ public class Student
     [Comment("นามสกุล")]
     public required string LastName { get; set; }
 
-    [Comment("บัญชี Google ที่นักเรียนผูกไว้ (Google subject id) · null = ยังไม่เคยเข้าระบบ")]
+    [Comment("บัญชี Google ที่นักเรียนเชื่อมไว้ (Google subject id) · null = ยังไม่เคยเข้าสู่ระบบ")]
     public string? GoogleSub { get; set; }
 }
 
@@ -169,23 +169,23 @@ public class ScoreAudit
 
 public enum AppealStatus { Open, Answered, Closed }
 
-[Comment("เรื่องท้วงคะแนน · นักเรียนมีเรื่องที่ยังไม่ปิดได้ครั้งละหนึ่งเรื่องต่อรายการ")]
+[Comment("คำถามเรื่องคะแนนจากนักเรียน (หน้าเว็บเรียกว่า สอบถามคะแนน) · มีคำถามที่ยังไม่เสร็จสิ้นได้ครั้งละหนึ่งคำถามต่อรายการ")]
 public class Appeal
 {
     [Comment("รหัสภายในระบบ")]
     public int Id { get; set; }
 
-    [Comment("รายการคะแนนที่ท้วง (Items.Id)")]
+    [Comment("รายการคะแนนที่ถาม (Items.Id)")]
     public int ItemId { get; set; }
 
     public AssessmentItem Item { get; set; } = null!;
 
-    [Comment("นักเรียนที่ท้วง (Students.Id)")]
+    [Comment("นักเรียนที่ถาม (Students.Id)")]
     public int StudentId { get; set; }
 
     public Student Student { get; set; } = null!;
 
-    [Comment("สถานะ: Open = รอครูตอบ · Answered = ครูตอบแล้ว · Closed = ปิดแล้ว")]
+    [Comment("สถานะ: Open = รอครูตอบ · Answered = ครูตอบแล้ว · Closed = เสร็จสิ้น")]
     public AppealStatus Status { get; set; } = AppealStatus.Open;
 
     [Comment("ครูยังไม่ได้อ่านข้อความล่าสุด (ใช้แสดง badge ฝั่งครู)")]
@@ -194,19 +194,19 @@ public class Appeal
     [Comment("นักเรียนยังไม่ได้อ่านข้อความล่าสุด (ใช้แสดง badge ฝั่งนักเรียน)")]
     public bool UnreadByStudent { get; set; }
 
-    [Comment("เวลาที่เปิดเรื่อง (UTC)")]
+    [Comment("เวลาที่ส่งคำถาม (UTC)")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public List<AppealMessage> Messages { get; set; } = [];
 }
 
-[Comment("ข้อความในเรื่องท้วงคะแนน")]
+[Comment("ข้อความในคำถามเรื่องคะแนน (ทั้งคำถามของนักเรียนและคำตอบของครู)")]
 public class AppealMessage
 {
     [Comment("รหัสภายในระบบ")]
     public int Id { get; set; }
 
-    [Comment("เรื่องท้วง (Appeals.Id)")]
+    [Comment("คำถาม (Appeals.Id)")]
     public int AppealId { get; set; }
 
     [Comment("true = ครูเขียน · false = นักเรียนเขียน")]
