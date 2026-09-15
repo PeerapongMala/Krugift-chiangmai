@@ -377,6 +377,183 @@ def run():
     record(g, "ตอบเรื่องที่ปิดแล้ว", *owner("POST", "/api/appeals/%d/messages" % appeal_id, {"body": "ตอบต่อ"}))
     record(g, "ปิดแล้วเปิดเรื่องใหม่รายการเดิมได้", stu("POST", "/api/appeals", {"itemId": item_id, "body": "ยังไม่เคลียร์"})[0])
 
+    # ---------------------------------------------------------------- นำเข้า Excel (all-or-nothing)
+    g = "IMPORT"
+    import zipfile
+    from xml.sax.saxutils import escape
+
+    def xlsx(rows):
+        """สร้าง .xlsx ขั้นต่ำด้วย stdlib (เครื่องนี้ไม่มี openpyxl) · ข้อความเป็น inline string ตัวเลขเป็น number"""
+        def cell(ref, v):
+            if v is None:
+                return ""
+            if isinstance(v, (int, float)):
+                return '<c r="%s"><v>%s</v></c>' % (ref, v)
+            return '<c r="%s" t="inlineStr"><is><t>%s</t></is></c>' % (ref, escape(v))
+        sheet_rows = "".join(
+            '<row r="%d">%s</row>' % (r + 1, "".join(cell("%s%d" % (chr(65 + c), r + 1), v) for c, v in enumerate(row)))
+            for r, row in enumerate(rows))
+        main = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
+        pkg = "http://schemas.openxmlformats.org/package/2006/relationships"
+        rel = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+        sml = "application/vnd.openxmlformats-officedocument.spreadsheetml"
+        parts = {
+            "[Content_Types].xml":
+                '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+                '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+                '<Default Extension="xml" ContentType="application/xml"/>'
+                '<Override PartName="/xl/workbook.xml" ContentType="%s.sheet.main+xml"/>'
+                '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="%s.worksheet+xml"/>'
+                '<Override PartName="/xl/styles.xml" ContentType="%s.styles+xml"/></Types>' % (sml, sml, sml),
+            "_rels/.rels":
+                '<Relationships xmlns="%s"><Relationship Id="rId1" Type="%s/officeDocument" Target="xl/workbook.xml"/>'
+                '</Relationships>' % (pkg, rel),
+            "xl/workbook.xml":
+                '<workbook %s xmlns:r="%s"><sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets></workbook>'
+                % (main, rel),
+            "xl/_rels/workbook.xml.rels":
+                '<Relationships xmlns="%s"><Relationship Id="rId1" Type="%s/worksheet" Target="worksheets/sheet1.xml"/>'
+                '<Relationship Id="rId2" Type="%s/styles" Target="styles.xml"/></Relationships>' % (pkg, rel, rel),
+            "xl/styles.xml":
+                '<styleSheet %s><fonts count="1"><font><sz val="11"/><name val="Calibri"/></font></fonts>'
+                '<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>'
+                '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
+                '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+                '<cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs></styleSheet>'
+                % main,
+            "xl/worksheets/sheet1.xml": '<worksheet %s><sheetData>%s</sheetData></worksheet>' % (main, sheet_rows),
+        }
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+            for name, xml in parts.items():
+                z.writestr(name, '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' + xml)
+        return buf.getvalue()
+
+    def upload(client, path, files, fields=()):
+        """ส่ง multipart/form-data เอง (urllib ไม่มีให้) · คืน (status, JSON)"""
+        boundary = "krugift-e2e-boundary"
+        body = io.BytesIO()
+        for name, text in fields:
+            body.write(('--%s\r\nContent-Disposition: form-data; name="%s"\r\n\r\n%s\r\n'
+                        % (boundary, name, text)).encode("utf-8"))
+        for name, filename, data in files:
+            body.write(('--%s\r\nContent-Disposition: form-data; name="%s"; filename="%s"\r\n'
+                        'Content-Type: application/octet-stream\r\n\r\n' % (boundary, name, filename)).encode("utf-8"))
+            body.write(data)
+            body.write(b"\r\n")
+        body.write(("--%s--\r\n" % boundary).encode("utf-8"))
+        req = urllib.request.Request(BASE + path, data=body.getvalue(), method="POST")
+        req.add_header("Content-Type", "multipart/form-data; boundary=" + boundary)
+        try:
+            with client.opener.open(req) as r:
+                payload = r.read()
+                return r.status, (json.loads(payload.decode("utf-8")) if payload else None)
+        except urllib.error.HTTPError as e:
+            payload = e.read()
+            try:
+                return e.code, (json.loads(payload.decode("utf-8")) if payload else None)
+            except Exception:
+                return e.code, None
+
+    def download(client, path):
+        """โหลดไฟล์ที่ไม่ใช่ JSON · คืน (status, content-type, bytes)"""
+        try:
+            with client.opener.open(urllib.request.Request(BASE + path)) as r:
+                return r.status, r.headers.get("Content-Type"), r.read()
+        except urllib.error.HTTPError as e:
+            return e.code, e.headers.get("Content-Type"), e.read()
+
+    def errors_of(res):
+        return [(e["row"], e["column"], e["message"]) for e in res["errors"]] if isinstance(res, dict) else res
+
+    def field(res, key):
+        return res.get(key) if isinstance(res, dict) else res
+
+    status, room3 = owner("POST", "/api/terms/%d/classrooms" % term_id, {"name": "E2E นำเข้า"})
+    record(g, "สร้างห้องสำหรับทดสอบนำเข้า", status)
+    room3_id = room3["id"]
+    base = "/api/classrooms/%d/import" % room3_id
+    names = {s["studentCode"]: (s["firstName"], s["lastName"])
+             for s in owner("GET", "/api/classrooms/%d/students" % room_id)[1]}
+    a_first, a_last = names["90001"]
+    b_first, b_last = names["90002"]
+    roster_head = ["เลขที่", "รหัสนักเรียน", "ชื่อ", "นามสกุล"]
+    roster_ok = xlsx([roster_head, [1, "90001", a_first, a_last], [2, "90002", b_first, b_last]])
+
+    record(g, "คนไม่ล็อกอินโหลด template", download(anon, base + "/students/template")[0])
+    record(g, "นักเรียนโหลด template", download(stu, base + "/students/template")[0])
+    record(g, "ครูอื่นโหลด template ห้องที่ไม่ใช่ของตัวเอง", download(other, base + "/students/template")[0])
+    for label, kind in (("นักเรียน", "students"), ("คะแนน", "scores")):
+        status, ctype, data = download(owner, "%s/%s/template" % (base, kind))
+        record(g, "โหลด template " + label, status)
+        value(g, "  เป็นไฟล์ xlsx", (ctype, data[:2] == b"PK"))
+
+    record(g, "ไม่ได้ส่งเป็นไฟล์ (JSON)", *owner("POST", base + "/students/preview", {"file": "x"}))
+    record(g, "ส่ง form แต่ไม่มีไฟล์", *upload(owner, base + "/students/preview", [], [("note", "x")]))
+    record(g, "ไฟล์ .csv", *upload(owner, base + "/students/preview", [("file", "roster.csv", b"a,b\n")]))
+    record(g, "ไฟล์ขยะที่ตั้งชื่อเป็น .xlsx", *upload(owner, base + "/students/preview", [("file", "roster.xlsx", b"not excel")]))
+    record(g, "ไฟล์ว่าง", *upload(owner, base + "/students/preview", [("file", "roster.xlsx", b"")]))
+    record(g, "ไฟล์ใหญ่เกิน 2 MB", *upload(owner, base + "/students/preview",
+                                            [("file", "roster.xlsx", b"0" * (2 * 1024 * 1024 + 1))]))
+    record(g, "ส่ง 2 ไฟล์พร้อมกัน", *upload(owner, base + "/students/preview",
+                                            [("file", "a.xlsx", roster_ok), ("file", "b.xlsx", roster_ok)]))
+    record(g, "ครูอื่นตรวจไฟล์ห้องที่ไม่ใช่ของตัวเอง", *upload(other, base + "/students/preview", [("file", "r.xlsx", roster_ok)]))
+    record(g, "นักเรียนตรวจไฟล์", *upload(stu, base + "/students/preview", [("file", "r.xlsx", roster_ok)]))
+    record(g, "นักเรียนยืนยันนำเข้า", *upload(stu, base + "/scores/commit", [("file", "r.xlsx", roster_ok)]))
+
+    roster_bad = xlsx([roster_head, [1, "90001", "ชื่อผิด", a_last], [1, "90002", b_first, b_last], [3, "9000#", "ก", "ข"]])
+    status, res = upload(owner, base + "/students/preview", [("file", "roster.xlsx", roster_bad)])
+    record(g, "ตรวจไฟล์รายชื่อที่มีจุดผิด", status)
+    value(g, "  จุดผิดที่เจอ", errors_of(res))
+    record(g, "ยืนยันไฟล์รายชื่อที่มีจุดผิด", *upload(owner, base + "/students/commit", [("file", "roster.xlsx", roster_bad)]))
+    value(g, "  ห้องยังว่าง ไม่บันทึกอะไรเลย", owner("GET", "/api/classrooms/%d/students" % room3_id)[1])
+
+    status, res = upload(owner, base + "/students/preview", [("file", "roster.xlsx", roster_ok)])
+    record(g, "ตรวจไฟล์รายชื่อที่ถูกต้อง", status)
+    value(g, "  สรุป", field(res, "summary"))
+    value(g, "  ตรวจอย่างเดียวยังไม่บันทึก", owner("GET", "/api/classrooms/%d/students" % room3_id)[1])
+    status, res = upload(owner, base + "/students/commit", [("file", "roster.xlsx", roster_ok)])
+    record(g, "ยืนยันนำเข้ารายชื่อ", status)
+    value(g, "  นักเรียนในห้องหลังนำเข้า",
+          [(s["no"], s["studentCode"]) for s in owner("GET", "/api/classrooms/%d/students" % room3_id)[1]])
+    status, res = upload(owner, base + "/students/preview", [("file", "roster.xlsx", roster_ok)])
+    value(g, "  ตรวจไฟล์เดิมซ้ำ ไม่มีอะไรเปลี่ยน", (status, field(res, "hasChanges")))
+
+    score_head = roster_head + ["งานกลุ่ม (10)"]
+    scores_bad = xlsx([score_head, [1, "90001", a_first, a_last, 8.5], [2, "90002", b_first, b_last, 11],
+                       [3, "90003", "ซี", "สาม", 5]])
+    status, res = upload(owner, base + "/scores/preview", [("file", "scores.xlsx", scores_bad)])
+    record(g, "ตรวจไฟล์คะแนนที่มีจุดผิด", status)
+    value(g, "  จุดผิดที่เจอ", errors_of(res))
+    record(g, "ยืนยันไฟล์คะแนนที่มีจุดผิด", *upload(owner, base + "/scores/commit", [("file", "scores.xlsx", scores_bad)]))
+    value(g, "  ไม่มีรายการใหม่ถูกสร้าง", owner("GET", "/api/classrooms/%d/items" % room3_id)[1])
+    status, res = upload(owner, base + "/students/preview", [("file", "s.xlsx", scores_bad)])
+    record(g, "เอาไฟล์คะแนนไปใส่หน้านำเข้ารายชื่อ", status)
+    value(g, "  จุดผิดที่เจอ", errors_of(res))
+
+    scores_ok = xlsx([score_head, [1, "90001", a_first, a_last, 8.5], [2, "90002", b_first, b_last, None]])
+    status, res = upload(owner, base + "/scores/preview", [("file", "scores.xlsx", scores_ok)])
+    record(g, "ตรวจไฟล์คะแนนที่ถูกต้อง", status)
+    value(g, "  สรุป", field(res, "summary"))
+    record(g, "ยืนยันนำเข้าคะแนน", upload(owner, base + "/scores/commit", [("file", "scores.xlsx", scores_ok)])[0])
+    status, grid = owner("GET", "/api/classrooms/%d/scores" % room3_id)
+    value(g, "  รายการในห้อง", [(i["name"], i["maxScore"]) for i in grid["items"]])
+    value(g, "  คะแนนที่บันทึก", [s["value"] for s in grid["scores"]])
+    item3 = grid["items"][0]["id"] if grid["items"] else 0
+    sid_a = next((s["studentId"] for s in grid["students"] if s["studentCode"] == "90001"), 0)
+    value(g, "  มีประวัติการแก้ (audit)", [(a["oldValue"], a["newValue"]) for a in
+                                          owner("GET", "/api/scores/audits?itemId=%d&studentId=%d" % (item3, sid_a))[1] or []])
+    blank = xlsx([score_head, [1, "90001", a_first, a_last, None]])
+    status, res = upload(owner, base + "/scores/preview", [("file", "scores.xlsx", blank)])
+    value(g, "  ช่องว่างไม่ล้างคะแนนเดิม", (status, field(res, "hasChanges")))
+
+    # เก็บกวาดห้องนำเข้า: ล้างคะแนน → ลบรายการ → เอานักเรียนออก → ลบห้อง
+    owner("PUT", "/api/scores", {"itemId": item3, "studentId": sid_a, "value": None, "expected": 8.5})
+    owner("DELETE", "/api/items/%d" % item3)
+    for s in owner("GET", "/api/classrooms/%d/students" % room3_id)[1] or []:
+        owner("DELETE", "/api/classrooms/%d/students/%d" % (room3_id, s["studentId"]))
+    owner("DELETE", "/api/classrooms/%d" % room3_id)
+
     # ---------------------------------------------------------------- ดูคะแนนด่วน (ไม่ล็อกอิน)
     g = "PUBLIC"
     pub = Client()
