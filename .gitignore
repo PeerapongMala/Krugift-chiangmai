@@ -504,3 +504,6 @@ CLAUDE.local.md
 
 # โฟลเดอร์ลองไอคอน เลือกแบบ a-front ไปใช้แล้วใน frontend/public/
 /favicon-options/
+
+# ไฟล์ชั่วคราวของ Playwright MCP (snapshot/screenshot/console log)
+/.playwright-mcp/

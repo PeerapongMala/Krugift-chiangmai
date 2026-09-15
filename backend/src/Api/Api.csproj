@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <!-- Smart App Control บล็อก Api.exe ที่ไม่ได้เซ็น: ปิด apphost ให้ dotnet run เปิดผ่าน dotnet.exe ที่เซ็นแล้ว -->
+    <UseAppHost>false</UseAppHost>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>88f15052-85d6-4644-a354-2dee451ff38a</UserSecretsId>
