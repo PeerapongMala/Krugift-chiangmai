@@ -41,6 +41,7 @@ app.MapTerms();
 app.MapStudents();
 app.MapItems();
 app.MapScores();
+app.MapImport();
 app.MapPublic();
 app.MapMe();
 app.MapAppeals();

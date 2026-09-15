@@ -15,6 +15,18 @@ public static class Limits
     /// กันไฟล์ Excel ที่ใหญ่ผิดปกติ (ห้องนึงมีไม่เกิน ~50 คน เผื่อไว้เยอะแล้ว)
     public const int ImportMaxRows = 2000;
 
+    /// ขนาดไฟล์ import สูงสุด (ตกลงไว้ใน PLAN) · ไฟล์ของห้องหนึ่งจริง ๆ ไม่ถึง 100 KB
+    public const int ImportMaxBytes = 2 * 1024 * 1024;
+
+    /// ขนาดรวมหลังแตก zip · .xlsx คือ zip กันไฟล์เล็กที่แตกออกมาเป็นหลาย GB (zip bomb)
+    public const long ImportMaxUnzippedBytes = 50 * 1024 * 1024;
+
+    /// จำนวนคอลัมน์รายการคะแนนในไฟล์เดียว
+    public const int ImportMaxItems = 100;
+
+    /// ส่งจุดผิดกลับไปแสดงสูงสุดกี่จุด ที่เหลือบอกแค่จำนวน
+    public const int ImportMaxErrors = 200;
+
     /// รหัสนักเรียนของโรงเรียน เช่น 12345
     public const int StudentCodeLength = 20;
 
