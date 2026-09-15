@@ -11,6 +11,10 @@ export const routes = {
   classroomItems: (classroomId: number) => `/teacher/classrooms/${classroomId}/items`,
   classroomScores: (classroomId: number) => `/teacher/classrooms/${classroomId}/scores`,
   student: '/student',
+  teacherAppeals: '/teacher/appeals',
+  studentAppeals: '/student/appeals',
+  /** thread ใช้หน้าเดียวกันทั้งสองฝั่ง แต่อยู่ใต้ layout ของแต่ละบทบาท */
+  appeal: (base: string, appealId: number) => `${base}/${appealId}`,
 } as const
 
 /**
@@ -34,5 +38,7 @@ export const qk = {
   scores: (classroomId: number) => ['classrooms', classroomId, 'scores'] as const,
 
   appeals: ['appeals'] as const,
+  /** ขึ้นต้นด้วย 'appeals' เหมือนกัน invalidate qk.appeals แล้ว badge จะอัปเดตตาม */
+  appealsUnread: ['appeals', 'unread'] as const,
   appeal: (appealId: number) => ['appeals', appealId] as const,
 } as const

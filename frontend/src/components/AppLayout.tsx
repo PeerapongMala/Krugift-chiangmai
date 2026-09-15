@@ -1,5 +1,5 @@
-import { useQueryClient } from '@tanstack/react-query'
-import { BookOpen, GraduationCap, LogOut, Users, type LucideIcon } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { BookOpen, GraduationCap, LogOut, MessagesSquare, Users, type LucideIcon } from 'lucide-react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import { Avatar } from '@/components/Avatar'
 import { Credit } from '@/components/Credit'
@@ -7,12 +7,22 @@ import { Mascot } from '@/components/Mascot'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { useMe, type Me } from '@/lib/auth'
-import { routes } from '@/lib/keys'
+import { qk, routes } from '@/lib/keys'
 import { cn } from '@/lib/utils'
 
-type NavItem = { to: string; label: string; icon: LucideIcon; isActive: (path: string) => boolean }
+type NavItem = {
+  to: string
+  label: string
+  icon: LucideIcon
+  isActive: (path: string) => boolean
+  /** แสดง badge จำนวนเรื่องท้วงที่มีข้อความใหม่ */
+  showsUnread?: boolean
+}
 
-/** เมนูหลักตามบทบาท · ท้วงคะแนนจะเพิ่มตอน M7 มีหน้าจริง ไม่ใส่ลิงก์ที่กดแล้วไปไหนไม่ได้ */
+/** v1 ไม่มี realtime ใช้ถาม server ซ้ำทุก 1 นาทีแทน */
+const UNREAD_POLL_MS = 60_000
+
+/** เมนูหลักตามบทบาท */
 function navFor(me: Me | null | undefined): NavItem[] {
   if (me?.role === 'teacher') {
     const items: NavItem[] = [
@@ -20,16 +30,49 @@ function navFor(me: Me | null | undefined): NavItem[] {
         to: routes.teacher,
         label: 'ภาคเรียน',
         icon: BookOpen,
-        isActive: (p) => p.startsWith(routes.teacher) && !p.startsWith(routes.staff),
+        isActive: (p) => p.startsWith(routes.teacher) && !p.startsWith(routes.staff) && !p.startsWith(routes.teacherAppeals),
+      },
+      {
+        to: routes.teacherAppeals,
+        label: 'ท้วงคะแนน',
+        icon: MessagesSquare,
+        showsUnread: true,
+        isActive: (p) => p.startsWith(routes.teacherAppeals),
       },
     ]
     if (me.isOwner) items.push({ to: routes.staff, label: 'จัดการครู', icon: Users, isActive: (p) => p.startsWith(routes.staff) })
     return items
   }
   if (me?.role === 'student') {
-    return [{ to: routes.student, label: 'คะแนนของฉัน', icon: GraduationCap, isActive: (p) => p.startsWith(routes.student) }]
+    return [
+      {
+        to: routes.student,
+        label: 'คะแนนของฉัน',
+        icon: GraduationCap,
+        isActive: (p) => p.startsWith(routes.student) && !p.startsWith(routes.studentAppeals),
+      },
+      {
+        to: routes.studentAppeals,
+        label: 'ท้วงคะแนน',
+        icon: MessagesSquare,
+        showsUnread: true,
+        isActive: (p) => p.startsWith(routes.studentAppeals),
+      },
+    ]
   }
   return []
+}
+
+function UnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null
+  return (
+    <span
+      className="ml-1 inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-4 font-medium text-primary-foreground"
+      aria-label={`มีข้อความใหม่ ${count} เรื่อง`}
+    >
+      {count > 99 ? '99+' : count}
+    </span>
+  )
 }
 
 /**
@@ -44,6 +87,13 @@ export function AppLayout() {
   const { pathname } = useLocation()
   const nav = navFor(me)
   const hasBottomBar = nav.length > 1
+  const unread = useQuery({
+    queryKey: qk.appealsUnread,
+    queryFn: () => api<{ count: number }>('/appeals/unread-count'),
+    enabled: nav.length > 0,
+    refetchInterval: UNREAD_POLL_MS,
+  })
+  const unreadCount = unread.data?.count ?? 0
 
   async function logout() {
     await api('/auth/logout', { method: 'POST' })
@@ -74,6 +124,7 @@ export function AppLayout() {
                   )}
                 >
                   {item.label}
+                  {item.showsUnread && <UnreadBadge count={unreadCount} />}
                 </Link>
               )
             })}
@@ -118,7 +169,10 @@ export function AppLayout() {
                   )}
                 >
                   <Icon className="size-5" aria-hidden="true" />
-                  {item.label}
+                  <span>
+                    {item.label}
+                    {item.showsUnread && <UnreadBadge count={unreadCount} />}
+                  </span>
                 </Link>
               )
             })}

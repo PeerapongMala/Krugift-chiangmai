@@ -5,6 +5,8 @@ import { createBrowserRouter, Navigate, RouterProvider } from 'react-router'
 import './index.css'
 import { AppLayout } from '@/components/AppLayout'
 import { RequireRole } from '@/components/RequireRole'
+import AppealThread from '@/pages/AppealThread'
+import Appeals from '@/pages/Appeals'
 import Claim from '@/pages/Claim'
 import Login from '@/pages/Login'
 import QuickScores from '@/pages/QuickScores'
@@ -38,6 +40,8 @@ const router = createBrowserRouter([
           { path: '/teacher/classrooms/:classroomId/items', element: <Items /> },
           { path: '/teacher/classrooms/:classroomId/scores', element: <Scores /> },
           { path: '/teacher/staff', element: <StaffPage /> },
+          { path: '/teacher/appeals', element: <Appeals /> },
+          { path: '/teacher/appeals/:appealId', element: <AppealThread /> },
         ],
       },
     ],
@@ -47,7 +51,11 @@ const router = createBrowserRouter([
     children: [
       {
         element: <AppLayout />,
-        children: [{ path: '/student', element: <StudentHome /> }],
+        children: [
+          { path: '/student', element: <StudentHome /> },
+          { path: '/student/appeals', element: <Appeals /> },
+          { path: '/student/appeals/:appealId', element: <AppealThread /> },
+        ],
       },
     ],
   },
