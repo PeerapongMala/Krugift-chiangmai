@@ -31,12 +31,13 @@ Secrets ใช้ `dotnet user-secrets` (`--project backend/src/Api`) ห้า�
 ```
 backend/src/Api/Program.cs      DI, middleware, migrate + SeedFirstOwner ตอน start
 backend/src/Api/Data/           Entities.cs (ทุก entity), AppDbContext.cs, Migrations/
-backend/src/Api/Auth/           AccessCode.cs (รหัสส่วนตัว + lockout), AuthSetup.cs (cookie/Google/policy/rate limit)
+backend/src/Api/Auth/           AuthSetup.cs (cookie/Google/policy/rate limit)
 backend/src/Api/Common/         TeacherScope (กัน IDOR), ScoreWriter (บังคับเขียน audit), Validate, Problems, Limits
 backend/src/Api/Endpoints/      *Endpoints.cs — extension MapXxx() ต่อ feature
-backend/tests/Api.Tests/        xUnit
-frontend/src/lib/               api.ts (fetch + ApiError), auth.ts (useMe, homeOf)
-frontend/src/components/        ใช้ร่วมกันหลายหน้า (AppLayout, RequireRole, AuthCard, CodeForm)
+backend/tests/Api.Tests/        xUnit v3 (ฟังก์ชันบริสุทธิ์)
+backend/tests/e2e/              api_tests.py + snapshot.txt (ยิง HTTP จริง)
+frontend/src/lib/               api.ts (fetch + ApiError/NetworkError), auth.ts, keys.ts (route + query key), validate.ts, mascots.ts
+frontend/src/components/        ใช้ร่วมกันหลายหน้า (AppLayout, ClassroomTabs, Modal, ConfirmDialog, Field, FormError, QueryState, PageHeader, Mascot, Avatar, Credit)
 frontend/src/components/ui/     shadcn (โค้ดของเรา แก้ได้)
 frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
 ```
@@ -47,7 +48,9 @@ frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
   - endpoint ของครูต้องเช็คว่า Term เป็นของ `TeacherId` ที่ล็อกอินอยู่ — ใช้ `db.TermsOf(user)` / `db.FindClassroom(user, id)` จาก `Common/TeacherScope.cs` ห้ามเรียก `db.Terms` ตรง ๆ
   - ครูมี 2 ยศ: **Owner** เห็นข้อมูลของครูทุกคน + จัดการรายชื่อครูได้ · **Teacher** เห็นเฉพาะเทอมของตัวเอง (`TeacherScope` จัดการให้แล้ว)
   - endpoint ใน `/api/staff` ต้องเช็คยศจาก **DB ซ้ำ** ไม่เชื่อ claim อย่างเดียว เพราะ cookie อยู่ได้ 30 วัน คนที่เพิ่งโดนลดยศจะยังถือ claim เดิม
-  - login endpoint ต้องมี `.RequireRateLimiting(AuthSetup.LoginLimit)`
+  - login endpoint และ `/api/public/*` ต้องมี `.RequireRateLimiting(AuthSetup.LoginLimit)`
+  - นักเรียนล็อกอินด้วย **Google เท่านั้น** แล้วผูกกับรหัสนักเรียนครั้งแรก (ไม่มีรหัสส่วนตัวจากครู) · ครู unlink ได้
+  - **ดูคะแนนด่วนไม่ต้องล็อกอิน** (`/scores`): ห้อง dropdown + เลขที่ dropdown + รหัสนักเรียนพิมพ์ · **ห้ามมี dropdown ชื่อ** (หน้าสาธารณะจะรั่วรายชื่อเด็ก) · ผิดช่องไหนตอบข้อความเดียวกัน · ไม่สร้าง cookie · ครูปิดได้รายภาคเรียน
   - API ตอบ JSON เท่านั้น (ใช้ SameSite=Lax + JSON กัน CSRF แทน antiforgery)
 - **Error:** ใช้ `Results.Problem("ข้อความภาษาไทย", statusCode: …)` แล้ว `api()` ฝั่งเว็บจะเอา `detail` ไปแสดงให้ผู้ใช้เอง
 - **คะแนนห้ามเกินคะแนนเต็ม:** เช็คในโค้ด เพราะ check constraint ข้ามตารางไม่ได้ · **แก้คะแนนทุกครั้งต้องเขียน `ScoreAudit`**
@@ -64,17 +67,21 @@ frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
 - ปุ่ม Google ต้องเป็น `<a href="/api/auth/google">` ใช้ fetch ไม่ได้ เพราะ OAuth ต้อง redirect ทั้งหน้า
 - `/api/auth/dev-login?email=` มีเฉพาะ Development ใช้ทดสอบเป็นครูโดยไม่ต้องตั้ง Google
 - API สั่ง `Migrate()` ตอน start ถ้ายังไม่ได้ตั้ง connection string แอปจะ crash ทันที
+- **migration เพิ่มคอลัมน์ non-null ต้องเช็ค `defaultValue` ทุกครั้ง** EF ใส่ค่า default ของ CLR (`""`, `false`) ไม่ใช่ค่าที่ตั้งใน C# · เคยพลาดแล้ว 2 ครั้ง (Role เป็น `""`, PublicScores เป็น `false`)
+- `Api.csproj` ตั้ง `UseAppHost=false` เพราะ Smart App Control บล็อก `Api.exe` ที่ไม่ได้เซ็น · ห้ามเอาออก
+- เทสต์ API ที่มีภาษาไทยห้ามใช้ curl บนเครื่องนี้ (console แปลงเป็น `?`) ใช้ `backend/tests/e2e/api_tests.py`
+- e2e รันซ้ำติดกันต้องเว้น ~65 วินาที เพราะ `/api/public/scores` ใช้ rate limit ร่วมกับ login
 - เทสต์ต้องเป็น **xUnit v3** (`<OutputType>Exe</OutputType>`) + `global.json` ตั้ง `test.runner = "Microsoft.Testing.Platform"` — **ห้ามย้อนกลับไป xunit v2 + Microsoft.NET.Test.Sdk** เพราะ Smart App Control ของ Windows บล็อก `testhost` ตอนโหลด dll ด้วย reflection (`FileLoadException 0x800711C7`) v3 คอมไพล์เป็น .exe รันตรงจึงผ่าน
 - ภาพคาปิบาร่าใน `frontend/public/capybara/` มาจาก Freepik license ฟรี **ต้องคงเครดิต** (`components/Credit.tsx`) ไว้ ถ้าเอาออกต้องอัปเป็น Premium ก่อน
 
 ## สถานะ (อัปเดตทุกครั้งที่จบ milestone)
 - [x] M1 Scaffold
-- [x] M2 DB schema + migration แรก (ยังไม่ได้รันกับ DB จริง)
-- [x] M3 Auth backend + หน้า login/claim (build/test ผ่าน **ยังไม่ได้ทดสอบ runtime** · รอ Neon)
-- [ ] M4 หน้าครู: เทอม/ห้อง/รายการ/นักเรียน + ตารางคะแนน + audit
-- [ ] M5 Import Excel + template + ใบแจกรหัส
+- [x] M2 DB schema + migration (รันบน Neon แล้ว)
+- [x] M3 Auth: Google OAuth + claim ด้วยรหัสนักเรียน + ครู 2 ยศ (Owner/Teacher) · ทดสอบ runtime แล้ว
+- [x] M4 หน้าครู: ภาคเรียน/ห้อง/นักเรียน/รายการ + ตารางคะแนน + audit + optimistic concurrency · เมนู responsive · ดูคะแนนด่วนไม่ต้องล็อกอิน
+- [ ] M5 Import Excel + template (ไม่มีใบแจกรหัสแล้ว)
 - [ ] M6 หน้านักเรียน
 - [ ] M7 ท้วงคะแนน
 - [ ] M8 Dockerfile/compose/.env.example + Render + backup
 
-**ต่อไป:** เมื่อตั้ง Neon connection string แล้ว → รัน API → ทดสอบ login ทุก flow (dev-login ครู, code-login นักเรียน, ผิด 5 ครั้งโดนล็อก, 401/403) → เริ่ม M4
+**ต่อไป:** M6 หน้านักเรียน (ล็อกอินแล้วดูคะแนน) → M7 ท้วงคะแนน (เพิ่มเมนูใน AppLayout) → M5 import Excel เมื่อได้ไฟล์ตัวอย่างจากครู
