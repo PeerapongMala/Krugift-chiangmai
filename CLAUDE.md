@@ -80,8 +80,8 @@ frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
 - [x] M3 Auth: Google OAuth + claim ด้วยรหัสนักเรียน + ครู 2 ยศ (Owner/Teacher) · ทดสอบ runtime แล้ว
 - [x] M4 หน้าครู: ภาคเรียน/ห้อง/นักเรียน/รายการ + ตารางคะแนน + audit + optimistic concurrency · เมนู responsive · ดูคะแนนด่วนไม่ต้องล็อกอิน
 - [ ] M5 Import Excel + template (ไม่มีใบแจกรหัสแล้ว)
-- [ ] M6 หน้านักเรียน
+- [x] M6 หน้านักเรียน: คะแนนของฉัน (`/api/me/scores` ดึง studentId จาก cookie เท่านั้น)
 - [ ] M7 ท้วงคะแนน
 - [ ] M8 Dockerfile/compose/.env.example + Render + backup
 
-**ต่อไป:** M6 หน้านักเรียน (ล็อกอินแล้วดูคะแนน) → M7 ท้วงคะแนน (เพิ่มเมนูใน AppLayout) → M5 import Excel เมื่อได้ไฟล์ตัวอย่างจากครู
+**ต่อไป:** M7 ท้วงคะแนน (เพิ่มเมนู + badge ใน AppLayout) → M5 import Excel เมื่อได้ไฟล์ตัวอย่างจากครู → M8 deploy
