@@ -1,17 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="16" fill="#F6CBD2"/>
-  <g stroke="#4A1D2B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-    <ellipse cx="19" cy="15.5" rx="4" ry="3.6" fill="#D47C55"/>
-    <ellipse cx="45" cy="15.5" rx="4" ry="3.6" fill="#D47C55"/>
-    <path d="M32 13C46 13 51 20 51 32C51 48 45 57 32 57C19 57 13 48 13 32C13 20 18 13 32 13Z" fill="#F0A36F"/>
-  </g>
-  <path d="M19.5 39C19.5 32.5 25 30 32 30C39 30 44.5 32.5 44.5 39C44.5 48 39 53 32 53C25 53 19.5 48 19.5 39Z" fill="#D47C55"/>
-  <ellipse cx="17.5" cy="34" rx="3.2" ry="2.3" fill="#E58A6A"/>
-  <ellipse cx="46.5" cy="34" rx="3.2" ry="2.3" fill="#E58A6A"/>
-  <g fill="none" stroke="#4A1D2B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M17.5 27Q21 24 24.5 27"/>
-    <path d="M39.5 27Q43 24 46.5 27"/>
-    <path d="M26.5 36L30 38M37.5 36L34 38"/>
-    <path d="M32 40.5V44M27 47Q32 47 32 44Q32 47 37 47"/>
+  <defs>
+    <clipPath id="bg"><circle cx="32" cy="32" r="32"/></clipPath>
+    <clipPath id="head"><path d="M8 70C6 48 10 30 24 23C33 18.5 46 19 53 24C59 28 60 38 57 44C54 49 47 51 39 51C39 58 41 64 44 70Z"/></clipPath>
+  </defs>
+  <circle cx="32" cy="32" r="32" fill="#FDEFE6"/>
+  <g clip-path="url(#bg)">
+    <g stroke="#4A1D2B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+      <ellipse cx="22" cy="23" rx="5" ry="4" fill="#D47C55" transform="rotate(-20 22 23)"/>
+      <path d="M8 70C6 48 10 30 24 23C33 18.5 46 19 53 24C59 28 60 38 57 44C54 49 47 51 39 51C39 58 41 64 44 70Z" fill="#F0A36F"/>
+    </g>
+    <g clip-path="url(#head)">
+      <path d="M43 20C52 20 60 26 60 36C60 44 55 50 45 51C41 43 39 30 43 20Z" fill="#D47C55"/>
+    </g>
+    <path d="M8 70C6 48 10 30 24 23C33 18.5 46 19 53 24C59 28 60 38 57 44C54 49 47 51 39 51C39 58 41 64 44 70Z" fill="none" stroke="#4A1D2B" stroke-width="2.6" stroke-linejoin="round"/>
+    <ellipse cx="30" cy="38" rx="4.5" ry="3" fill="#D47C55"/>
+    <g fill="none" stroke="#4A1D2B" stroke-width="2.6" stroke-linecap="round">
+      <path d="M31 31Q35 34 39 31"/>
+      <path d="M54.5 29.5L56 32"/>
+      <path d="M49 44.5Q53 44 55.5 41"/>
+    </g>
+    <g stroke="#4A1D2B" stroke-width="2.6" stroke-linejoin="round">
+      <circle cx="34" cy="13.5" r="6.5" fill="#FFB14E"/>
+      <path d="M34.5 7.5Q37 2.5 43 3.5Q41 8.5 34.5 7.5Z" fill="#9FCB5A"/>
+    </g>
   </g>
 </svg>
