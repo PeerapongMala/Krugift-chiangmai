@@ -325,6 +325,58 @@ def run():
     record(g, "นักเรียนออกจากระบบ", *pupil("POST", "/api/auth/logout"))
     record(g, "ออกแล้วดูภาคเรียนอีก", *pupil("GET", "/api/terms"))
 
+    # ---------------------------------------------------------------- ท้วงคะแนน
+    g = "APPEAL"
+    stu = Client()
+    stu("POST", "/api/auth/dev-login-student?studentCode=90001")
+    stu2 = Client()
+    stu2("POST", "/api/auth/dev-login-student?studentCode=90002")
+
+    def find(client, aid):
+        """แถวของเรื่องท้วงนี้ในรายการที่ client เห็น"""
+        rows = client("GET", "/api/appeals")[1]
+        return next((r for r in rows if r["id"] == aid), None) if isinstance(rows, list) else None
+
+    record(g, "คนไม่ล็อกอินดูรายการท้วง", *anon("GET", "/api/appeals"))
+    record(g, "ครูเปิดเรื่องท้วงเอง", *owner("POST", "/api/appeals", {"itemId": item_id, "body": "ครูลองท้วง"}))
+    record(g, "เหตุผลว่าง", *stu("POST", "/api/appeals", {"itemId": item_id, "body": "   "}))
+    record(g, "เหตุผลยาวเกิน", *stu("POST", "/api/appeals", {"itemId": item_id, "body": "ก" * 2001}))
+    record(g, "รายการที่ไม่มีอยู่", *stu("POST", "/api/appeals", {"itemId": 999999, "body": "ท้วง"}))
+    status, opened = stu("POST", "/api/appeals", {"itemId": item_id, "body": "ข้อ 3 ตอบถูกแต่ไม่ได้คะแนน"})
+    record(g, "นักเรียนเปิดเรื่องท้วง", status)
+    appeal_id = opened["id"] if isinstance(opened, dict) else 0
+    record(g, "เปิดซ้ำรายการเดิมที่ยังไม่ปิด", *stu("POST", "/api/appeals", {"itemId": item_id, "body": "อีกรอบ"}))
+    value(g, "  นักเรียนเห็นเรื่องตัวเอง", (find(stu, appeal_id) or {}).get("status"))
+
+    record(g, "นักเรียนคนอื่นดูเรื่องนี้", *stu2("GET", "/api/appeals/%d" % appeal_id))
+    record(g, "นักเรียนคนอื่นตอบ", *stu2("POST", "/api/appeals/%d/messages" % appeal_id, {"body": "แอบตอบ"}))
+    record(g, "นักเรียนคนอื่นปิด", *stu2("PATCH", "/api/appeals/%d/close" % appeal_id))
+    value(g, "  นักเรียนคนอื่นไม่เห็นในรายการ", find(stu2, appeal_id) is None)
+    record(g, "ครูอื่นดูเรื่องในห้องที่ไม่ใช่ของตัวเอง", *other("GET", "/api/appeals/%d" % appeal_id))
+    record(g, "ครูอื่นตอบ", *other("POST", "/api/appeals/%d/messages" % appeal_id, {"body": "แอบตอบ"}))
+    value(g, "  ครูอื่นไม่เห็นในรายการ", find(other, appeal_id) is None)
+
+    value(g, "  ครูเห็นว่ามีข้อความใหม่", (find(owner, appeal_id) or {}).get("unread"))
+    status, thread = owner("GET", "/api/appeals/%d" % appeal_id)
+    record(g, "ครูเปิดอ่าน", status)
+    value(g, "  ข้อมูลใน thread", (thread["student"], thread["studentCode"], thread["item"], thread["score"],
+                                   len(thread["messages"])) if isinstance(thread, dict) else None)
+    value(g, "  เปิดอ่านแล้วล้างสถานะใหม่", (find(owner, appeal_id) or {}).get("unread"))
+    record(g, "ครูตอบข้อความว่าง", *owner("POST", "/api/appeals/%d/messages" % appeal_id, {"body": ""}))
+    record(g, "ครูตอบ", *owner("POST", "/api/appeals/%d/messages" % appeal_id, {"body": "ครูตรวจแล้ว ข้อ 3 ผิดจริง"}))
+    row = find(stu, appeal_id) or {}
+    value(g, "  นักเรียนเห็นสถานะหลังครูตอบ", (row.get("status"), row.get("unread")))
+    value(g, "  badge ของนักเรียน", (stu("GET", "/api/appeals/unread-count")[1] or {}).get("count"))
+    stu("GET", "/api/appeals/%d" % appeal_id)
+    value(g, "  badge หลังนักเรียนเปิดอ่าน", (stu("GET", "/api/appeals/unread-count")[1] or {}).get("count"))
+    record(g, "นักเรียนตอบกลับ", *stu("POST", "/api/appeals/%d/messages" % appeal_id, {"body": "ขอดูกระดาษคำตอบได้ไหมคะ"}))
+    value(g, "  สถานะหลังนักเรียนตอบกลับ", (find(owner, appeal_id) or {}).get("status"))
+    record(g, "นักเรียนปิดเรื่อง", *stu("PATCH", "/api/appeals/%d/close" % appeal_id))
+    row = find(owner, appeal_id) or {}
+    value(g, "  ครูเห็นว่าปิดแล้ว", (row.get("status"), row.get("unread")))
+    record(g, "ตอบเรื่องที่ปิดแล้ว", *owner("POST", "/api/appeals/%d/messages" % appeal_id, {"body": "ตอบต่อ"}))
+    record(g, "ปิดแล้วเปิดเรื่องใหม่รายการเดิมได้", stu("POST", "/api/appeals", {"itemId": item_id, "body": "ยังไม่เคลียร์"})[0])
+
     # ---------------------------------------------------------------- ดูคะแนนด่วน (ไม่ล็อกอิน)
     g = "PUBLIC"
     pub = Client()
