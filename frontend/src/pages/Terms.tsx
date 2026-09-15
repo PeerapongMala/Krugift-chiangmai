@@ -13,7 +13,7 @@ import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
 import { validate } from '@/lib/validate'
 
-type Term = { id: number; name: string; createdAt: string; classroomCount: number }
+type Term = { id: number; name: string; createdAt: string; publicScores: boolean; classroomCount: number }
 
 export default function Terms() {
   const queryClient = useQueryClient()
@@ -47,6 +47,14 @@ export default function Terms() {
       await refresh()
     })
     if (ok) setEditing(null)
+  }
+
+  // เปิด/ปิดหน้าดูคะแนนด่วน (ไม่ต้องล็อกอิน) ของภาคเรียนนี้
+  async function togglePublic(term: Term) {
+    await rowAction.run(async () => {
+      await api(`/terms/${term.id}/public-scores`, { method: 'PATCH', json: { enabled: !term.publicScores } })
+      await refresh()
+    })
   }
 
   async function remove(term: Term) {
@@ -86,7 +94,16 @@ export default function Terms() {
                   </p>
                 </Link>
 
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={rowAction.busy}
+                    onClick={() => togglePublic(term)}
+                    title="ให้นักเรียนดูคะแนนได้โดยไม่ต้องเข้าสู่ระบบ (เลือกห้อง + เลขที่ + กรอกรหัสนักเรียน)"
+                  >
+                    ดูคะแนนด่วน: {term.publicScores ? 'เปิด' : 'ปิด'}
+                  </Button>
                   <Button variant="outline" size="sm" disabled={rowAction.busy} onClick={() => setEditing(term)}>
                     เปลี่ยนชื่อ
                   </Button>

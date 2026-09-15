@@ -7,6 +7,7 @@ import { AppLayout } from '@/components/AppLayout'
 import { RequireRole } from '@/components/RequireRole'
 import Claim from '@/pages/Claim'
 import Login from '@/pages/Login'
+import QuickScores from '@/pages/QuickScores'
 import Classrooms from '@/pages/Classrooms'
 import StaffPage from '@/pages/Staff'
 import Items from '@/pages/Items'
@@ -21,6 +22,8 @@ const queryClient = new QueryClient({
 const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/claim', element: <Claim /> },
+  // สาธารณะ ไม่ต้องล็อกอิน
+  { path: '/scores', element: <QuickScores /> },
   {
     element: <RequireRole role="teacher" />,
     children: [

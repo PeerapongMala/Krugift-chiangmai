@@ -1,8 +1,9 @@
-import { Navigate, useSearchParams } from 'react-router'
+import { Link, Navigate, useSearchParams } from 'react-router'
 import { AuthCard } from '@/components/AuthCard'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { buttonVariants } from '@/components/ui/button'
 import { homeOf, useMe } from '@/lib/auth'
+import { routes } from '@/lib/keys'
 
 export default function Login() {
   const { data: me } = useMe()
@@ -11,7 +12,7 @@ export default function Login() {
   if (me) return <Navigate to={homeOf(me.role)} replace />
 
   return (
-    <AuthCard title="Math Krugift" description="เข้าสู่ระบบเพื่อดูหรือจัดการคะแนน">
+    <AuthCard title="Krugift คะแนนคณิต" description="เข้าสู่ระบบเพื่อดูหรือจัดการคะแนน">
       {params.get('error') && (
         <Alert variant="destructive">
           <AlertDescription>
@@ -25,6 +26,11 @@ export default function Login() {
         <GoogleLogo />
         เข้าสู่ระบบด้วย Google
       </a>
+
+      {/* ทางด่วนที่ครูขอ: ดูคะแนนได้โดยไม่ต้องล็อกอิน · ท้วงคะแนนยังต้องล็อกอิน */}
+      <Link to={routes.quickScores} className={buttonVariants()}>
+        ดูคะแนนด่วน (ไม่ต้องเข้าสู่ระบบ)
+      </Link>
 
       <p className="text-center text-xs text-muted-foreground">
         นักเรียนเข้าครั้งแรกจะให้กรอกรหัสนักเรียนเพื่อผูกกับบัญชี Google ครั้งเดียว

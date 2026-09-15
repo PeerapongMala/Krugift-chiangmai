@@ -37,8 +37,9 @@ class Client:
     """ผู้ใช้หนึ่งคน (มี cookie jar ของตัวเอง)"""
 
     def __init__(self):
+        self.jar = http.cookiejar.CookieJar()
         self.opener = urllib.request.build_opener(
-            urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+            urllib.request.HTTPCookieProcessor(self.jar))
 
     def __call__(self, method, path, body=None, raw=None):
         data = raw if raw is not None else (
@@ -316,6 +317,34 @@ def run():
     record(g, "นักเรียนยกเลิกการผูกตัวเอง", *pupil("POST", "/api/students/%d/unlink" % sid1))
     record(g, "นักเรียนออกจากระบบ", *pupil("POST", "/api/auth/logout"))
     record(g, "ออกแล้วดูภาคเรียนอีก", *pupil("GET", "/api/terms"))
+
+    # ---------------------------------------------------------------- ดูคะแนนด่วน (ไม่ล็อกอิน)
+    g = "PUBLIC"
+    pub = Client()
+    status, rooms = pub("GET", "/api/public/classrooms")
+    record(g, "ดึงห้องสำหรับ dropdown", status)
+    mine = next((r for r in rooms if r["id"] == room_id), None)
+    value(g, "  ห้องที่เปิดอยู่ใน dropdown", mine is not None)
+    value(g, "  เลขที่ที่มีจริง", mine["nos"] if mine else None)
+    dumped = json.dumps(rooms, ensure_ascii=False)
+    value(g, "  ไม่มีชื่อหรือรหัสนักเรียนหลุด", "เอใหม่" not in dumped and "90001" not in dumped and "firstName" not in dumped)
+    status, res = pub("POST", "/api/public/scores", {"classroomId": room_id, "no": 20, "studentCode": "90001"})
+    record(g, "กรอกครบถูกต้อง", status)
+    value(g, "  ชื่อที่แสดง", res.get("name") if isinstance(res, dict) else None)
+    value(g, "  คะแนนรวม", "%s / %s" % (res.get("total"), res.get("full")) if isinstance(res, dict) else None)
+    record(g, "รหัสผิด", *pub("POST", "/api/public/scores", {"classroomId": room_id, "no": 20, "studentCode": "99999"}))
+    record(g, "เลขที่ผิด", *pub("POST", "/api/public/scores", {"classroomId": room_id, "no": 2, "studentCode": "90001"}))
+    record(g, "ห้องผิด", *pub("POST", "/api/public/scores", {"classroomId": room2_id, "no": 20, "studentCode": "90001"}))
+    record(g, "รหัสมีอักขระแปลก", *pub("POST", "/api/public/scores", {"classroomId": room_id, "no": 20, "studentCode": "9000#"}))
+    value(g, "  ไม่สร้าง cookie", len(pub.jar))
+    record(g, "คนไม่ล็อกอินสั่งปิด", *pub("PATCH", "/api/terms/%d/public-scores" % term_id, {"enabled": False}))
+    record(g, "ครูอื่นสั่งปิดของภาคเรียนเรา", *other("PATCH", "/api/terms/%d/public-scores" % term_id, {"enabled": False}))
+    record(g, "เจ้าของสั่งปิด", *owner("PATCH", "/api/terms/%d/public-scores" % term_id, {"enabled": False}))
+    status, rooms = pub("GET", "/api/public/classrooms")
+    value(g, "  ปิดแล้วห้องหายจาก dropdown", all(r["id"] != room_id for r in rooms))
+    record(g, "ปิดแล้วกรอกถูกก็ดูไม่ได้", *pub("POST", "/api/public/scores",
+                                              {"classroomId": room_id, "no": 20, "studentCode": "90001"}))
+    record(g, "เจ้าของเปิดกลับ", *owner("PATCH", "/api/terms/%d/public-scores" % term_id, {"enabled": True}))
 
     # ---------------------------------------------------------------- เจ้าของ
     g = "OWNER"

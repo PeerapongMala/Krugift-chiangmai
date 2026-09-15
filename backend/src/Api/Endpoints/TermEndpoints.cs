@@ -8,6 +8,8 @@ namespace Api.Endpoints;
 
 public record NameRequest(string Name);
 
+public record PublicScoresRequest(bool Enabled);
+
 /// ภาคเรียนและห้องเรียนของครู · ทุก query ผ่าน TeacherScope เพื่อกันครูดึงข้อมูลข้ามกัน
 public static class TermEndpoints
 {
@@ -20,7 +22,7 @@ public static class TermEndpoints
         g.MapGet("/terms", async (ClaimsPrincipal user, AppDbContext db) =>
             Results.Ok(await db.TermsOf(user)
                 .OrderByDescending(t => t.CreatedAt)
-                .Select(t => new { t.Id, t.Name, t.CreatedAt, ClassroomCount = t.Classrooms.Count })
+                .Select(t => new { t.Id, t.Name, t.CreatedAt, t.PublicScores, ClassroomCount = t.Classrooms.Count })
                 .ToListAsync()));
 
         g.MapPost("/terms", async (NameRequest req, ClaimsPrincipal user, AppDbContext db) =>
@@ -35,7 +37,7 @@ public static class TermEndpoints
             var term = new Term { TeacherId = teacherId, Name = name };
             db.Terms.Add(term);
             await db.SaveChangesAsync();
-            return Results.Ok(new { term.Id, term.Name, term.CreatedAt, ClassroomCount = 0 });
+            return Results.Ok(new { term.Id, term.Name, term.CreatedAt, term.PublicScores, ClassroomCount = 0 });
         });
 
         g.MapPatch("/terms/{id:int}", async (int id, NameRequest req, ClaimsPrincipal user, AppDbContext db) =>
@@ -50,6 +52,17 @@ public static class TermEndpoints
                 return Problems.Duplicate("ภาคเรียน");
 
             term.Name = name;
+            await db.SaveChangesAsync();
+            return Results.NoContent();
+        });
+
+        // เปิด/ปิดหน้าดูคะแนนด่วน (ไม่ต้องล็อกอิน) ของภาคเรียนนี้
+        g.MapPatch("/terms/{id:int}/public-scores", async (int id, PublicScoresRequest req, ClaimsPrincipal user, AppDbContext db) =>
+        {
+            var term = await db.FindTerm(user, id);
+            if (term is null) return Problems.NotFound("ภาคเรียนนี้");
+
+            term.PublicScores = req.Enabled;
             await db.SaveChangesAsync();
             return Results.NoContent();
         });

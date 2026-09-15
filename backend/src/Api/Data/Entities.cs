@@ -20,6 +20,8 @@ public class Term
     public Teacher Teacher { get; set; } = null!;
     public required string Name { get; set; } // "1/2569"
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    /// เปิดให้นักเรียนดูคะแนนด่วนโดยไม่ต้องล็อกอิน (ห้อง + เลขที่ + รหัสนักเรียน) · ครูปิดได้รายภาคเรียน
+    public bool PublicScores { get; set; } = true;
     public List<Classroom> Classrooms { get; set; } = [];
 }
 
