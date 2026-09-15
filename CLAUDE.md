@@ -17,7 +17,7 @@
 ```bash
 dotnet tool restore                          # dotnet-ef (local tool, ต้องรันจาก root)
 dotnet build ; dotnet test                   # unit test (ฟังก์ชันบริสุทธิ์)
-python backend/tests/e2e/api_tests.py        # e2e + snapshot 125 เคส (ต้องรัน API ก่อน)
+python backend/tests/e2e/api_tests.py        # e2e + snapshot 178 เคส (ต้องรัน API ก่อน)
 python backend/tests/e2e/api_tests.py --update   # บันทึก snapshot ใหม่เมื่อเปลี่ยนโดยตั้งใจ
 dotnet run --project backend/src/Api         # http://localhost:5080, migrate + seed ครูตอน start
 dotnet ef migrations add <Name> --project backend/src/Api -o Data/Migrations
@@ -37,7 +37,7 @@ backend/src/Api/Endpoints/      *Endpoints.cs — extension MapXxx() ต่อ f
 backend/tests/Api.Tests/        xUnit v3 (ฟังก์ชันบริสุทธิ์)
 backend/tests/e2e/              api_tests.py + snapshot.txt (ยิง HTTP จริง)
 frontend/src/lib/               api.ts (fetch + ApiError/NetworkError), auth.ts, keys.ts (route + query key), validate.ts, mascots.ts
-frontend/src/components/        ใช้ร่วมกันหลายหน้า (AppLayout, ClassroomTabs, Modal, ConfirmDialog, Field, FormError, QueryState, PageHeader, Mascot, Avatar, Credit)
+frontend/src/components/        ใช้ร่วมกันหลายหน้า (AppLayout, ClassroomTabs, ScoreList, AppealStatusBadge, Modal, ConfirmDialog, Field, FormError, QueryState, PageHeader, Mascot, Avatar, Credit)
 frontend/src/components/ui/     shadcn (โค้ดของเรา แก้ได้)
 frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
 ```
@@ -69,6 +69,7 @@ frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
 - API สั่ง `Migrate()` ตอน start ถ้ายังไม่ได้ตั้ง connection string แอปจะ crash ทันที
 - **migration เพิ่มคอลัมน์ non-null ต้องเช็ค `defaultValue` ทุกครั้ง** EF ใส่ค่า default ของ CLR (`""`, `false`) ไม่ใช่ค่าที่ตั้งใน C# · เคยพลาดแล้ว 2 ครั้ง (Role เป็น `""`, PublicScores เป็น `false`)
 - `Api.csproj` ตั้ง `UseAppHost=false` เพราะ Smart App Control บล็อก `Api.exe` ที่ไม่ได้เซ็น · ห้ามเอาออก
+- บางครั้ง Smart App Control บล็อก `Api.dll` ที่เพิ่ง build (`0x800711C7`) ให้ build ใหม่ให้ได้ hash ใหม่แล้วรัน dll ตรง: `dotnet build --no-incremental -p:Deterministic=false` แล้ว `ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5080 dotnet bin/Debug/net10.0/Api.dll` (จากโฟลเดอร์ `backend/src/Api`)
 - เทสต์ API ที่มีภาษาไทยห้ามใช้ curl บนเครื่องนี้ (console แปลงเป็น `?`) ใช้ `backend/tests/e2e/api_tests.py`
 - e2e รันซ้ำติดกันต้องเว้น ~65 วินาที เพราะ `/api/public/scores` ใช้ rate limit ร่วมกับ login
 - เทสต์ต้องเป็น **xUnit v3** (`<OutputType>Exe</OutputType>`) + `global.json` ตั้ง `test.runner = "Microsoft.Testing.Platform"` — **ห้ามย้อนกลับไป xunit v2 + Microsoft.NET.Test.Sdk** เพราะ Smart App Control ของ Windows บล็อก `testhost` ตอนโหลด dll ด้วย reflection (`FileLoadException 0x800711C7`) v3 คอมไพล์เป็น .exe รันตรงจึงผ่าน
@@ -81,7 +82,7 @@ frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
 - [x] M4 หน้าครู: ภาคเรียน/ห้อง/นักเรียน/รายการ + ตารางคะแนน + audit + optimistic concurrency · เมนู responsive · ดูคะแนนด่วนไม่ต้องล็อกอิน
 - [ ] M5 Import Excel + template (ไม่มีใบแจกรหัสแล้ว)
 - [x] M6 หน้านักเรียน: คะแนนของฉัน (`/api/me/scores` ดึง studentId จาก cookie เท่านั้น)
-- [ ] M7 ท้วงคะแนน
+- [x] M7 ท้วงคะแนน: นักเรียนกด "ท้วง" ข้างรายการ → thread คุยกับครู · badge ข้อความใหม่บนเมนู (poll ทุก 1 นาที ไม่มี realtime) · ปิดแล้วตอบต่อไม่ได้ เปิดเรื่องใหม่ได้
 - [ ] M8 Dockerfile/compose/.env.example + Render + backup
 
-**ต่อไป:** M7 ท้วงคะแนน (เพิ่มเมนู + badge ใน AppLayout) → M5 import Excel เมื่อได้ไฟล์ตัวอย่างจากครู → M8 deploy
+**ต่อไป:** M5 import Excel เมื่อได้ไฟล์ตัวอย่างจากครู → M8 deploy
