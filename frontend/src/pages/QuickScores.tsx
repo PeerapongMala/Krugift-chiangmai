@@ -6,6 +6,7 @@ import { Field } from '@/components/Field'
 import { FormError } from '@/components/FormError'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { ScoreList } from '@/components/ScoreList'
 import { api } from '@/lib/api'
 import { routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
@@ -58,27 +59,7 @@ export default function QuickScores() {
   if (result) {
     return (
       <AuthCard title={result.name} description={`${result.classroom} · ภาคเรียน ${result.term}`}>
-        {result.items.length === 0 ? (
-          <p className="text-center text-sm text-muted-foreground">ครูยังไม่ได้เพิ่มรายการคะแนน</p>
-        ) : (
-          <ul className="grid gap-2">
-            {result.items.map((item) => (
-              <li key={item.name} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
-                <span className="min-w-0 truncate text-sm">{item.name}</span>
-                <span className="shrink-0 text-sm tabular-nums">
-                  <b>{item.value ?? '—'}</b>
-                  <span className="text-muted-foreground"> / {item.maxScore}</span>
-                </span>
-              </li>
-            ))}
-            <li className="flex items-center justify-between gap-3 rounded-lg bg-accent px-3 py-2 font-medium">
-              <span>รวม</span>
-              <span className="tabular-nums">
-                {result.total} / {result.full}
-              </span>
-            </li>
-          </ul>
-        )}
+        <ScoreList items={result.items} />
 
         <div className="grid gap-2">
           <Button variant="outline" onClick={() => setResult(null)}>

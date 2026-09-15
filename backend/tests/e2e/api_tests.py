@@ -105,6 +105,7 @@ def run():
     ]:
         record(g, label, *anon(method, path, body))
     record(g, "ดูสถานะตัวเอง", *anon("GET", "/api/auth/me"))
+    record(g, "ดูคะแนนของฉัน", *anon("GET", "/api/me/scores"))
 
     # ---------------------------------------------------------------- ภาคเรียน
     g = "TERM"
@@ -276,6 +277,7 @@ def run():
     # ---------------------------------------------------------------- ครูทั่วไป
     g = "TEACHER"
     record(g, "ดูรายชื่อครู", *other("GET", "/api/staff"))
+    record(g, "ครูเรียกหน้าคะแนนของนักเรียน", *other("GET", "/api/me/scores"))
     record(g, "เพิ่มครู", *other("POST", "/api/staff", {"email": "a@b.com", "role": "Teacher"}))
     status, mine = other("GET", "/api/terms")
     record(g, "ดูภาคเรียนของตัวเอง", status)
@@ -305,6 +307,11 @@ def run():
     status, me = pupil("GET", "/api/auth/me")
     value(g, "  role ที่ได้", me["role"])
     value(g, "  ไม่ใช่เจ้าของ", me["isOwner"])
+    status, mine = pupil("GET", "/api/me/scores")
+    record(g, "นักเรียนดูคะแนนของตัวเอง", status)
+    value(g, "  จำนวนห้องที่เห็น", len(mine) if isinstance(mine, list) else None)
+    value(g, "  ห้องและคะแนน", [(r["classroom"], r["no"], [(i["name"], i["value"], i["maxScore"]) for i in r["items"]])
+                               for r in mine] if isinstance(mine, list) else None)
     record(g, "นักเรียนดูภาคเรียน", *pupil("GET", "/api/terms"))
     record(g, "นักเรียนสร้างภาคเรียน", *pupil("POST", "/api/terms", {"name": "x"}))
     record(g, "นักเรียนดูรายชื่อครู", *pupil("GET", "/api/staff"))

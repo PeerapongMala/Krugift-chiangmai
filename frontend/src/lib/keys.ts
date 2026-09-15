@@ -20,6 +20,7 @@ export const routes = {
  */
 export const qk = {
   me: ['me'] as const,
+  myScores: ['my-scores'] as const,
 
   staff: ['staff'] as const,
 

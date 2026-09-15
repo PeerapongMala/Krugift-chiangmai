@@ -12,6 +12,7 @@ import Classrooms from '@/pages/Classrooms'
 import StaffPage from '@/pages/Staff'
 import Items from '@/pages/Items'
 import Scores from '@/pages/Scores'
+import StudentHome from '@/pages/StudentHome'
 import Students from '@/pages/Students'
 import Terms from '@/pages/Terms'
 
@@ -46,7 +47,7 @@ const router = createBrowserRouter([
     children: [
       {
         element: <AppLayout />,
-        children: [{ path: '/student', element: <p>หน้านักเรียน — กำลังทำ</p> }],
+        children: [{ path: '/student', element: <StudentHome /> }],
       },
     ],
   },
