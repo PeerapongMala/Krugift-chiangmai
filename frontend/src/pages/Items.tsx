@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useConfirm } from '@/components/ConfirmDialog'
 import { Field } from '@/components/Field'
+import { ClassroomTabs } from '@/components/ClassroomTabs'
 import { FormError } from '@/components/FormError'
 import { Modal } from '@/components/Modal'
 import { PageHeader } from '@/components/PageHeader'
@@ -83,18 +84,15 @@ export default function Items() {
 
   return (
     <>
-      <div className="mb-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
-        <Link to={routes.classroom(classroomId)} className="hover:text-foreground">
-          ← นักเรียนในห้อง
-        </Link>
-        <Link to={routes.classroomScores(classroomId)} className="hover:text-foreground">
-          ตารางคะแนน →
-        </Link>
-      </div>
+      <Link to={routes.teacher} className="mb-3 inline-block text-sm text-muted-foreground hover:text-foreground">
+        ← ภาคเรียน
+      </Link>
 
       <PageHeader title="รายการคะแนน" description="สิ่งที่เอาไว้ให้คะแนน เช่น สอบกลางภาค 20 คะแนน">
         <Button onClick={() => setAdding(true)}>เพิ่มรายการ</Button>
       </PageHeader>
+
+      <ClassroomTabs classroomId={classroomId} active="items" />
 
       <FormError message={rowAction.error} />
 

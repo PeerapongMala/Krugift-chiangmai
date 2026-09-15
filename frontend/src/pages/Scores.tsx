@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type KeyboardEvent } from 'react'
 import { Link, useParams } from 'react-router'
+import { ClassroomTabs } from '@/components/ClassroomTabs'
 import { FormError } from '@/components/FormError'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
@@ -60,16 +61,13 @@ export default function Scores() {
 
   return (
     <>
-      <div className="mb-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
-        <Link to={routes.classroomItems(classroomId)} className="hover:text-foreground">
-          ← รายการคะแนน
-        </Link>
-        <Link to={routes.classroom(classroomId)} className="hover:text-foreground">
-          นักเรียนในห้อง
-        </Link>
-      </div>
+      <Link to={routes.teacher} className="mb-3 inline-block text-sm text-muted-foreground hover:text-foreground">
+        ← ภาคเรียน
+      </Link>
 
       <PageHeader title="ตารางคะแนน" description="คลิกที่ช่องเพื่อกรอก · บันทึกอัตโนมัติเมื่อกด Enter หรือคลิกออก" />
+
+      <ClassroomTabs classroomId={classroomId} active="scores" />
 
       <FormError message={error} />
 
