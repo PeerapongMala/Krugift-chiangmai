@@ -78,15 +78,18 @@ docker-compose.yml   postgres:18 + app (สำหรับเครื่อง�
 
 ## API (สรุป)
 - Teacher: `/api/terms` CRUD · `/api/terms/{id}/classrooms` CRUD · `/api/classrooms/{id}` (items + students + scores) · `PUT /api/scores` (แก้ทีละช่อง + เขียน audit) · `/api/classrooms/{id}/items` CRUD · `/api/classrooms/{id}/students` เพิ่ม/แก้ · `POST /api/students/{id}/reset-code`
-- Import: `GET /api/import/template` · `POST /api/classrooms/{id}/import/preview` (≤2MB, .xlsx) · `POST .../import/commit`
+- Import (แยก 2 แบบ ต่อห้อง): `GET /api/classrooms/{id}/import/{students|scores}/template` · `POST .../preview` · `POST .../commit` (≤2MB, .xlsx, all-or-nothing)
 - Student: `GET /api/me/terms` · `GET /api/me/scores?termId=`
 - Appeals: `POST /api/appeals` (student) · `GET /api/appeals` (ครูเห็นทั้งหมด / เด็กเห็นของตัวเอง) · `POST /api/appeals/{id}/messages` · `PATCH /api/appeals/{id}` (ปิดเรื่อง)
 - ทุก endpoint ของครูต้องเช็คว่า Term เป็นของ TeacherId ที่ล็อกอินอยู่
 
 ## Excel template
-แถว 1 เป็นหัวตาราง: `รหัสนักเรียน | ชื่อ | นามสกุล | ควิซ1 (10) | สอบกลางภาค (30) | ...` ตัวเลขในวงเล็บคือคะแนนเต็ม
-Parser (`backend/src/Api/Import/ScoreSheetParser.cs`) เป็นฟังก์ชันที่ไม่แตะ DB: รับ stream คืน rows + errors (แถว/คอลัมน์ + ข้อความ) เช่น รหัสซ้ำ, คะแนนเกินเต็ม, ช่องไม่ใช่ตัวเลข, ไม่มีหัวคะแนนเต็ม
-Commit: upsert นักเรียนตามรหัส, สร้างรายการที่ยังไม่มี, เขียนคะแนนทับของเดิม + บันทึก audit, นักเรียนใหม่ได้รหัสส่วนตัวแล้วแสดงหน้าใบแจกรหัส
+template ของเราเอง (ครูจะส่ง template จริงมา ได้แล้วค่อยปรับให้ตรง) · แยก 2 ไฟล์ แถว 1 เป็นหัวตาราง
+- **นักเรียน:** `เลขที่ | รหัสนักเรียน | ชื่อ | นามสกุล` · เพิ่มนักเรียนใหม่ / ดึงคนที่มีในระบบเข้าห้อง / แก้เลขที่ · ไม่เอาคนที่ไม่มีในไฟล์ออกจากห้อง
+- **คะแนน:** `เลขที่ | รหัสนักเรียน | ชื่อ | นามสกุล | ควิซ1 (10) | สอบกลางภาค (30) | ...` ตัวเลขในวงเล็บคือคะแนนเต็ม · นักเรียนต้องอยู่ในห้องแล้ว · เลขที่/ชื่อถ้ามีต้องตรงกับในระบบ · รายการที่ยังไม่มีถูกสร้างใหม่ · ช่องว่าง = ไม่เปลี่ยนคะแนนเดิม
+
+อ่านไฟล์ด้วย `Import/SheetReader.cs` แล้วตรวจด้วย `Import/StudentSheetParser.cs` / `Import/ScoreSheetParser.cs` (ไม่แตะ DB) · คืนจุดผิดทุกจุดพร้อมแถว/คอลัมน์
+**All-or-nothing:** preview ไม่เขียนอะไร · commit ตรวจซ้ำกับข้อมูลล่าสุด ผิดแม้จุดเดียวไม่บันทึกอะไรเลย · ผ่านหมดเขียนใน transaction เดียว + audit
 
 ## Frontend pages
 `/login` · `/claim` · `/student` (เลือกเทอม → การ์ดคะแนนแต่ละรายการ + ผลรวม + ปุ่มท้วง) · `/teacher` (เทอม/ห้อง) · `/teacher/classrooms/:id` (ตารางคะแนนแก้ได้, import, จัดการรายการ, พิมพ์ใบรหัส) · `/teacher/appeals` · `/appeals/:id` (thread ใช้ร่วมกันทั้งสองฝั่ง)
