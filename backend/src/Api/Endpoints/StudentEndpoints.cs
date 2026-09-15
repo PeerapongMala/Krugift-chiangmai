@@ -132,7 +132,7 @@ public static class StudentEndpoints
             if (enrollment is null) return Problems.NotFound("นักเรียนคนนี้");
 
             if (enrollment.Student.GoogleSub is null)
-                return Problems.Invalid("นักเรียนคนนี้ยังไม่ได้ผูกบัญชี Google");
+                return Problems.Invalid("นักเรียนคนนี้ยังไม่ได้เชื่อมบัญชี Google");
 
             enrollment.Student.GoogleSub = null;
             await db.SaveChangesAsync();

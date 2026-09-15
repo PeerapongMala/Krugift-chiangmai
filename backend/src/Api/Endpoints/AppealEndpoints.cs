@@ -54,7 +54,7 @@ public static class AppealEndpoints
 
         g.MapPost("/", async (OpenAppealRequest req, ClaimsPrincipal user, AppDbContext db) =>
         {
-            if (!user.IsInRole(AuthSetup.Student)) return Problems.Denied("ท้วงคะแนนได้เฉพาะนักเรียน");
+            if (!user.IsInRole(AuthSetup.Student)) return Problems.Denied("สอบถามคะแนนได้เฉพาะนักเรียน");
             if (Validate.Message(req.Body) is { } error) return Problems.Invalid(error);
 
             var studentId = user.UserId();
@@ -66,7 +66,7 @@ public static class AppealEndpoints
             // เรื่องเดิมยังไม่ปิด ให้คุยต่อในเรื่องเดิม ครูจะได้ไม่ต้องตอบซ้ำหลายที่
             var hasOpen = await db.Appeals.AnyAsync(a =>
                 a.ItemId == item.Id && a.StudentId == studentId && a.Status != AppealStatus.Closed);
-            if (hasOpen) return Problems.Conflict("มีเรื่องท้วงรายการนี้ที่ยังไม่ปิดอยู่แล้ว ให้ตอบต่อในเรื่องเดิม");
+            if (hasOpen) return Problems.Conflict("มีคำถามเรื่องรายการนี้ที่ยังไม่เสร็จสิ้นอยู่แล้ว ให้ถามต่อในคำถามเดิม");
 
             var now = DateTime.UtcNow;
             var appeal = new Appeal
@@ -91,7 +91,7 @@ public static class AppealEndpoints
                 .Include(a => a.Student)
                 .Include(a => a.Item).ThenInclude(i => i.Classroom).ThenInclude(c => c.Term)
                 .FirstOrDefaultAsync(a => a.Id == id);
-            if (appeal is null) return Problems.NotFound("เรื่องท้วงนี้");
+            if (appeal is null) return Problems.NotFound("คำถามนี้");
 
             // เปิดอ่านแล้ว = ล้าง badge ของฝั่งตัวเอง
             if (isTeacher && appeal.UnreadByTeacher) appeal.UnreadByTeacher = false;
@@ -127,9 +127,9 @@ public static class AppealEndpoints
 
             var isTeacher = user.IsInRole(AuthSetup.Teacher);
             var appeal = await Visible(db, user).FirstOrDefaultAsync(a => a.Id == id);
-            if (appeal is null) return Problems.NotFound("เรื่องท้วงนี้");
+            if (appeal is null) return Problems.NotFound("คำถามนี้");
             if (appeal.Status == AppealStatus.Closed)
-                return Problems.Conflict("เรื่องนี้ปิดไปแล้ว ถ้ายังไม่เคลียร์ให้เปิดเรื่องท้วงใหม่");
+                return Problems.Conflict("คำถามนี้เสร็จสิ้นแล้ว ถ้ายังมีข้อสงสัยให้ส่งคำถามใหม่");
 
             db.AppealMessages.Add(new AppealMessage
             {
@@ -150,7 +150,7 @@ public static class AppealEndpoints
         {
             var isTeacher = user.IsInRole(AuthSetup.Teacher);
             var appeal = await Visible(db, user).FirstOrDefaultAsync(a => a.Id == id);
-            if (appeal is null) return Problems.NotFound("เรื่องท้วงนี้");
+            if (appeal is null) return Problems.NotFound("คำถามนี้");
             if (appeal.Status == AppealStatus.Closed) return Results.NoContent();
 
             appeal.Status = AppealStatus.Closed;

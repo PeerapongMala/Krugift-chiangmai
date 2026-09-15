@@ -47,14 +47,14 @@ public static class StaffEndpoints
             var me = await Owner(db, user);
             if (me is null) return Problems.Denied();
             // กันเจ้าของเผลอลดยศตัวเองจนไม่มีใครจัดการรายชื่อครูได้
-            if (id == me.Id) return Problems.Invalid("เปลี่ยนยศตัวเองไม่ได้ ให้เจ้าของอีกคนเปลี่ยนให้");
+            if (id == me.Id) return Problems.Invalid("เปลี่ยนสิทธิ์ของตัวเองไม่ได้ ให้ผู้ดูแลระบบอีกคนเปลี่ยนให้");
 
             var target = await db.Teachers.FindAsync(id);
             if (target is null) return Problems.NotFound("ครูคนนี้");
             if (target.Role == req.Role) return Results.NoContent();
 
             if (await WouldRemoveLastOwner(db, target, req.Role))
-                return Problems.Conflict("ต้องมีเจ้าของอย่างน้อย 1 คน");
+                return Problems.Conflict("ต้องมีผู้ดูแลระบบอย่างน้อย 1 คน");
 
             target.Role = req.Role;
             await db.SaveChangesAsync();
@@ -75,7 +75,7 @@ public static class StaffEndpoints
                 return Problems.Conflict("ครูคนนี้มีภาคเรียนอยู่ ลบไม่ได้ ให้ลบหรือย้ายภาคเรียนก่อน");
 
             if (await WouldRemoveLastOwner(db, target, TeacherRole.Teacher))
-                return Problems.Conflict("ต้องมีเจ้าของอย่างน้อย 1 คน");
+                return Problems.Conflict("ต้องมีผู้ดูแลระบบอย่างน้อย 1 คน");
 
             db.Teachers.Remove(target);
             await db.SaveChangesAsync();

@@ -25,7 +25,7 @@ public static partial class Cells
     const int QuoteLength = 30;
 
     // ช่องว่างทุกแบบ รวม non-breaking space และ zero-width ที่ติดมาตอน copy ข้อความไทยจากเว็บหรือ LINE
-    [GeneratedRegex(@"[\s​﻿]+")]
+    [GeneratedRegex(@"[\s\u200B\uFEFF]+")]
     private static partial Regex Spaces();
 
     public static string Normalize(string text) => Spaces().Replace(text, " ").Trim();
@@ -80,7 +80,7 @@ public static partial class Cells
     }
 
     public static string MissingColumns(IEnumerable<string> headers) =>
-        $"ไม่พบคอลัมน์ {string.Join(", ", headers.Select(h => $"\"{h}\""))} · แถวแรกต้องเป็นหัวตาราง ดาวน์โหลด template ไปใช้จะง่ายที่สุด";
+        $"ไม่พบคอลัมน์ {string.Join(", ", headers.Select(h => $"\"{h}\""))} · แถวแรกต้องเป็นหัวตาราง ดาวน์โหลดไฟล์ตัวอย่างไปใช้จะง่ายที่สุด";
 
     public static string NameMismatch(string code, string savedFirst, string savedLast, string fileFirst, string fileLast) =>
         $"รหัส {code} ในระบบเป็นของ {savedFirst} {savedLast} แต่ในไฟล์เป็น {fileFirst} {fileLast} · ถ้ารหัสผิดให้แก้ในไฟล์ ถ้าชื่อเปลี่ยนจริงให้แก้ที่แท็บนักเรียนก่อน";

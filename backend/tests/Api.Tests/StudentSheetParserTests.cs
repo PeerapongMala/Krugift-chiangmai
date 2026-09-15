@@ -85,7 +85,7 @@ public class StudentSheetParserTests
     [Fact]
     public void ชื่อมีช่องว่างเกินหรืออักขระล่องหน_ถือว่าตรง()
     {
-        var result = StudentSheetParser.Parse(Sheet(Header, [1, "90001", "  เอ​ ", "หนึ่ง "]), Room());
+        var result = StudentSheetParser.Parse(Sheet(Header, [1, "90001", "  เอ\u200B ", "หนึ่ง\u00A0"]), Room());
 
         Assert.True(result.IsValid);
     }

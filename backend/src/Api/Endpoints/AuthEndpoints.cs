@@ -93,10 +93,10 @@ public static class AuthEndpoints
                 return Problems.Invalid("ไม่พบรหัสนักเรียนนี้ในระบบ กรุณาตรวจสอบตัวเลขอีกครั้ง หรือติดต่อครู");
 
             if (student.GoogleSub is not null && student.GoogleSub != sub)
-                return Problems.Conflict("รหัสนักเรียนนี้ผูกกับบัญชี Google อื่นไปแล้ว กรุณาให้ครูยกเลิกการผูกก่อน");
+                return Problems.Conflict("รหัสนักเรียนนี้เชื่อมกับบัญชี Google อื่นไปแล้ว กรุณาให้ครูยกเลิกการเชื่อมก่อน");
 
             if (await db.Students.AnyAsync(s => s.GoogleSub == sub && s.Id != student.Id))
-                return Problems.Conflict("บัญชี Google นี้ผูกกับนักเรียนคนอื่นไปแล้ว");
+                return Problems.Conflict("บัญชี Google นี้เชื่อมกับนักเรียนคนอื่นไปแล้ว");
 
             student.GoogleSub = sub;
             await db.SaveChangesAsync();

@@ -28,7 +28,7 @@ public record StudentPlan(IReadOnlyList<PlannedStudent> Students) : IImportPlan
         {
             var lines = new List<string> { $"นักเรียนในไฟล์ {Students.Count} คน" };
             AddCount(lines, Students.Count(s => s.IsNew), "เพิ่มนักเรียนใหม่เข้าระบบ");
-            AddCount(lines, Students.Count(s => !s.IsNew && s.JoinsClassroom), "ดึงนักเรียนที่มีในระบบแล้วเข้าห้องนี้");
+            AddCount(lines, Students.Count(s => !s.IsNew && s.JoinsClassroom), "เพิ่มนักเรียนที่มีในระบบแล้วเข้าห้องนี้");
             AddCount(lines, Students.Count(s => s.IsRenumbered), "เปลี่ยนเลขที่");
             if (!HasChanges) lines.Add("ไม่มีอะไรต่างจากในระบบ");
             return lines;
@@ -133,7 +133,7 @@ public static class StudentSheetParser
             if (headers[i].Length == 0 || Cells.TryClaim(columns, Headers, headers[i], i, errors)) continue;
             // ดักการอัปโหลดไฟล์ผิดประเภท เช่นเอาไฟล์คะแนนมาใส่หน้านำเข้ารายชื่อ
             errors.File(
-                $"คอลัมน์ \"{Cells.Quote(headers[i])}\" ไม่ได้อยู่ใน template นักเรียน · ถ้าจะนำเข้าคะแนนให้ใช้หน้านำเข้าคะแนน ถ้าเป็นหมายเหตุให้ลบคอลัมน์นี้ออก",
+                $"คอลัมน์ \"{Cells.Quote(headers[i])}\" ไม่ได้อยู่ในไฟล์ตัวอย่างรายชื่อนักเรียน · ถ้าจะนำเข้าคะแนนให้ใช้หน้านำเข้าคะแนน ถ้าเป็นหมายเหตุให้ลบคอลัมน์นี้ออก",
                 Cells.ColumnLetter(i));
         }
 

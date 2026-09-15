@@ -59,7 +59,7 @@ public static class SheetReader
             {
                 total += entry.Length;
                 if (total > Limits.ImportMaxUnzippedBytes)
-                    return "ข้อมูลในไฟล์ใหญ่ผิดปกติ ไม่ใช่ไฟล์คะแนนทั่วไป · ดาวน์โหลด template ไปใช้แทน";
+                    return "ข้อมูลในไฟล์ใหญ่ผิดปกติ ไม่ใช่ไฟล์คะแนนทั่วไป · ดาวน์โหลดไฟล์ตัวอย่างไปใช้แทน";
             }
             return null;
         }
