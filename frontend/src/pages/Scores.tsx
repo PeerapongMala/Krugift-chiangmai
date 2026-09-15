@@ -5,6 +5,7 @@ import { ClassroomTabs } from '@/components/ClassroomTabs'
 import { FormError } from '@/components/FormError'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
+import { buttonVariants } from '@/components/ui/button'
 import { api, errorMessage } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { validate } from '@/lib/validate'
@@ -65,7 +66,11 @@ export default function Scores() {
         ← ภาคเรียน
       </Link>
 
-      <PageHeader title="ตารางคะแนน" description="คลิกที่ช่องเพื่อกรอก · บันทึกอัตโนมัติเมื่อกด Enter หรือคลิกออก" />
+      <PageHeader title="ตารางคะแนน" description="คลิกที่ช่องเพื่อกรอก · บันทึกอัตโนมัติเมื่อกด Enter หรือคลิกออก">
+        <Link to={routes.classroomImport(classroomId, 'scores')} className={buttonVariants({ variant: 'outline' })}>
+          นำเข้าจาก Excel
+        </Link>
+      </PageHeader>
 
       <ClassroomTabs classroomId={classroomId} active="scores" />
 

@@ -10,6 +10,9 @@ export const routes = {
   classroom: (classroomId: number) => `/teacher/classrooms/${classroomId}`,
   classroomItems: (classroomId: number) => `/teacher/classrooms/${classroomId}/items`,
   classroomScores: (classroomId: number) => `/teacher/classrooms/${classroomId}/scores`,
+  /** นำเข้า Excel แยก 2 แบบ: รายชื่อนักเรียน กับ คะแนน */
+  classroomImport: (classroomId: number, kind: 'students' | 'scores') =>
+    `/teacher/classrooms/${classroomId}/import/${kind}`,
   student: '/student',
   teacherAppeals: '/teacher/appeals',
   studentAppeals: '/student/appeals',

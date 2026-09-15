@@ -8,7 +8,7 @@ import { FormError } from '@/components/FormError'
 import { Modal } from '@/components/Modal'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
@@ -125,6 +125,9 @@ export default function Students() {
         title="นักเรียนในห้อง"
         description="นักเรียนเข้าระบบด้วย Google แล้วกรอกรหัสนักเรียนผูกบัญชีเอง ครูไม่ต้องแจกรหัสอะไร"
       >
+        <Link to={routes.classroomImport(classroomId, 'students')} className={buttonVariants({ variant: 'outline' })}>
+          นำเข้าจาก Excel
+        </Link>
         <Button onClick={() => setAdding(true)}>เพิ่มนักเรียน</Button>
       </PageHeader>
 
