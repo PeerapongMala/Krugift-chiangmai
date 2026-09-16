@@ -214,6 +214,8 @@ def run():
     record(g, "ชื่อรายการว่าง", *owner("POST", "/api/classrooms/%d/items" % room_id, {"name": " ", "maxScore": 5}))
     record(g, "คะแนนเต็ม 0", *owner("POST", "/api/classrooms/%d/items" % room_id, {"name": "a", "maxScore": 0}))
     record(g, "คะแนนเต็มติดลบ", *owner("POST", "/api/classrooms/%d/items" % room_id, {"name": "b", "maxScore": -1}))
+    record(g, "คะแนนเต็มทศนิยมเกิน 2 ตำแหน่ง", *owner("POST", "/api/classrooms/%d/items" % room_id,
+                                                   {"name": "c", "maxScore": 10.555}))
     record(g, "คะแนนเต็มเกินเพดาน", *owner("POST", "/api/classrooms/%d/items" % room_id,
                                            {"name": "c", "maxScore": 10000}))
     record(g, "รายการในห้องที่ไม่มีอยู่", *owner("POST", "/api/classrooms/999999/items",
@@ -232,6 +234,8 @@ def run():
                                       {"itemId": item_id, "studentId": sid1, "value": 20.01, "expected": 18}))
     record(g, "ติดลบ", *owner("PUT", "/api/scores",
                               {"itemId": item_id, "studentId": sid1, "value": -0.5, "expected": 18}))
+    record(g, "ทศนิยมเกิน 2 ตำแหน่ง", *owner("PUT", "/api/scores",
+                                           {"itemId": item_id, "studentId": sid1, "value": 18.555, "expected": 18}))
     record(g, "*** ชนกัน ค่าที่เห็นไม่ตรงกับใน DB", *owner("PUT", "/api/scores",
                                                            {"itemId": item_id, "studentId": sid1,
                                                             "value": 5, "expected": 99}))

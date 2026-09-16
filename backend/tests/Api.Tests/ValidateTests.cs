@@ -68,4 +68,16 @@ public class ValidateTests
     [Fact]
     public void Score_ติดลบ_ต้องไม่ผ่าน() =>
         Assert.Equal("คะแนนติดลบไม่ได้", Validate.Score(-0.5m, 20m));
+
+    [Fact]
+    public void Score_ทศนิยมเกิน2ตำแหน่ง_ต้องไม่ผ่าน() =>
+        Assert.Equal("คะแนนมีทศนิยมได้ไม่เกิน 2 ตำแหน่ง", Validate.Score(18.555m, 20m));
+
+    [Fact]
+    public void Score_ทศนิยม2ตำแหน่ง_ต้องผ่าน() =>
+        Assert.Null(Validate.Score(18.55m, 20m));
+
+    [Fact]
+    public void MaxScore_ทศนิยมเกิน2ตำแหน่ง_ต้องไม่ผ่าน() =>
+        Assert.Equal("คะแนนเต็มมีทศนิยมได้ไม่เกิน 2 ตำแหน่ง", Validate.MaxScore(10.555m));
 }

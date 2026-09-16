@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { FileUp } from 'lucide-react'
-import { useState, type KeyboardEvent } from 'react'
+import { FileDown, FileUp } from 'lucide-react'
+import { useEffect, useState, type KeyboardEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { ClassroomTabs } from '@/components/ClassroomTabs'
 import { FormError } from '@/components/FormError'
@@ -72,6 +72,15 @@ export default function Scores() {
           <FileUp aria-hidden="true" />
           นำเข้า
         </Link>
+        {/* นำออก = ไฟล์เดียวกับไฟล์ตัวอย่างของหน้านำเข้า มีข้อมูลปัจจุบันของห้องครบ แก้แล้วนำเข้ากลับได้ */}
+        <a
+          href={`/api/classrooms/${classroomId}/import/scores/template`}
+          download
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          <FileDown aria-hidden="true" />
+          นำออก
+        </a>
       </PageHeader>
 
       <ClassroomTabs classroomId={classroomId} active="scores" />
@@ -120,8 +129,8 @@ function GridTable({
     <div className="overflow-x-auto rounded-lg border bg-card">
       <table className="w-full border-collapse text-sm">
         <thead>
-          <tr className="border-b bg-muted/50">
-            <th className="sticky left-0 z-10 max-w-36 bg-muted/50 px-3 py-2 text-left font-medium sm:max-w-none">นักเรียน</th>
+          <tr className="border-b bg-muted">
+            <th className="sticky left-0 z-10 max-w-36 bg-muted px-3 py-2 text-left font-medium sm:max-w-none">นักเรียน</th>
             {data.items.map((item) => (
               <th key={item.id} className="min-w-24 px-2 py-2 text-center font-medium">
                 <span className="block truncate">{item.name}</span>
@@ -172,6 +181,15 @@ function GridTable({
   )
 }
 
+/** ข้อความเตือนใต้ช่องแสดงค้างไว้กี่มิลลิวินาที */
+const NOTICE_MS = 3000
+
+/** รับเฉพาะตัวเลข ทศนิยมไม่เกิน 2 ตำแหน่ง · เลขไทยแปลงเป็นเลขอารบิกให้ (แป้นพิมพ์ไทยพิมพ์ ๑๒๓ ได้) · คืน null ถ้าพิมพ์อย่างอื่น */
+function toScoreInput(text: string): string | null {
+  const ascii = text.replace(/[๐-๙]/g, (digit) => String(digit.charCodeAt(0) - 0x0e50))
+  return /^\d*(\.\d{0,2})?$/.test(ascii) ? ascii : null
+}
+
 function ScoreCell({
   current,
   maxScore,
@@ -181,38 +199,48 @@ function ScoreCell({
   maxScore: number
   onSave: (next: number | null) => Promise<boolean>
 }) {
-  const [draft, setDraft] = useState(current === null ? '' : String(current))
+  const shown = current === null ? '' : String(current)
+  const [draft, setDraft] = useState(shown)
   const [busy, setBusy] = useState(false)
-  const [invalid, setInvalid] = useState('')
+  const [notice, setNotice] = useState('')
+
+  // เตือนแล้วหายเอง ครูไม่ต้องกดปิด
+  useEffect(() => {
+    if (!notice) return
+    const timer = setTimeout(() => setNotice(''), NOTICE_MS)
+    return () => clearTimeout(timer)
+  }, [notice])
 
   async function commit() {
     const trimmed = draft.trim()
-    const next = trimmed === '' ? null : Number(trimmed)
+    const next = trimmed === '' || trimmed === '.' ? null : Number(trimmed)
 
     // ไม่เปลี่ยนก็ไม่ต้องยิง จะได้ไม่เขียน audit ซ้ำโดยไม่จำเป็น
     if (next === current) {
-      setInvalid('')
+      setDraft(shown)
       return
     }
 
-    const bad = trimmed !== '' && Number.isNaN(next) ? 'คะแนนต้องเป็นตัวเลข' : validate.score(next, maxScore)
+    const bad = validate.score(next, maxScore)
     if (bad) {
-      setInvalid(bad)
+      // ค่าที่ผิดไม่ค้างในช่อง คืนคะแนนเดิมทันที แล้วบอกเหตุผลสั้น ๆ
+      setDraft(shown)
+      setNotice(bad)
       return
     }
 
-    setInvalid('')
+    setNotice('')
     setBusy(true)
     const ok = await onSave(next)
     setBusy(false)
-    if (!ok) setDraft(current === null ? '' : String(current))
+    if (!ok) setDraft(shown)
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') e.currentTarget.blur()
     if (e.key === 'Escape') {
-      setDraft(current === null ? '' : String(current))
-      setInvalid('')
+      setDraft(shown)
+      setNotice('')
       e.currentTarget.blur()
     }
   }
@@ -221,18 +249,24 @@ function ScoreCell({
     <>
       <input
         value={draft}
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={(e) => {
+          const next = toScoreInput(e.target.value)
+          if (next !== null) setDraft(next)
+        }}
         onBlur={commit}
         onKeyDown={onKeyDown}
         disabled={busy}
         inputMode="decimal"
         aria-label={`คะแนน เต็ม ${maxScore}`}
-        aria-invalid={invalid !== ''}
-        className={`w-16 rounded-md border px-2 py-1 text-center tabular-nums outline-none focus:ring-2 focus:ring-ring ${
-          invalid ? 'border-destructive' : 'border-input'
-        } ${busy ? 'opacity-50' : ''}`}
+        className={`w-16 rounded-md border border-input px-2 py-1 text-center tabular-nums outline-none focus:ring-2 focus:ring-ring ${
+          busy ? 'opacity-50' : ''
+        }`}
       />
-      {invalid && <span className="mt-0.5 block text-xs text-destructive">{invalid}</span>}
+      {notice && (
+        <span role="status" className="mt-0.5 block text-xs text-destructive">
+          {notice}
+        </span>
+      )}
     </>
   )
 }

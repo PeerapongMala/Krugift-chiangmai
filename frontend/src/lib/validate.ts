@@ -16,6 +16,9 @@ export const LIMITS = {
 
 const trimmed = (value: string | null | undefined) => (value ?? '').trim()
 
+/** DB เก็บ decimal(6,2) · ปัดด้วย 100 แล้วเทียบ กันเศษทศนิยมของ float แบบ 0.1 + 0.2 */
+const hasAtMost2Decimals = (value: number) => Math.abs(Math.round(value * 100) - value * 100) < 1e-6
+
 export const validate = {
   name(value: string | null | undefined, what: string): string | null {
     const v = trimmed(value)
@@ -53,6 +56,7 @@ export const validate = {
     if (value == null || Number.isNaN(value)) return 'กรุณากรอกคะแนนเต็ม'
     if (value <= 0) return 'คะแนนเต็มต้องมากกว่า 0'
     if (value > LIMITS.scoreCeiling) return `คะแนนเต็มต้องไม่เกิน ${LIMITS.scoreCeiling}`
+    if (!hasAtMost2Decimals(value)) return 'คะแนนเต็มมีทศนิยมได้ไม่เกิน 2 ตำแหน่ง'
     return null
   },
 
@@ -62,6 +66,7 @@ export const validate = {
     if (Number.isNaN(value)) return 'คะแนนต้องเป็นตัวเลข'
     if (value < 0) return 'คะแนนติดลบไม่ได้'
     if (value > maxScore) return `คะแนนเกินคะแนนเต็ม (${maxScore})`
+    if (!hasAtMost2Decimals(value)) return 'คะแนนมีทศนิยมได้ไม่เกิน 2 ตำแหน่ง'
     return null
   },
 }

@@ -159,8 +159,6 @@ public static partial class ScoreSheetParser
             if (!Cells.TryParseNumber(match.Groups["max"].Value, out maxScore))
                 return (null, $"คะแนนเต็มในวงเล็บของ \"{Cells.Quote(header)}\" ต้องเป็นตัวเลข เช่น \"สอบกลางภาค (20)\"");
             if (Validate.MaxScore(maxScore) is { } maxError) return (null, $"\"{Cells.Quote(header)}\": {maxError}");
-            if (maxScore != Math.Round(maxScore, 2))
-                return (null, $"\"{Cells.Quote(header)}\": คะแนนเต็มมีทศนิยมได้ไม่เกิน 2 ตำแหน่ง");
         }
         else if (existingItems.TryGetValue(header, out var known))
         {

@@ -46,6 +46,8 @@ public static class Validate
     {
         <= 0 => "คะแนนเต็มต้องมากกว่า 0",
         > Limits.ScoreCeiling => $"คะแนนเต็มต้องไม่เกิน {Limits.ScoreCeiling:0.##}",
+        // DB เก็บ decimal(6,2) ถ้าไม่ดักตรงนี้ 10.555 จะถูกปัดเงียบ ๆ เป็น 10.56
+        _ when value != Math.Round(value, 2) => "คะแนนเต็มมีทศนิยมได้ไม่เกิน 2 ตำแหน่ง",
         _ => null,
     };
 
@@ -55,6 +57,8 @@ public static class Validate
         null => null,
         < 0 => "คะแนนติดลบไม่ได้",
         _ when value > maxScore => $"คะแนนเกินคะแนนเต็ม ({maxScore:0.##})",
+        // DB เก็บ decimal(6,2) ถ้าไม่ดักตรงนี้ 18.555 จะถูกปัดเงียบ ๆ เป็น 18.56 (ใช้ทั้งกรอกเองและนำเข้า Excel)
+        _ when value != Math.Round(value.Value, 2) => "คะแนนมีทศนิยมได้ไม่เกิน 2 ตำแหน่ง",
         _ => null,
     };
 }

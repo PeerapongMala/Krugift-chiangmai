@@ -160,8 +160,6 @@ public static partial class Cells
     {
         if (Number(cell, out var value) is { } error) return (null, error);
         if (Validate.Score(value, maxScore) is { } scoreError) return (null, scoreError);
-        // DB เก็บ decimal(6,2) ถ้าไม่ดักตรงนี้ 18.555 จะถูกปัดเงียบ ๆ เป็น 18.56
-        if (value != Math.Round(value, 2)) return (null, "คะแนนมีทศนิยมได้ไม่เกิน 2 ตำแหน่ง");
         return (value, null);
     }
 }
