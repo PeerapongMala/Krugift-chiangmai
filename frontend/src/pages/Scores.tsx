@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { FileUp } from 'lucide-react'
 import { useState, type KeyboardEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { ClassroomTabs } from '@/components/ClassroomTabs'
@@ -68,7 +69,8 @@ export default function Scores() {
 
       <PageHeader title="ตารางคะแนน" description="คลิกที่ช่องเพื่อกรอก · บันทึกอัตโนมัติเมื่อกด Enter หรือคลิกออก">
         <Link to={routes.classroomImport(classroomId, 'scores')} className={buttonVariants({ variant: 'outline' })}>
-          นำเข้าจาก Excel
+          <FileUp aria-hidden="true" />
+          นำเข้า
         </Link>
       </PageHeader>
 

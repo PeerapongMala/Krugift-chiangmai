@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { FileUp } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useConfirm } from '@/components/ConfirmDialog'
@@ -126,7 +127,8 @@ export default function Students() {
         description="นักเรียนเข้าสู่ระบบด้วย Google แล้วกรอกรหัสนักเรียนเพื่อเชื่อมบัญชีเอง ครูไม่ต้องแจกรหัสใด ๆ"
       >
         <Link to={routes.classroomImport(classroomId, 'students')} className={buttonVariants({ variant: 'outline' })}>
-          นำเข้าจาก Excel
+          <FileUp aria-hidden="true" />
+          นำเข้า
         </Link>
         <Button onClick={() => setAdding(true)}>เพิ่มนักเรียน</Button>
       </PageHeader>
