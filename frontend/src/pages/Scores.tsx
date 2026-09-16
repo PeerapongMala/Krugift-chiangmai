@@ -1,12 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { FileDown, FileUp } from 'lucide-react'
 import { useEffect, useState, type KeyboardEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { ClassroomTabs } from '@/components/ClassroomTabs'
+import { ExcelButtons } from '@/components/ExcelButtons'
 import { FormError } from '@/components/FormError'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
-import { buttonVariants } from '@/components/ui/button'
+import { TabToolbar } from '@/components/TabToolbar'
 import { api, errorMessage } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { validate } from '@/lib/validate'
@@ -67,23 +67,13 @@ export default function Scores() {
         ← ภาคเรียน
       </Link>
 
-      <PageHeader title="ตารางคะแนน">
-        <Link to={routes.classroomImport(classroomId, 'scores')} className={buttonVariants({ variant: 'outline' })}>
-          <FileUp aria-hidden="true" />
-          นำเข้า
-        </Link>
-        {/* นำออก = ไฟล์เดียวกับไฟล์ตัวอย่างของหน้านำเข้า มีข้อมูลปัจจุบันของห้องครบ แก้แล้วนำเข้ากลับได้ */}
-        <a
-          href={`/api/classrooms/${classroomId}/import/scores/template`}
-          download
-          className={buttonVariants({ variant: 'outline' })}
-        >
-          <FileDown aria-hidden="true" />
-          นำออก
-        </a>
-      </PageHeader>
+      <PageHeader title="ตารางคะแนน" />
 
       <ClassroomTabs classroomId={classroomId} active="scores" />
+
+      <TabToolbar>
+        <ExcelButtons classroomId={classroomId} kind="scores" />
+      </TabToolbar>
 
       <FormError message={error} />
 

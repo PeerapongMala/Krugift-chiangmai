@@ -1,15 +1,16 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { FileDown, FileUp } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useConfirm } from '@/components/ConfirmDialog'
 import { Field } from '@/components/Field'
 import { ClassroomTabs } from '@/components/ClassroomTabs'
+import { ExcelButtons } from '@/components/ExcelButtons'
 import { FormError } from '@/components/FormError'
 import { Modal } from '@/components/Modal'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { TabToolbar } from '@/components/TabToolbar'
+import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
@@ -122,26 +123,14 @@ export default function Students() {
         ← ภาคเรียน
       </Link>
 
-      <PageHeader
-        title="นักเรียนในห้อง"
-      >
-        <Link to={routes.classroomImport(classroomId, 'students')} className={buttonVariants({ variant: 'outline' })}>
-          <FileUp aria-hidden="true" />
-          นำเข้า
-        </Link>
-        {/* นำออก = ไฟล์เดียวกับไฟล์ตัวอย่างของหน้านำเข้า มีข้อมูลปัจจุบันของห้องครบ แก้แล้วนำเข้ากลับได้ */}
-        <a
-          href={`/api/classrooms/${classroomId}/import/students/template`}
-          download
-          className={buttonVariants({ variant: 'outline' })}
-        >
-          <FileDown aria-hidden="true" />
-          นำออก
-        </a>
-        <Button onClick={() => setAdding(true)}>เพิ่มนักเรียน</Button>
-      </PageHeader>
+      <PageHeader title="นักเรียนในห้อง" />
 
       <ClassroomTabs classroomId={classroomId} active="students" />
+
+      <TabToolbar>
+        <ExcelButtons classroomId={classroomId} kind="students" />
+        <Button onClick={() => setAdding(true)}>เพิ่มนักเรียน</Button>
+      </TabToolbar>
 
       <FormError message={rowAction.error} />
 

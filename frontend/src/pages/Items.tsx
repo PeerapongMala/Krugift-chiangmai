@@ -8,6 +8,7 @@ import { FormError } from '@/components/FormError'
 import { Modal } from '@/components/Modal'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
+import { TabToolbar } from '@/components/TabToolbar'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
@@ -85,11 +86,13 @@ export default function Items() {
         ← ภาคเรียน
       </Link>
 
-      <PageHeader title="รายการคะแนน">
-        <Button onClick={() => setAdding(true)}>เพิ่มรายการ</Button>
-      </PageHeader>
+      <PageHeader title="รายการคะแนน" />
 
       <ClassroomTabs classroomId={classroomId} active="items" />
+
+      <TabToolbar>
+        <Button onClick={() => setAdding(true)}>เพิ่มรายการ</Button>
+      </TabToolbar>
 
       <FormError message={rowAction.error} />
 
