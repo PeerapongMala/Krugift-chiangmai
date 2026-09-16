@@ -49,12 +49,11 @@ export default function Appeals() {
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">
+                      {/* ป้ายนี้หายเมื่อเปิดเข้าไปอ่านเท่านั้น (server ล้างสถานะตอนเปิดคำถาม) */}
                       {appeal.unread && (
-                        <span
-                          className="mr-2 inline-block size-2 rounded-full bg-primary align-middle"
-                          role="img"
-                          aria-label="มีข้อความใหม่"
-                        />
+                        <span className="mr-2 inline-flex rounded-full bg-destructive px-2 py-0.5 align-middle text-[11px] leading-4 font-medium text-white">
+                          ข้อความใหม่
+                        </span>
                       )}
                       {appeal.item}
                     </p>

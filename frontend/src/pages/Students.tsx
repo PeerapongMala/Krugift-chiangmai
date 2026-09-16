@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { FileUp } from 'lucide-react'
+import { FileDown, FileUp } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useConfirm } from '@/components/ConfirmDialog'
@@ -130,6 +130,15 @@ export default function Students() {
           <FileUp aria-hidden="true" />
           นำเข้า
         </Link>
+        {/* นำออก = ไฟล์เดียวกับไฟล์ตัวอย่างของหน้านำเข้า มีข้อมูลปัจจุบันของห้องครบ แก้แล้วนำเข้ากลับได้ */}
+        <a
+          href={`/api/classrooms/${classroomId}/import/students/template`}
+          download
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          <FileDown aria-hidden="true" />
+          นำออก
+        </a>
         <Button onClick={() => setAdding(true)}>เพิ่มนักเรียน</Button>
       </PageHeader>
 

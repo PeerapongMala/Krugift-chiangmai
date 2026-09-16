@@ -146,7 +146,7 @@ export default function AppealThread() {
                 />
                 <FormError message={reply.error || closing.error} />
                 <div className="flex flex-wrap justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={closeAppeal} disabled={closing.busy}>
+                  <Button type="button" variant="success" onClick={closeAppeal} disabled={closing.busy}>
                     เสร็จสิ้น
                   </Button>
                   <Button type="submit" disabled={reply.busy}>

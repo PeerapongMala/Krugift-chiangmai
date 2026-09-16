@@ -5,6 +5,7 @@ import { createBrowserRouter, Navigate, RouterProvider } from 'react-router'
 import './index.css'
 import { AppLayout } from '@/components/AppLayout'
 import { RequireRole } from '@/components/RequireRole'
+import { RouteError } from '@/components/RouteError'
 import AppealThread from '@/pages/AppealThread'
 import Appeals from '@/pages/Appeals'
 import Claim from '@/pages/Claim'
@@ -24,44 +25,49 @@ const queryClient = new QueryClient({
 })
 
 const router = createBrowserRouter([
-  { path: '/login', element: <Login /> },
-  { path: '/claim', element: <Claim /> },
-  // สาธารณะ ไม่ต้องล็อกอิน
-  { path: '/scores', element: <QuickScores /> },
   {
-    element: <RequireRole role="teacher" />,
+    // ครอบทุกหน้าไว้ชั้นเดียว หน้าไหนพังก็ขึ้นหน้า error ภาษาไทยแทนหน้าภาษาอังกฤษของ react-router
+    errorElement: <RouteError />,
     children: [
+      { path: '/login', element: <Login /> },
+      { path: '/claim', element: <Claim /> },
+      // สาธารณะ ไม่ต้องล็อกอิน
+      { path: '/scores', element: <QuickScores /> },
       {
-        element: <AppLayout />,
-        // ponytail: หน้าชั่วคราว จะแทนด้วยหน้าจริงใน milestone ครู
+        element: <RequireRole role="teacher" />,
         children: [
-          { path: '/teacher', element: <Terms /> },
-          { path: '/teacher/terms/:termId', element: <Classrooms /> },
-          { path: '/teacher/classrooms/:classroomId', element: <Students /> },
-          { path: '/teacher/classrooms/:classroomId/items', element: <Items /> },
-          { path: '/teacher/classrooms/:classroomId/scores', element: <Scores /> },
-          { path: '/teacher/classrooms/:classroomId/import/:kind', element: <ImportExcel /> },
-          { path: '/teacher/staff', element: <StaffPage /> },
-          { path: '/teacher/appeals', element: <Appeals /> },
-          { path: '/teacher/appeals/:appealId', element: <AppealThread /> },
+          {
+            element: <AppLayout />,
+            children: [
+              { path: '/teacher', element: <Terms /> },
+              { path: '/teacher/terms/:termId', element: <Classrooms /> },
+              { path: '/teacher/classrooms/:classroomId', element: <Students /> },
+              { path: '/teacher/classrooms/:classroomId/items', element: <Items /> },
+              { path: '/teacher/classrooms/:classroomId/scores', element: <Scores /> },
+              { path: '/teacher/classrooms/:classroomId/import/:kind', element: <ImportExcel /> },
+              { path: '/teacher/staff', element: <StaffPage /> },
+              { path: '/teacher/appeals', element: <Appeals /> },
+              { path: '/teacher/appeals/:appealId', element: <AppealThread /> },
+            ],
+          },
         ],
       },
-    ],
-  },
-  {
-    element: <RequireRole role="student" />,
-    children: [
       {
-        element: <AppLayout />,
+        element: <RequireRole role="student" />,
         children: [
-          { path: '/student', element: <StudentHome /> },
-          { path: '/student/appeals', element: <Appeals /> },
-          { path: '/student/appeals/:appealId', element: <AppealThread /> },
+          {
+            element: <AppLayout />,
+            children: [
+              { path: '/student', element: <StudentHome /> },
+              { path: '/student/appeals', element: <Appeals /> },
+              { path: '/student/appeals/:appealId', element: <AppealThread /> },
+            ],
+          },
         ],
       },
+      { path: '*', element: <Navigate to="/login" replace /> },
     ],
   },
-  { path: '*', element: <Navigate to="/login" replace /> },
 ])
 
 createRoot(document.getElementById('root')!).render(

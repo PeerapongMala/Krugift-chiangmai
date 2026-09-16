@@ -16,7 +16,7 @@ export function AppealStatusBadge({ status }: { status: AppealStatus }) {
         'shrink-0 rounded-full px-2.5 py-0.5 text-xs',
         status === 'Open' && 'bg-accent text-accent-foreground',
         status === 'Answered' && 'bg-primary text-primary-foreground',
-        status === 'Closed' && 'bg-muted text-muted-foreground',
+        status === 'Closed' && 'bg-success text-success-foreground',
       )}
     >
       {LABEL[status]}
