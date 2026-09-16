@@ -1,15 +1,16 @@
 import { cn } from '@/lib/utils'
 
 export type AppealStatus = 'Open' | 'Answered' | 'Closed'
+export type AppealViewer = 'teacher' | 'student'
 
-const LABEL: Record<AppealStatus, string> = {
-  Open: 'รอครูตอบ',
-  Answered: 'ครูตอบแล้ว',
-  Closed: 'เสร็จสิ้น',
+/** ครูเห็นจากมุมตัวเอง (รอตอบ / ตอบแล้ว) · นักเรียนเห็นว่ากำลังรอใคร (รอครูตอบ / ครูตอบแล้ว) */
+const LABEL: Record<AppealViewer, Record<AppealStatus, string>> = {
+  teacher: { Open: 'รอตอบ', Answered: 'ตอบแล้ว', Closed: 'เสร็จสิ้น' },
+  student: { Open: 'รอครูตอบ', Answered: 'ครูตอบแล้ว', Closed: 'เสร็จสิ้น' },
 }
 
 /** ป้ายสถานะคำถามเรื่องคะแนน ใช้ทั้งหน้ารายการและหน้า thread */
-export function AppealStatusBadge({ status }: { status: AppealStatus }) {
+export function AppealStatusBadge({ status, viewer }: { status: AppealStatus; viewer: AppealViewer }) {
   return (
     <span
       className={cn(
@@ -19,7 +20,7 @@ export function AppealStatusBadge({ status }: { status: AppealStatus }) {
         status === 'Closed' && 'bg-success text-success-foreground',
       )}
     >
-      {LABEL[status]}
+      {LABEL[viewer][status]}
     </span>
   )
 }

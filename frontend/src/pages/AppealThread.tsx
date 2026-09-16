@@ -69,7 +69,6 @@ export default function AppealThread() {
   async function closeAppeal() {
     const ok = await confirm({
       title: 'จบคำถามนี้?',
-      description: 'เมื่อเสร็จสิ้นแล้วจะตอบต่อไม่ได้ ถ้ายังมีข้อสงสัยให้ส่งคำถามใหม่',
       confirmLabel: 'เสร็จสิ้น',
     })
     if (!ok) return
@@ -93,7 +92,7 @@ export default function AppealThread() {
               title={t.item}
               description={`${isTeacher ? `${t.student} (${t.studentCode}) · ` : ''}${t.classroom} · ภาคเรียน ${t.term}`}
             >
-              <AppealStatusBadge status={t.status} />
+              <AppealStatusBadge status={t.status} viewer={isTeacher ? 'teacher' : 'student'} />
             </PageHeader>
 
             <p className="mb-4 rounded-lg border bg-card px-3 py-2 text-sm">

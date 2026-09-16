@@ -77,7 +77,7 @@ export default function QuickScores() {
   }
 
   return (
-    <AuthCard title="ดูคะแนนด่วน" description="เลือกห้องและเลขที่ แล้วกรอกรหัสนักเรียน ไม่ต้องเข้าสู่ระบบ">
+    <AuthCard title="ดูคะแนนด่วน">
       <form onSubmit={onSubmit} className="grid gap-4">
         <div className="grid gap-2">
           <Label htmlFor="room">ห้อง</Label>

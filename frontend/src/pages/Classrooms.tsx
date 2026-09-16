@@ -62,7 +62,7 @@ export default function Classrooms() {
   async function remove(room: Classroom) {
     const ok = await confirm({
       title: 'ลบห้องเรียนนี้?',
-      description: `${room.name} · ถ้ายังมีรายการคะแนนอยู่จะลบไม่ได้`,
+      description: room.name,
       confirmLabel: 'ลบ',
       destructive: true,
     })
@@ -80,7 +80,7 @@ export default function Classrooms() {
         ← กลับไปหน้าภาคเรียน
       </Link>
 
-      <PageHeader title="ห้องเรียน" description="เพิ่มห้องที่สอนในภาคเรียนนี้ แล้วเข้าไปจัดการนักเรียนกับคะแนน">
+      <PageHeader title="ห้องเรียน">
         <Button onClick={() => setAdding(true)}>เพิ่มห้องเรียน</Button>
       </PageHeader>
 
@@ -116,7 +116,6 @@ export default function Classrooms() {
         open={adding}
         onOpenChange={setAdding}
         title="เพิ่มห้องเรียน"
-        description="ตั้งชื่อตามที่โรงเรียนใช้ เช่น ม.2/1"
         onSubmit={create}
         submitLabel="เพิ่ม"
         busy={form.busy}

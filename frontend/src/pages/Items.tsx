@@ -67,10 +67,7 @@ export default function Items() {
   async function discard(item: Item) {
     const ok = await confirm({
       title: 'ลบรายการคะแนนนี้?',
-      description:
-        item.scoredCount > 0
-          ? `${item.name} · มีคะแนนที่กรอกไว้ ${item.scoredCount} คน ระบบจะไม่ให้ลบจนกว่าจะล้างคะแนนหมด`
-          : `${item.name} · ยังไม่ได้กรอกคะแนนใคร ลบได้เลย`,
+      description: item.name,
       confirmLabel: 'ลบ',
       destructive: true,
     })
@@ -88,7 +85,7 @@ export default function Items() {
         ← ภาคเรียน
       </Link>
 
-      <PageHeader title="รายการคะแนน" description="งานหรือการสอบที่เก็บคะแนน เช่น สอบกลางภาค เต็ม 20 คะแนน">
+      <PageHeader title="รายการคะแนน">
         <Button onClick={() => setAdding(true)}>เพิ่มรายการ</Button>
       </PageHeader>
 
@@ -143,11 +140,6 @@ export default function Items() {
         open={editing !== null}
         onOpenChange={(open) => !open && setEditing(null)}
         title="แก้ไขรายการคะแนน"
-        description={
-          editing && editing.scoredCount > 0
-            ? `มีคะแนนกรอกไว้แล้ว ${editing.scoredCount} คน · ลดคะแนนเต็มต่ำกว่าคะแนนสูงสุดที่กรอกไว้ไม่ได้`
-            : undefined
-        }
         onSubmit={save}
         busy={form.busy}
         error={form.error}

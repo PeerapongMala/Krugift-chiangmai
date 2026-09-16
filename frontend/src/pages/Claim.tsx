@@ -40,12 +40,7 @@ export default function Claim() {
   return (
     <AuthCard
       title="ยืนยันตัวตนครั้งแรก"
-      description={
-        <>
-          บัญชี <b>{me.name}</b> ยังไม่ได้เชื่อมกับนักเรียนคนไหน กรอกรหัสนักเรียนของตัวเองเพื่อเชื่อมบัญชี ทำครั้งเดียวจบ
-          ครั้งต่อไปกดปุ่ม Google ได้เลย
-        </>
-      }
+      description={<>บัญชี <b>{me.name}</b> กรอกรหัสนักเรียนเพื่อเชื่อมบัญชี</>}
     >
       <form onSubmit={onSubmit} className="grid gap-4">
         <Field
@@ -53,7 +48,6 @@ export default function Claim() {
           name="studentCode"
           inputMode="numeric"
           autoComplete="off"
-          hint="รหัสประจำตัวนักเรียนที่โรงเรียนใช้ ถ้าไม่แน่ใจให้ถามครู"
           required
         />
         <FormError message={error} />
@@ -61,10 +55,6 @@ export default function Claim() {
           {busy ? 'กำลังตรวจสอบ...' : 'ยืนยันและเชื่อมบัญชี'}
         </Button>
       </form>
-
-      <p className="text-xs text-muted-foreground">
-        ถ้าคุณเป็นครูแต่มาอยู่หน้านี้ แปลว่าอีเมลนี้ยังไม่อยู่ในรายชื่อครู ให้แจ้งผู้ดูแลระบบ
-      </p>
 
       {/* พาไปเลือกบัญชีใหม่เลย · server ล้าง cookie เดิมและบังคับ Google ถามบัญชีให้อยู่แล้ว */}
       <a href="/api/auth/google" className={buttonVariants({ variant: 'ghost' })}>

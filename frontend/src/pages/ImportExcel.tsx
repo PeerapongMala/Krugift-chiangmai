@@ -29,16 +29,14 @@ type Preview = {
 const KINDS: Record<Kind, { title: string; howTo: string; back: (classroomId: number) => string; backLabel: string; doneLabel: string }> = {
   students: {
     title: 'นำเข้ารายชื่อนักเรียนจาก Excel',
-    howTo:
-      'ไฟล์มีคอลัมน์ เลขที่ · รหัสนักเรียน · ชื่อ · นามสกุล — นักเรียนใหม่จะถูกเพิ่มเข้าห้อง นักเรียนที่มีในระบบแล้วจะถูกเพิ่มเข้าห้องหรือแก้เลขที่ · นักเรียนที่อยู่ในห้องแต่ไม่มีในไฟล์จะยังอยู่ในห้องตามเดิม',
+    howTo: 'คอลัมน์: เลขที่ · รหัสนักเรียน · ชื่อ · นามสกุล',
     back: routes.classroom,
     backLabel: '← นักเรียนในห้อง',
     doneLabel: 'ไปดูรายชื่อนักเรียน',
   },
   scores: {
     title: 'นำเข้าคะแนนจาก Excel',
-    howTo:
-      'หัวคอลัมน์คะแนนเขียนเป็น “ชื่อรายการ (คะแนนเต็ม)” เช่น “สอบกลางภาค (20)” รายการที่ยังไม่มีจะถูกสร้างให้ · นักเรียนต้องอยู่ในห้องแล้ว · ช่องที่ปล่อยว่างจะไม่เปลี่ยนคะแนนเดิม',
+    howTo: 'หัวคอลัมน์คะแนน: ชื่อรายการ (คะแนนเต็ม) เช่น สอบกลางภาค (20)',
     back: routes.classroomScores,
     backLabel: '← ตารางคะแนน',
     doneLabel: 'ไปดูตารางคะแนน',
@@ -139,10 +137,7 @@ function ImportForm({ classroomId, kind }: { classroomId: number; kind: Kind }) 
         {info.backLabel}
       </Link>
 
-      <PageHeader
-        title={info.title}
-        description="ระบบตรวจทั้งไฟล์ก่อนเสมอ ถ้าผิดแม้จุดเดียวจะไม่บันทึกอะไรเลย แก้ในไฟล์แล้วอัปโหลดใหม่ได้เรื่อย ๆ"
-      />
+      <PageHeader title={info.title} />
 
       <ClassroomTabs classroomId={classroomId} active={kind} />
 
@@ -187,7 +182,7 @@ function ImportForm({ classroomId, kind }: { classroomId: number; kind: Kind }) 
       {preview?.summary && (
         <section aria-labelledby="import-ready" className="mt-4 rounded-lg border bg-card p-4">
           <h2 id="import-ready" className="font-medium">
-            3. ตรวจแล้วไม่พบจุดผิด · ดูสิ่งที่จะเปลี่ยนก่อนยืนยัน
+            3. ตรวจแล้วไม่พบจุดผิด
           </h2>
           <SummaryList lines={preview.summary} />
           {preview.changes.length > 0 && <ChangeTable preview={preview} />}
@@ -234,8 +229,7 @@ function ErrorTable({ preview }: { preview: Preview }) {
         พบจุดที่ต้องแก้ {preview.errorCount} จุด · ยังไม่ได้บันทึกอะไร
       </h2>
       <p className="mt-1 mb-3 text-sm text-muted-foreground">
-        แก้ในไฟล์ให้ครบทุกจุด แล้วเลือกไฟล์มาตรวจใหม่
-        {preview.errorCount > preview.errors.length && ` · แสดง ${preview.errors.length} จุดแรก`}
+        {preview.errorCount > preview.errors.length && `แสดง ${preview.errors.length} จุดแรก`}
       </p>
       <div className="overflow-x-auto">
         {/* ไม่ล็อกความกว้างขั้นต่ำ · ตัดคำเฉพาะคอลัมน์ข้อความยาวคอลัมน์สุดท้าย เลขแถวและหัวตารางไม่แตกเป็นทีละตัวอักษรบนมือถือ */}

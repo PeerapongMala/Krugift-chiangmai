@@ -67,7 +67,7 @@ export default function Scores() {
         ← ภาคเรียน
       </Link>
 
-      <PageHeader title="ตารางคะแนน" description="คลิกที่ช่องเพื่อกรอก · บันทึกอัตโนมัติเมื่อกด Enter หรือคลิกออก">
+      <PageHeader title="ตารางคะแนน">
         <Link to={routes.classroomImport(classroomId, 'scores')} className={buttonVariants({ variant: 'outline' })}>
           <FileUp aria-hidden="true" />
           นำเข้า

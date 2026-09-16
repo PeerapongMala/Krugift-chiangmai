@@ -89,7 +89,7 @@ export default function Students() {
   async function takeOut(s: Student) {
     const ok = await confirm({
       title: 'ย้ายนักเรียนออกจากห้องนี้?',
-      description: `${s.firstName} ${s.lastName} (${s.studentCode}) · ย้ายออกจากห้องนี้เท่านั้น ข้อมูลนักเรียนและคะแนนภาคเรียนอื่นยังอยู่`,
+      description: `${s.firstName} ${s.lastName} (${s.studentCode})`,
       confirmLabel: 'ย้ายออก',
       destructive: true,
     })
@@ -104,7 +104,7 @@ export default function Students() {
   async function unlink(s: Student) {
     const ok = await confirm({
       title: 'ยกเลิกการเชื่อมบัญชี Google?',
-      description: `${s.firstName} ${s.lastName} จะต้องกรอกรหัสนักเรียนเพื่อเชื่อมบัญชีใหม่อีกครั้ง · ใช้ตอนนักเรียนเชื่อมผิดบัญชี หรือมีคนอื่นเผลอใช้รหัสนี้เชื่อมบัญชี`,
+      description: `${s.firstName} ${s.lastName}`,
       confirmLabel: 'ยกเลิกการเชื่อม',
       destructive: true,
     })
@@ -124,7 +124,6 @@ export default function Students() {
 
       <PageHeader
         title="นักเรียนในห้อง"
-        description="นักเรียนเข้าสู่ระบบด้วย Google แล้วกรอกรหัสนักเรียนเพื่อเชื่อมบัญชีเอง ครูไม่ต้องแจกรหัสใด ๆ"
       >
         <Link to={routes.classroomImport(classroomId, 'students')} className={buttonVariants({ variant: 'outline' })}>
           <FileUp aria-hidden="true" />
@@ -187,7 +186,6 @@ export default function Students() {
         open={adding}
         onOpenChange={setAdding}
         title="เพิ่มนักเรียน"
-        description="ถ้ารหัสนักเรียนนี้มีในระบบแล้ว ระบบจะใช้ข้อมูลเดิมเพิ่มเข้าห้องนี้ ไม่สร้างนักเรียนซ้ำ"
         onSubmit={create}
         submitLabel="เพิ่ม"
         busy={form.busy}
@@ -205,7 +203,7 @@ export default function Students() {
         open={editing !== null}
         onOpenChange={(open) => !open && setEditing(null)}
         title="แก้ไขนักเรียน"
-        description={editing ? `รหัสนักเรียน ${editing.studentCode} (แก้ไม่ได้)` : undefined}
+        description={editing ? `รหัสนักเรียน ${editing.studentCode}` : undefined}
         onSubmit={save}
         busy={form.busy}
         error={form.error}

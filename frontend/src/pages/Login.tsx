@@ -12,7 +12,7 @@ export default function Login() {
   if (me) return <Navigate to={homeOf(me.role)} replace />
 
   return (
-    <AuthCard title="Krugift คะแนนคณิต" description="เข้าสู่ระบบเพื่อดูหรือจัดการคะแนน">
+    <AuthCard title="Krugift คะแนนคณิต">
       {params.get('error') && (
         <Alert variant="destructive">
           <AlertDescription>
@@ -31,10 +31,6 @@ export default function Login() {
       <Link to={routes.quickScores} className={buttonVariants()}>
         ดูคะแนนด่วน (ไม่ต้องเข้าสู่ระบบ)
       </Link>
-
-      <p className="text-center text-xs text-muted-foreground">
-        นักเรียนที่เข้าครั้งแรก ระบบจะให้กรอกรหัสนักเรียนเพื่อเชื่อมกับบัญชี Google ทำครั้งเดียว
-      </p>
     </AuthCard>
   )
 }

@@ -57,9 +57,7 @@ export default function StaffPage() {
 
     const ok = await confirm({
       title: promoting ? 'ตั้งเป็นผู้ดูแลระบบ?' : 'ยกเลิกสิทธิ์ผู้ดูแลระบบ?',
-      description: promoting
-        ? `${person.email} จะเห็นข้อมูลของครูทุกคน และเพิ่ม/ลบครูได้`
-        : `${person.email} จะกลับเป็นครู เห็นเฉพาะภาคเรียนของตัวเอง และเพิ่ม/ลบครูไม่ได้`,
+      description: person.email,
     })
     if (!ok) return
 
@@ -72,7 +70,7 @@ export default function StaffPage() {
   async function remove(person: Staff) {
     const ok = await confirm({
       title: 'ลบครูคนนี้?',
-      description: `${person.email} จะเข้าสู่ระบบไม่ได้อีก · ถ้ามีภาคเรียนอยู่จะลบไม่ได้`,
+      description: person.email,
       confirmLabel: 'ลบ',
       destructive: true,
     })
@@ -86,7 +84,7 @@ export default function StaffPage() {
 
   return (
     <>
-      <PageHeader title="จัดการครู" description="ผู้ดูแลระบบเห็นข้อมูลของครูทุกคนและเพิ่ม/ลบครูได้ · ครูเห็นเฉพาะภาคเรียนของตัวเอง">
+      <PageHeader title="จัดการครู">
         <Button onClick={() => setAdding(true)}>เพิ่มครู</Button>
       </PageHeader>
 
@@ -141,7 +139,6 @@ export default function StaffPage() {
         open={adding}
         onOpenChange={setAdding}
         title="เพิ่มครู"
-        description="ครูจะเข้าสู่ระบบด้วยบัญชี Google ของอีเมลนี้ · เพิ่มเป็นครูก่อน แล้วค่อยตั้งเป็นผู้ดูแลระบบทีหลังได้"
         onSubmit={add}
         submitLabel="เพิ่ม"
         busy={addForm.busy}

@@ -47,9 +47,9 @@ export default function StudentHome() {
 
   return (
     <>
-      <PageHeader title="คะแนนของฉัน" description="คะแนนทุกห้องที่เรียน เรียงจากภาคเรียนล่าสุด · สงสัยคะแนนรายการไหน กด สอบถาม ข้างรายการนั้น" />
+      <PageHeader title="คะแนนของฉัน" />
 
-      <QueryState query={rooms} empty="ยังไม่มีห้องเรียนที่มีชื่อคุณอยู่ ถ้าคิดว่าผิด ให้แจ้งครู">
+      <QueryState query={rooms} empty="ยังไม่มีคะแนน">
         {(list) => (
           <div className="grid gap-4 md:grid-cols-2">
             {list.map((room) => (

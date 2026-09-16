@@ -31,11 +31,6 @@ export default function Appeals() {
     <>
       <PageHeader
         title="สอบถามคะแนน"
-        description={
-          isTeacher
-            ? 'คำถามเรื่องคะแนนจากนักเรียน · คำถามที่ยังไม่เสร็จสิ้นอยู่บนสุด'
-            : 'คำถามที่คุณส่งถึงครู · จะถามเรื่องใหม่ให้กดปุ่ม "สอบถาม" ข้างคะแนนในหน้าคะแนนของฉัน'
-        }
       />
 
       <QueryState query={appeals} empty="ยังไม่มีคำถามเรื่องคะแนน">
@@ -65,7 +60,7 @@ export default function Appeals() {
                       <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{appeal.lastMessage}</p>
                     )}
                   </div>
-                  <AppealStatusBadge status={appeal.status} />
+                  <AppealStatusBadge status={appeal.status} viewer={isTeacher ? 'teacher' : 'student'} />
                 </Link>
               </li>
             ))}

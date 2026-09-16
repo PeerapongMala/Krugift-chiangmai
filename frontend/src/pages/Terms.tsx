@@ -61,7 +61,7 @@ export default function Terms() {
   async function remove(term: Term) {
     const ok = await confirm({
       title: 'ลบภาคเรียนนี้?',
-      description: `${term.name} · ถ้ายังมีห้องเรียนอยู่จะลบไม่ได้ ต้องลบห้องให้หมดก่อน`,
+      description: term.name,
       confirmLabel: 'ลบ',
       destructive: true,
     })
@@ -75,13 +75,13 @@ export default function Terms() {
 
   return (
     <>
-      <PageHeader title="ภาคเรียน" description="สร้างภาคเรียนใหม่ทุกครั้งที่ขึ้นภาคเรียน แล้วเพิ่มห้องเรียนเข้าไป">
+      <PageHeader title="ภาคเรียน">
         <Button onClick={() => setAdding(true)}>สร้างภาคเรียน</Button>
       </PageHeader>
 
       <FormError message={rowAction.error} />
 
-      <QueryState query={terms} empty="ยังไม่มีภาคเรียน กด “สร้างภาคเรียน” เพื่อเริ่มต้น">
+      <QueryState query={terms} empty="ยังไม่มีภาคเรียน">
         {(list) => (
           <ul className="grid gap-2">
             {list.map((term) => (
@@ -97,10 +97,7 @@ export default function Terms() {
 
                 <div className="flex shrink-0 flex-wrap gap-2">
                   {/* ห่อด้วย label กดที่ข้อความก็สลับได้ ไม่ต้องเล็งสวิตช์เล็ก ๆ บนมือถือ */}
-                  <label
-                    className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm"
-                    title="ให้นักเรียนดูคะแนนได้โดยไม่ต้องเข้าสู่ระบบ (เลือกห้อง + เลขที่ + กรอกรหัสนักเรียน)"
-                  >
+                  <label className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm">
                     <Switch
                       checked={term.publicScores}
                       onCheckedChange={() => togglePublic(term)}
@@ -125,7 +122,6 @@ export default function Terms() {
         open={adding}
         onOpenChange={setAdding}
         title="สร้างภาคเรียน"
-        description="ตั้งชื่อให้รู้ว่าเป็นภาคเรียนไหน เช่น 1/2569"
         onSubmit={create}
         submitLabel="สร้าง"
         busy={form.busy}
