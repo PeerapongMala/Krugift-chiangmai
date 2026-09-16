@@ -8,6 +8,7 @@ import { Modal } from '@/components/Modal'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { api } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
@@ -95,15 +96,18 @@ export default function Terms() {
                 </Link>
 
                 <div className="flex shrink-0 flex-wrap gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={rowAction.busy}
-                    onClick={() => togglePublic(term)}
+                  {/* ห่อด้วย label กดที่ข้อความก็สลับได้ ไม่ต้องเล็งสวิตช์เล็ก ๆ บนมือถือ */}
+                  <label
+                    className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm"
                     title="ให้นักเรียนดูคะแนนได้โดยไม่ต้องเข้าสู่ระบบ (เลือกห้อง + เลขที่ + กรอกรหัสนักเรียน)"
                   >
-                    ดูคะแนนด่วน: {term.publicScores ? 'เปิด' : 'ปิด'}
-                  </Button>
+                    <Switch
+                      checked={term.publicScores}
+                      onCheckedChange={() => togglePublic(term)}
+                      disabled={rowAction.busy}
+                    />
+                    ดูคะแนนด่วน
+                  </label>
                   <Button variant="outline" size="sm" disabled={rowAction.busy} onClick={() => setEditing(term)}>
                     เปลี่ยนชื่อ
                   </Button>

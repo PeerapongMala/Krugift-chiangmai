@@ -16,7 +16,9 @@ const TABS: { key: Tab; label: string; to: (classroomId: number) => string }[] =
  */
 export function ClassroomTabs({ classroomId, active }: { classroomId: number; active: Tab }) {
   return (
-    <nav aria-label="มุมมองของห้องเรียน" className="mb-4 flex gap-1 overflow-x-auto border-b">
+    // ไม่ใส่ overflow-x-auto: แท็บ 3 อันพอดีจอ 400px อยู่แล้ว และ overflow จะทำให้ -mb-px ของแท็บ
+    // (ให้เส้นใต้ทับขอบล่างพอดี) ล้นแนวตั้ง 1px จน scrollbar โผล่ขึ้นมา
+    <nav aria-label="มุมมองของห้องเรียน" className="mb-4 flex flex-wrap gap-1 border-b">
       {TABS.map((tab) => (
         <Link
           key={tab.key}
