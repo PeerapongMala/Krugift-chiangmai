@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { AppealStatusBadge, type AppealStatus } from '@/components/AppealStatusBadge'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
+import { Rows, Row } from '@/components/Rows'
 import { api } from '@/lib/api'
 import { useMe } from '@/lib/auth'
 import { qk, routes } from '@/lib/keys'
@@ -35,12 +36,12 @@ export default function Appeals() {
 
       <QueryState query={appeals} empty="ยังไม่มีคำถามเรื่องคะแนน">
         {(list) => (
-          <ul className="grid gap-2">
+          <Rows>
             {list.map((appeal) => (
-              <li key={appeal.id}>
+              <Row key={appeal.id} className="p-0">
                 <Link
                   to={routes.appeal(base, appeal.id)}
-                  className="flex items-start gap-3 rounded-lg border bg-card p-3 hover:bg-accent/40"
+                  className="flex w-full items-start gap-3 px-3 py-2.5 hover:bg-muted"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">
@@ -62,9 +63,9 @@ export default function Appeals() {
                   </div>
                   <AppealStatusBadge status={appeal.status} viewer={isTeacher ? 'teacher' : 'student'} />
                 </Link>
-              </li>
+              </Row>
             ))}
-          </ul>
+          </Rows>
         )}
       </QueryState>
     </>

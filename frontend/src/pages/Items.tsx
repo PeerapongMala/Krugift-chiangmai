@@ -8,6 +8,7 @@ import { FormError } from '@/components/FormError'
 import { Modal } from '@/components/Modal'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
+import { Rows, Row, RowActions } from '@/components/Rows'
 import { TabToolbar } from '@/components/TabToolbar'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
@@ -98,9 +99,9 @@ export default function Items() {
 
       <QueryState query={items} empty="ยังไม่มีรายการคะแนนในห้องนี้">
         {(list) => (
-          <ul className="grid gap-2">
+          <Rows>
             {list.map((item) => (
-              <li key={item.id} className="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-3">
+              <Row key={item.id}>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{item.name}</p>
                   <p className="text-xs text-muted-foreground">
@@ -110,17 +111,17 @@ export default function Items() {
                   </p>
                 </div>
 
-                <div className="flex shrink-0 gap-2">
+                <RowActions>
                   <Button variant="outline" size="sm" disabled={rowAction.busy} onClick={() => setEditing(item)}>
                     แก้ไข
                   </Button>
-                  <Button variant="ghost" size="sm" disabled={rowAction.busy} onClick={() => discard(item)}>
+                  <Button variant="destructive" size="sm" disabled={rowAction.busy} onClick={() => discard(item)}>
                     ลบ
                   </Button>
-                </div>
-              </li>
+                </RowActions>
+              </Row>
             ))}
-          </ul>
+          </Rows>
         )}
       </QueryState>
 

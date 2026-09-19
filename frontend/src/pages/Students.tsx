@@ -9,6 +9,7 @@ import { FormError } from '@/components/FormError'
 import { Modal } from '@/components/Modal'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
+import { Rows, Row, RowActions } from '@/components/Rows'
 import { TabToolbar } from '@/components/TabToolbar'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
@@ -136,9 +137,9 @@ export default function Students() {
 
       <QueryState query={students} empty="ยังไม่มีนักเรียนในห้องนี้">
         {(list) => (
-          <ul className="grid gap-2">
+          <Rows>
             {list.map((s) => (
-              <li key={s.studentId} className="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-3">
+              <Row key={s.studentId}>
                 <span className="w-8 shrink-0 text-center text-sm text-muted-foreground">{s.no}</span>
 
                 <div className="min-w-0 flex-1">
@@ -152,7 +153,7 @@ export default function Students() {
                   </p>
                 </div>
 
-                <div className="flex shrink-0 flex-wrap gap-2">
+                <RowActions>
                   <Button variant="outline" size="sm" disabled={rowAction.busy} onClick={() => setEditing(s)}>
                     แก้ไข
                   </Button>
@@ -161,13 +162,13 @@ export default function Students() {
                       ยกเลิกการเชื่อม
                     </Button>
                   )}
-                  <Button variant="ghost" size="sm" disabled={rowAction.busy} onClick={() => takeOut(s)}>
+                  <Button variant="destructive" size="sm" disabled={rowAction.busy} onClick={() => takeOut(s)}>
                     ย้ายออก
                   </Button>
-                </div>
-              </li>
+                </RowActions>
+              </Row>
             ))}
-          </ul>
+          </Rows>
         )}
       </QueryState>
 

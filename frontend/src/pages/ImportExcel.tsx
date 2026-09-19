@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { FileUp } from 'lucide-react'
 import { useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { ClassroomTabs } from '@/components/ClassroomTabs'
@@ -8,6 +9,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { api, ApiError } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
+import { cn } from '@/lib/utils'
 
 /** ต้องตรงกับ Limits.ImportMaxBytes ฝั่ง backend */
 const IMPORT_MAX_BYTES = 2 * 1024 * 1024
@@ -158,17 +160,29 @@ function ImportForm({ classroomId, kind }: { classroomId: number; kind: Kind }) 
             2. อัปโหลดไฟล์เพื่อตรวจ
           </h2>
           <form onSubmit={check} noValidate className="mt-3 grid gap-3">
-            <label htmlFor="import-file" className="text-sm font-medium">
-              ไฟล์ Excel (.xlsx ไม่เกิน 2 MB)
-            </label>
+            {/* ซ่อน input ของเบราว์เซอร์ (ข้อความในนั้นเป็นภาษาอังกฤษ แก้ไม่ได้) แล้วใช้ label เป็นปุ่มแทน */}
             <input
               id="import-file"
               ref={fileInput}
               type="file"
               accept={`.xlsx,${XLSX_TYPE}`}
               onChange={(e) => choose(e.target.files?.[0] ?? null)}
-              className="block w-full min-w-0 text-sm file:mr-3 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-sm"
+              className="sr-only"
             />
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault()
+                choose(e.dataTransfer.files?.[0] ?? null)
+              }}
+              className="grid gap-2 rounded-xl border border-dashed p-4 text-center"
+            >
+              <label htmlFor="import-file" className={cn(buttonVariants({ variant: 'outline' }), 'justify-self-center')}>
+                <FileUp aria-hidden="true" />
+                เลือกไฟล์ Excel
+              </label>
+              <p className="text-sm break-all">{file ? file.name : 'ลากไฟล์มาวางตรงนี้ก็ได้ · .xlsx ไม่เกิน 2 MB'}</p>
+            </div>
             <FormError message={checking.error} />
             <Button type="submit" disabled={busy} className="justify-self-start">
               {checking.busy ? 'กำลังตรวจ...' : 'ตรวจไฟล์'}

@@ -42,12 +42,12 @@ export function Avatar({ className }: { className?: string }) {
       title="กดเพื่อเปลี่ยนรูป"
       aria-label="เปลี่ยนรูปโปรไฟล์"
       className={cn(
-        'flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent',
+        'flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent',
         'transition hover:brightness-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
         className,
       )}
     >
-      <Mascot name={name} className="h-8 w-auto" />
+      <Mascot name={name} className="h-9 w-auto" />
     </button>
   )
 }

@@ -7,6 +7,7 @@ import { FormError } from '@/components/FormError'
 import { Modal } from '@/components/Modal'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
+import { Rows, Row, RowActions } from '@/components/Rows'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { useMe } from '@/lib/auth'
@@ -92,12 +93,9 @@ export default function StaffPage() {
 
       <QueryState query={staff} empty="ยังไม่มีครูในระบบ">
         {(list) => (
-          <ul className="grid gap-2">
+          <Rows>
             {list.map((person) => (
-              <li
-                key={person.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-3"
-              >
+              <Row key={person.id}>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">
                     {person.name || person.email}
@@ -106,7 +104,7 @@ export default function StaffPage() {
                   {person.name && <p className="truncate text-xs text-muted-foreground">{person.email}</p>}
                 </div>
 
-                <div className="flex shrink-0 items-center gap-2">
+                <RowActions>
                   <span
                     className={
                       person.role === 'Owner'
@@ -123,15 +121,15 @@ export default function StaffPage() {
                       <Button variant="outline" size="sm" disabled={rowAction.busy} onClick={() => toggleRole(person)}>
                         {person.role === 'Owner' ? 'ยกเลิกสิทธิ์ผู้ดูแล' : 'ตั้งเป็นผู้ดูแลระบบ'}
                       </Button>
-                      <Button variant="ghost" size="sm" disabled={rowAction.busy} onClick={() => remove(person)}>
+                      <Button variant="destructive" size="sm" disabled={rowAction.busy} onClick={() => remove(person)}>
                         ลบ
                       </Button>
                     </>
                   )}
-                </div>
-              </li>
+                </RowActions>
+              </Row>
             ))}
-          </ul>
+          </Rows>
         )}
       </QueryState>
 
