@@ -45,7 +45,8 @@ public static class SheetReader
             return ReadFirstVisibleSheet(workbook);
     }
 
-    static string? CheckZip(byte[] bytes)
+    /// ใช้ร่วมกับ BookReader (ไฟล์ครู) ด่านระดับไฟล์จะได้เหมือนกันทุกทาง
+    internal static string? CheckZip(byte[] bytes)
     {
         try
         {
@@ -91,7 +92,7 @@ public static class SheetReader
         return (new Sheet(header, rows), null);
     }
 
-    static SheetCell ToCell(IXLCell cell)
+    internal static SheetCell ToCell(IXLCell cell)
     {
         // สูตรใช้ผลลัพธ์ที่ Excel คำนวณเก็บไว้ ไม่ประมวลสูตรเอง (สูตรอาจอ้างไฟล์อื่นหรือใช้ฟังก์ชันที่ไม่รองรับ)
         var value = cell.HasFormula ? cell.CachedValue : cell.Value;

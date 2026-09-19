@@ -42,6 +42,7 @@ app.MapStudents();
 app.MapItems();
 app.MapScores();
 app.MapImport();
+app.MapBookImport();
 app.MapPublic();
 app.MapMe();
 app.MapAppeals();
