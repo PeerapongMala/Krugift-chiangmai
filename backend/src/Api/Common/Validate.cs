@@ -13,6 +13,13 @@ public static class Validate
         _ => null,
     };
 
+    /// ช่องที่ว่างได้ เช่น คำนำหน้า ชื่อเล่น
+    public static string? OptionalName(string? value, string what) => value?.Trim() switch
+    {
+        { Length: > Limits.NameLength } => $"{what}ยาวเกิน {Limits.NameLength} ตัวอักษร",
+        _ => null,
+    };
+
     public static string? Email(string? value)
     {
         var email = value?.Trim();

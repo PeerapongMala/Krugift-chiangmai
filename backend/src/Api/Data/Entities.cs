@@ -76,11 +76,17 @@ public class Student
     [Comment("รหัสนักเรียนของโรงเรียน · ห้ามซ้ำ")]
     public required string StudentCode { get; set; }
 
+    [Comment("คำนำหน้า เช่น เด็กหญิง · ว่างได้")]
+    public string Title { get; set; } = "";
+
     [Comment("ชื่อ")]
     public required string FirstName { get; set; }
 
     [Comment("นามสกุล")]
     public required string LastName { get; set; }
+
+    [Comment("ชื่อเล่น · ว่างได้")]
+    public string Nickname { get; set; } = "";
 
     [Comment("บัญชี Google ที่นักเรียนเชื่อมไว้ (Google subject id) · null = ยังไม่เคยเข้าสู่ระบบ")]
     public string? GoogleSub { get; set; }

@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Endpoints;
 
-public record AddStudentRequest(string StudentCode, string FirstName, string LastName, int No);
+public record AddStudentRequest(string StudentCode, string? Title, string FirstName, string LastName, string? Nickname, int No);
 
-public record EditStudentRequest(string FirstName, string LastName, int No);
+public record EditStudentRequest(string? Title, string FirstName, string LastName, string? Nickname, int No);
 
 /// นักเรียนในห้องเรียน · นักเรียนล็อกอินด้วย Google แล้วผูกกับรหัสนักเรียนเอง ครูไม่ต้องแจกรหัสอะไร
 public static class StudentEndpoints
@@ -29,8 +29,10 @@ public static class StudentEndpoints
                     e.StudentId,
                     e.No,
                     e.Student.StudentCode,
+                    e.Student.Title,
                     e.Student.FirstName,
                     e.Student.LastName,
+                    e.Student.Nickname,
                     // ครูจะได้รู้ว่าใครยังไม่เคยเข้าระบบ จะได้ตามได้ถูกคน
                     HasGoogle = e.Student.GoogleSub != null,
                 })
@@ -40,8 +42,10 @@ public static class StudentEndpoints
         g.MapPost("/classrooms/{id:int}/students", async (int id, AddStudentRequest req, ClaimsPrincipal user, AppDbContext db) =>
         {
             var error = Validate.StudentCode(req.StudentCode)
+                        ?? Validate.OptionalName(req.Title, "คำนำหน้า")
                         ?? Validate.Name(req.FirstName, "ชื่อนักเรียน")
                         ?? Validate.Name(req.LastName, "นามสกุลนักเรียน")
+                        ?? Validate.OptionalName(req.Nickname, "ชื่อเล่น")
                         ?? Validate.No(req.No);
             if (error is not null) return Problems.Invalid(error);
 
@@ -60,8 +64,10 @@ public static class StudentEndpoints
                 student = new Student
                 {
                     StudentCode = code,
+                    Title = req.Title?.Trim() ?? "",
                     FirstName = req.FirstName.Trim(),
                     LastName = req.LastName.Trim(),
+                    Nickname = req.Nickname?.Trim() ?? "",
                 };
                 db.Students.Add(student);
                 await db.SaveChangesAsync();
@@ -78,8 +84,10 @@ public static class StudentEndpoints
             {
                 StudentId = student.Id,
                 student.StudentCode,
+                student.Title,
                 student.FirstName,
                 student.LastName,
+                student.Nickname,
                 req.No,
                 HasGoogle = student.GoogleSub != null,
             });
@@ -89,8 +97,10 @@ public static class StudentEndpoints
         g.MapPatch("/classrooms/{classroomId:int}/students/{id:int}",
             async (int classroomId, int id, EditStudentRequest req, ClaimsPrincipal user, AppDbContext db) =>
         {
-            var error = Validate.Name(req.FirstName, "ชื่อนักเรียน")
+            var error = Validate.OptionalName(req.Title, "คำนำหน้า")
+                        ?? Validate.Name(req.FirstName, "ชื่อนักเรียน")
                         ?? Validate.Name(req.LastName, "นามสกุลนักเรียน")
+                        ?? Validate.OptionalName(req.Nickname, "ชื่อเล่น")
                         ?? Validate.No(req.No);
             if (error is not null) return Problems.Invalid(error);
 
@@ -103,8 +113,10 @@ public static class StudentEndpoints
                     e.ClassroomId == classroomId && e.No == req.No && e.StudentId != id))
                 return Problems.Conflict($"มีนักเรียนเลขที่ {req.No} ในห้องนี้แล้ว");
 
+            enrollment.Student.Title = req.Title?.Trim() ?? "";
             enrollment.Student.FirstName = req.FirstName.Trim();
             enrollment.Student.LastName = req.LastName.Trim();
+            enrollment.Student.Nickname = req.Nickname?.Trim() ?? "";
             enrollment.No = req.No;
             await db.SaveChangesAsync();
             return Results.NoContent();
