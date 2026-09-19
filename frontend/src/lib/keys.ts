@@ -10,6 +10,8 @@ export const routes = {
   classroom: (classroomId: number) => `/teacher/classrooms/${classroomId}`,
   classroomItems: (classroomId: number) => `/teacher/classrooms/${classroomId}/items`,
   classroomScores: (classroomId: number) => `/teacher/classrooms/${classroomId}/scores`,
+  /** นำเข้าไฟล์คะแนนของครู (หลายชีท ชีทละห้อง) ทั้งภาคเรียนในครั้งเดียว */
+  termImport: (termId: number) => `/teacher/terms/${termId}/import`,
   /** นำเข้า Excel แยก 2 แบบ: รายชื่อนักเรียน กับ คะแนน */
   classroomImport: (classroomId: number, kind: 'students' | 'scores') =>
     `/teacher/classrooms/${classroomId}/import/${kind}`,

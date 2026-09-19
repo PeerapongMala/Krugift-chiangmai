@@ -13,6 +13,7 @@ import Login from '@/pages/Login'
 import QuickScores from '@/pages/QuickScores'
 import Classrooms from '@/pages/Classrooms'
 import StaffPage from '@/pages/Staff'
+import ImportBook from '@/pages/ImportBook'
 import ImportExcel from '@/pages/ImportExcel'
 import Items from '@/pages/Items'
 import Scores from '@/pages/Scores'
@@ -41,6 +42,7 @@ const router = createBrowserRouter([
             children: [
               { path: '/teacher', element: <Terms /> },
               { path: '/teacher/terms/:termId', element: <Classrooms /> },
+              { path: '/teacher/terms/:termId/import', element: <ImportBook /> },
               { path: '/teacher/classrooms/:classroomId', element: <Students /> },
               { path: '/teacher/classrooms/:classroomId/items', element: <Items /> },
               { path: '/teacher/classrooms/:classroomId/scores', element: <Scores /> },

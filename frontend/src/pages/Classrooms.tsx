@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { FileUp } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useConfirm } from '@/components/ConfirmDialog'
@@ -7,7 +8,8 @@ import { FormError } from '@/components/FormError'
 import { Modal } from '@/components/Modal'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
-import { Button } from '@/components/ui/button'
+import { Rows, Row, RowActions } from '@/components/Rows'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
@@ -81,6 +83,10 @@ export default function Classrooms() {
       </Link>
 
       <PageHeader title="ห้องเรียน">
+        <Link to={routes.termImport(termId)} className={buttonVariants({ variant: 'outline' })}>
+          <FileUp aria-hidden="true" />
+          นำเข้าไฟล์ครู
+        </Link>
         <Button onClick={() => setAdding(true)}>เพิ่มห้องเรียน</Button>
       </PageHeader>
 
@@ -88,9 +94,9 @@ export default function Classrooms() {
 
       <QueryState query={rooms} empty="ยังไม่มีห้องเรียนในภาคเรียนนี้">
         {(list) => (
-          <ul className="grid gap-2">
+          <Rows>
             {list.map((room) => (
-              <li key={room.id} className="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-3">
+              <Row key={room.id}>
                 <Link to={routes.classroom(room.id)} className="min-w-0 flex-1 hover:underline">
                   <p className="truncate font-medium">{room.name}</p>
                   <p className="text-xs text-muted-foreground">
@@ -98,17 +104,17 @@ export default function Classrooms() {
                   </p>
                 </Link>
 
-                <div className="flex shrink-0 gap-2">
+                <RowActions>
                   <Button variant="outline" size="sm" disabled={rowAction.busy} onClick={() => setEditing(room)}>
                     เปลี่ยนชื่อ
                   </Button>
-                  <Button variant="ghost" size="sm" disabled={rowAction.busy} onClick={() => remove(room)}>
+                  <Button variant="destructive" size="sm" disabled={rowAction.busy} onClick={() => remove(room)}>
                     ลบ
                   </Button>
-                </div>
-              </li>
+                </RowActions>
+              </Row>
             ))}
-          </ul>
+          </Rows>
         )}
       </QueryState>
 

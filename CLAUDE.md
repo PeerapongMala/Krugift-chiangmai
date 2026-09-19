@@ -33,7 +33,7 @@ backend/src/Api/Program.cs      DI, middleware, migrate + SeedFirstOwner ตอ�
 backend/src/Api/Data/           Entities.cs (ทุก entity), AppDbContext.cs, Migrations/
 backend/src/Api/Auth/           AuthSetup.cs (cookie/Google/policy/rate limit)
 backend/src/Api/Common/         TeacherScope (กัน IDOR), ScoreWriter (บังคับเขียน audit), Validate, Problems, Limits
-backend/src/Api/Import/         นำเข้า Excel: SheetReader (ด่านระดับไฟล์), Cells (อ่าน/ดักทีละช่อง), StudentSheetParser, ScoreSheetParser, ImportTemplates · ไม่แตะ DB
+backend/src/Api/Import/         นำเข้า Excel: SheetReader (ด่านระดับไฟล์), Cells (อ่าน/ดักทีละช่อง), StudentSheetParser, ScoreSheetParser, ImportTemplates · ไฟล์ครูจริง: BookReader (อ่านทุกชีท + เติมช่อง merge), TeacherBookParser · ไม่แตะ DB
 backend/src/Api/Endpoints/      *Endpoints.cs — extension MapXxx() ต่อ feature
 backend/tests/Api.Tests/        xUnit v3 (ฟังก์ชันบริสุทธิ์ + parser/reader ของ import)
 backend/tests/e2e/              api_tests.py + snapshot.txt (ยิง HTTP จริง)
@@ -53,6 +53,7 @@ frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
   - นักเรียนล็อกอินด้วย **Google เท่านั้น** แล้วผูกกับรหัสนักเรียนครั้งแรก (ไม่มีรหัสส่วนตัวจากครู) · ครู unlink ได้
   - **ดูคะแนนด่วนไม่ต้องล็อกอิน** (`/scores`): ห้อง dropdown + เลขที่ dropdown + รหัสนักเรียนพิมพ์ · **ห้ามมี dropdown ชื่อ** (หน้าสาธารณะจะรั่วรายชื่อเด็ก) · ผิดช่องไหนตอบข้อความเดียวกัน · ไม่สร้าง cookie · ครูปิดได้รายภาคเรียน
   - API ตอบ JSON เท่านั้น (ใช้ SameSite=Lax + JSON กัน CSRF แทน antiforgery)
+- **นำเข้าไฟล์ครูจริง (`/api/terms/{id}/import/book`)**: ไฟล์เดียวหลายชีท ชีทละห้อง · หาหัวตารางเอง (แถวที่มี เลขที่ + รหัสนักเรียน) ไม่ฟิกซ์เลขแถว · ชื่อห้องอ่านจากหัวเรื่อง "ชั้นมัธยมศึกษาปีที่ 1/1" → ม.1/1 · ชีทที่ไม่มีหัวตาราง (เช่น คะแนนรวม) ข้ามเงียบ ไม่ใช่จุดผิด · หยุดอ่านที่ท้ายตาราง เพราะครูเขียนหมายเหตุไว้ใต้รายชื่อ · คะแนนที่เป็นสูตรปัดเหลือ 2 ตำแหน่ง · ถ้าค่าจริงเกินคะแนนเต็มที่หัวเขียนไว้ ใช้ค่ามากสุดที่เจอเป็นคะแนนเต็ม · นำเข้าซ้ำได้ (จับคู่จากรหัสนักเรียนและชื่อรายการ) และนำเข้าคนละภาคเรียนได้
 - **Import Excel = all-or-nothing:** preview ไม่เขียนอะไร · commit ตรวจซ้ำกับข้อมูลล่าสุด ผิดแม้จุดเดียวไม่บันทึกอะไรเลย · ผ่านหมดเขียนใน transaction เดียว + audit · รวบรวมจุดผิดทุกจุด (แถว/คอลัมน์) ในรอบเดียว · ช่องคะแนนว่าง = ไม่เปลี่ยนคะแนนเดิม · กฎดักใหม่ใส่ที่ `Import/Cells.cs` หรือ parser **พร้อมเทสต์ทุกครั้ง**
 - **Error:** ใช้ `Results.Problem("ข้อความภาษาไทย", statusCode: …)` แล้ว `api()` ฝั่งเว็บจะเอา `detail` ไปแสดงให้ผู้ใช้เอง
 - **คะแนนห้ามเกินคะแนนเต็ม:** เช็คในโค้ด เพราะ check constraint ข้ามตารางไม่ได้ · **แก้คะแนนทุกครั้งต้องเขียน `ScoreAudit`**
@@ -61,6 +62,7 @@ frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
 - **คำบนหน้าจอ (ใช้ให้ตรงกันทุกหน้า รวมข้อความ error จาก server):** สอบถามคะแนน / คำถาม (ไม่ใช้ "ท้วง") · สถานะ ฝั่งครู รอตอบ / ตอบแล้ว · ฝั่งนักเรียน รอครูตอบ / ครูตอบแล้ว · ทั้งคู่ เสร็จสิ้น · ผู้ดูแลระบบ / ครู (ไม่ใช้ เจ้าของ, ยศ) · เชื่อมบัญชี Google (ไม่ใช้ ผูก) · ไฟล์ตัวอย่าง (ไม่ใช้ template) · นำเข้า / ส่งออก (ไม่ใช้ นำออก) · ย้ายออกจากห้อง (ไม่ใช้ เอาออก) · เข้าสู่ระบบ (ไม่ใช้ เซสชัน)
 - **Component:** แยกเป็นไฟล์เมื่อใช้ ≥ 2 ที่
 - **ห้าม commit:** secret, `.env`, ไฟล์ Excel/CSV ที่มีข้อมูลนักเรียนจริง (มีใน .gitignore แล้ว)
+- **ลบภาคเรียนทั้งก้อน** (`POST /api/terms/{id}/delete-all`): ทางออกเมื่อนำเข้าผิด · ต้องพิมพ์ชื่อภาคเรียนให้ตรงถึงจะลบ · ลบ appeal → score/audit → item → enrollment → classroom → term ใน transaction เดียว (ไม่ลบตัวนักเรียน)
 - **Commit:** แยกตาม feature/layer ให้ย้อนแก้ง่าย (conventional commits: `feat(api)`, `feat(web)`, `fix`, `chore`)
 - ไม่ทำใน v1: LINE OA, realtime, น้ำหนักคะแนน/เกรด, หลายโรงเรียน
 
@@ -85,9 +87,9 @@ frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
 - [x] M2 DB schema + migration (รันบน Neon แล้ว)
 - [x] M3 Auth: Google OAuth + claim ด้วยรหัสนักเรียน + ครู 2 ยศ (Owner/Teacher) · ทดสอบ runtime แล้ว
 - [x] M4 หน้าครู: ภาคเรียน/ห้อง/นักเรียน/รายการ + ตารางคะแนน + audit + optimistic concurrency · เมนู responsive · ดูคะแนนด่วนไม่ต้องล็อกอิน
-- [x] M5 Import Excel แยก 2 แบบ (รายชื่อนักเรียน / คะแนน) · template ของเราเอง + preview + all-or-nothing · **ครูจะส่ง template จริงมา ได้แล้วค่อยปรับ parser/template ให้ตรง**
+- [x] M5 Import Excel แยก 2 แบบ (รายชื่อนักเรียน / คะแนน) · template ของเราเอง + preview + all-or-nothing · **ได้ไฟล์จริงจากครูแล้ว** อ่านไฟล์ครูได้ตรง (8 ชีท ชีทละห้อง) ผ่านหน้า `/teacher/terms/:termId/import`
 - [x] M6 หน้านักเรียน: คะแนนของฉัน (`/api/me/scores` ดึง studentId จาก cookie เท่านั้น)
 - [x] M7 สอบถามคะแนน (โค้ดใช้ชื่อ Appeal): นักเรียนกด "สอบถาม" ข้างรายการ → thread คุยกับครู · badge ข้อความใหม่บนเมนู (poll ทุก 1 นาที ไม่มี realtime) · ปิดแล้วตอบต่อไม่ได้ เปิดเรื่องใหม่ได้
 - [ ] M8 Dockerfile/compose/.env.example + Render + backup (ผู้ใช้ขอพักไว้ก่อน)
 
-**ต่อไป:** ปรับ import ตาม template จริงของครูเมื่อได้ไฟล์ → M8 deploy เมื่อผู้ใช้สั่ง
+**ต่อไป:** M8 deploy เมื่อผู้ใช้สั่ง
