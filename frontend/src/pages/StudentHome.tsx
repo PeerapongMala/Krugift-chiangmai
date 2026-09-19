@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Modal } from '@/components/Modal'
+import { Meta } from '@/components/Meta'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
 import { ScoreList, type ScoreRow } from '@/components/ScoreList'
@@ -61,9 +62,10 @@ export default function StudentHome() {
                 <h2 id={`room-${room.classroomId}`} className="font-medium">
                   {room.classroom}
                 </h2>
-                <p className="mb-3 text-xs text-muted-foreground">
-                  ภาคเรียน {room.term} · เลขที่ {room.no}
-                </p>
+                <Meta className="mb-3">
+                  <span>{room.term}</span>
+                  <span>เลขที่ {room.no}</span>
+                </Meta>
                 <ScoreList
                   items={room.items}
                   action={(item) => (
@@ -90,7 +92,15 @@ export default function StudentHome() {
         onOpenChange={(open) => !open && setTarget(null)}
         title="สอบถามคะแนน"
         description={
-          target && `${target.classroom} · ${target.item.name} · ได้ ${target.item.value ?? '—'} / ${target.item.maxScore}`
+          target && (
+            <Meta className="text-sm">
+              <span>{target.classroom}</span>
+              <span>{target.item.name}</span>
+              <span>
+                ได้ {target.item.value ?? '—'} / {target.item.maxScore}
+              </span>
+            </Meta>
+          )
         }
         onSubmit={openAppeal}
         submitLabel="ส่งคำถาม"

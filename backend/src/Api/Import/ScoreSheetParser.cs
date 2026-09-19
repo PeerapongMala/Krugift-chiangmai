@@ -34,7 +34,7 @@ public record ScorePlan(int Rows, IReadOnlyList<NewItem> NewItems, IReadOnlyList
     }
 
     public IReadOnlyList<ImportChange> Changes => Scores
-        .Select(s => new ImportChange(s.Row, $"{s.StudentLabel} · {s.ItemName}",
+        .Select(s => new ImportChange(s.Row, $"{s.StudentLabel} {s.ItemName}",
             $"{(s.OldValue is { } old ? Cells.Format(old) : "ว่าง")} → {Cells.Format(s.NewValue)}"))
         .ToList();
 }
@@ -80,7 +80,7 @@ public static partial class ScoreSheetParser
             if (codeError is not null) errors.Cell(r, Cells.CodeHeader, codeError);
             else if (!rowOfCode.TryAdd(code!, r)) errors.Cell(r, Cells.CodeHeader, $"รหัสนักเรียน {code} ซ้ำกับแถว {rowOfCode[code!]}");
             else if (!enrollmentOf.TryGetValue(code!, out student))
-                errors.Cell(r, Cells.CodeHeader, $"ไม่มีนักเรียนรหัส {code} ในห้องนี้ · เพิ่มนักเรียนหรือนำเข้ารายชื่อนักเรียนก่อน");
+                errors.Cell(r, Cells.CodeHeader, $"ไม่มีนักเรียนรหัส {code} ในห้องนี้ เพิ่มนักเรียนหรือนำเข้ารายชื่อนักเรียนก่อน");
             else CheckIdentity(row, student, columns, errors);
 
             var rowChanges = new List<ScoreChange>();
@@ -143,7 +143,7 @@ public static partial class ScoreSheetParser
 
         if (!columns.ContainsKey(Cells.CodeHeader)) errors.File(Cells.MissingColumns([Cells.CodeHeader]));
         if (items.Count == 0 && errors.Count == 0)
-            errors.File("ไม่พบคอลัมน์คะแนน · หัวคอลัมน์คะแนนเขียนเป็น \"ชื่อรายการ (คะแนนเต็ม)\" เช่น \"สอบกลางภาค (20)\"");
+            errors.File("ไม่พบคอลัมน์คะแนน หัวคอลัมน์คะแนนเขียนเป็น \"ชื่อรายการ (คะแนนเต็ม)\" เช่น \"สอบกลางภาค (20)\"");
         if (items.Count > Limits.ImportMaxItems) errors.File($"มีคอลัมน์คะแนนเกิน {Limits.ImportMaxItems} รายการ");
         return items;
     }
@@ -169,7 +169,7 @@ public static partial class ScoreSheetParser
         else
         {
             return (null,
-                $"หัวคอลัมน์ \"{Cells.Quote(header)}\" ไม่ได้บอกคะแนนเต็ม ให้เขียนเป็น \"{Cells.Quote(header)} (10)\" · ถ้าไม่ใช่คอลัมน์คะแนนให้ลบคอลัมน์นี้ออก");
+                $"หัวคอลัมน์ \"{Cells.Quote(header)}\" ไม่ได้บอกคะแนนเต็ม ให้เขียนเป็น \"{Cells.Quote(header)} (10)\" ถ้าไม่ใช่คอลัมน์คะแนนให้ลบคอลัมน์นี้ออก");
         }
 
         if (Validate.Name(name, "ชื่อรายการคะแนน") is { } nameError) return (null, $"คอลัมน์ \"{Cells.Quote(header)}\": {nameError}");
@@ -179,7 +179,7 @@ public static partial class ScoreSheetParser
         // เปลี่ยนคะแนนเต็มผ่านไฟล์อาจทำให้คะแนนเดิมเกินเต็ม ให้ไปแก้ที่หน้ารายการซึ่งตรวจเรื่องนี้อยู่แล้ว
         if (existing.MaxScore != maxScore)
             return (null,
-                $"\"{name}\" ในไฟล์เต็ม {Cells.Format(maxScore)} แต่ในระบบเต็ม {Cells.Format(existing.MaxScore)} · ถ้าจะเปลี่ยนคะแนนเต็มให้แก้ที่แท็บรายการคะแนนก่อน");
+                $"\"{name}\" ในไฟล์เต็ม {Cells.Format(maxScore)} แต่ในระบบเต็ม {Cells.Format(existing.MaxScore)} ถ้าจะเปลี่ยนคะแนนเต็มให้แก้ที่แท็บรายการคะแนนก่อน");
         return (new ItemColumn(index, header, name, maxScore, existing.Id), null);
     }
 
@@ -193,7 +193,7 @@ public static partial class ScoreSheetParser
             if (noError is not null) errors.Cell(r, Cells.NoHeader, noError);
             else if (no != student.No)
                 errors.Cell(r, Cells.NoHeader,
-                    $"เลขที่ในไฟล์ ({no}) ไม่ตรงกับรหัส {student.Code} ในระบบ (เลขที่ {student.No}) · ตรวจว่าคะแนนแถวนี้เป็นของคนนี้จริง");
+                    $"เลขที่ในไฟล์ ({no}) ไม่ตรงกับรหัส {student.Code} ในระบบ (เลขที่ {student.No}) ตรวจว่าคะแนนแถวนี้เป็นของคนนี้จริง");
         }
 
         (string? Value, string? Error) first = columns.TryGetValue(Cells.FirstNameHeader, out var firstColumn)

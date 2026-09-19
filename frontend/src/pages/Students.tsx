@@ -7,6 +7,7 @@ import { ClassroomTabs } from '@/components/ClassroomTabs'
 import { ExcelButtons } from '@/components/ExcelButtons'
 import { FormError } from '@/components/FormError'
 import { Modal } from '@/components/Modal'
+import { Meta } from '@/components/Meta'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
 import { Rows, Row, RowActions } from '@/components/Rows'
@@ -152,11 +153,10 @@ export default function Students() {
                     {s.firstName} {s.lastName}
                     {s.nickname && <span className="font-normal text-muted-foreground"> ({s.nickname})</span>}
                   </p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {s.studentCode}
-                    {' · '}
-                    {s.hasGoogle ? 'เชื่อมบัญชี Google แล้ว' : 'ยังไม่เคยเข้าสู่ระบบ'}
-                  </p>
+                  <Meta>
+                    <span>{s.studentCode}</span>
+                    <span>{s.hasGoogle ? 'เชื่อมบัญชี Google แล้ว' : 'ยังไม่เคยเข้าสู่ระบบ'}</span>
+                  </Meta>
                 </div>
 
                 <RowActions>

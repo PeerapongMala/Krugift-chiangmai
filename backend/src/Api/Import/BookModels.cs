@@ -35,7 +35,7 @@ public record BookPlan(IReadOnlyList<BookSheetPlan> Sheets) : IImportPlan
 {
     public IReadOnlyList<string> Summary =>
         Sheets.Select(s =>
-            $"{s.ClassroomName} (ชีท {s.SheetName}): นักเรียน {s.Students.Count} คน · รายการคะแนน {s.Items.Count} รายการ · คะแนน {s.Scores.Count} ช่อง").ToList();
+            $"{s.ClassroomName} (ชีท {s.SheetName}): นักเรียน {s.Students.Count} คน รายการคะแนน {s.Items.Count} รายการ คะแนน {s.Scores.Count} ช่อง").ToList();
 
     public IReadOnlyList<ImportChange> Changes =>
         Sheets.SelectMany(s => s.Students.Select(student =>

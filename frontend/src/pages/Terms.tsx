@@ -166,7 +166,8 @@ export default function Terms() {
         onOpenChange={(open) => !open && setPurging(null)}
         title="ลบภาคเรียนพร้อมข้อมูลทั้งหมด?"
         description={
-          purging && `${purging.name} · ห้องเรียน ${purging.classroomCount} ห้อง พร้อมรายชื่อ รายการคะแนน คะแนน และคำถามทั้งหมด`
+          purging &&
+          `${purging.name} มี ${purging.classroomCount} ห้องเรียน จะลบทั้งรายชื่อ รายการคะแนน คะแนน และคำถามทั้งหมด`
         }
         onSubmit={purge}
         submitLabel="ลบทั้งหมด"

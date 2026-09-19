@@ -38,8 +38,8 @@ public record StudentPlan(IReadOnlyList<PlannedStudent> Students) : IImportPlan
     public IReadOnlyList<ImportChange> Changes => Students
         .Where(s => s.JoinsClassroom || s.IsRenumbered)
         .Select(s => new ImportChange(s.Row, $"{s.FirstName} {s.LastName} ({s.Code})",
-            s.IsNew ? $"นักเรียนใหม่ · เลขที่ {s.No}"
-            : s.JoinsClassroom ? $"เข้าห้องนี้ · เลขที่ {s.No}"
+            s.IsNew ? $"นักเรียนใหม่ เลขที่ {s.No}"
+            : s.JoinsClassroom ? $"เข้าห้องนี้ เลขที่ {s.No}"
             : $"เลขที่ {s.OldNo} → {s.No}"))
         .ToList();
 
@@ -118,7 +118,7 @@ public static class StudentSheetParser
         {
             if (!idsInFile.Contains(e.StudentId) && rowOfNo.TryGetValue(e.No, out var row))
                 errors.Cell(row, Cells.NoHeader,
-                    $"เลขที่ {e.No} เป็นของ {e.FirstName} {e.LastName} ({e.Code}) ที่อยู่ในห้องนี้แต่ไม่มีในไฟล์ · แก้เลขที่ในไฟล์ หรือใส่นักเรียนคนนั้นในไฟล์ด้วย");
+                    $"เลขที่ {e.No} เป็นของ {e.FirstName} {e.LastName} ({e.Code}) ที่อยู่ในห้องนี้แต่ไม่มีในไฟล์ แก้เลขที่ในไฟล์ หรือใส่นักเรียนคนนั้นในไฟล์ด้วย");
         }
 
         return errors.Result(new StudentPlan(students));
@@ -133,7 +133,7 @@ public static class StudentSheetParser
             if (headers[i].Length == 0 || Cells.TryClaim(columns, Headers, headers[i], i, errors)) continue;
             // ดักการอัปโหลดไฟล์ผิดประเภท เช่นเอาไฟล์คะแนนมาใส่หน้านำเข้ารายชื่อ
             errors.File(
-                $"คอลัมน์ \"{Cells.Quote(headers[i])}\" ไม่ได้อยู่ในไฟล์ตัวอย่างรายชื่อนักเรียน · ถ้าจะนำเข้าคะแนนให้ใช้หน้านำเข้าคะแนน ถ้าเป็นหมายเหตุให้ลบคอลัมน์นี้ออก",
+                $"คอลัมน์ \"{Cells.Quote(headers[i])}\" ไม่ได้อยู่ในไฟล์ตัวอย่างรายชื่อนักเรียน ถ้าจะนำเข้าคะแนนให้ใช้หน้านำเข้าคะแนน ถ้าเป็นหมายเหตุให้ลบคอลัมน์นี้ออก",
                 Cells.ColumnLetter(i));
         }
 

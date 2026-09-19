@@ -80,10 +80,10 @@ public static partial class Cells
     }
 
     public static string MissingColumns(IEnumerable<string> headers) =>
-        $"ไม่พบคอลัมน์ {string.Join(", ", headers.Select(h => $"\"{h}\""))} · แถวแรกต้องเป็นหัวตาราง ดาวน์โหลดไฟล์ตัวอย่างไปใช้จะง่ายที่สุด";
+        $"ไม่พบคอลัมน์ {string.Join(", ", headers.Select(h => $"\"{h}\""))} แถวแรกต้องเป็นหัวตาราง ดาวน์โหลดไฟล์ตัวอย่างไปใช้จะง่ายที่สุด";
 
     public static string NameMismatch(string code, string savedFirst, string savedLast, string fileFirst, string fileLast) =>
-        $"รหัส {code} ในระบบเป็นของ {savedFirst} {savedLast} แต่ในไฟล์เป็น {fileFirst} {fileLast} · ถ้ารหัสผิดให้แก้ในไฟล์ ถ้าชื่อเปลี่ยนจริงให้แก้ที่แท็บนักเรียนก่อน";
+        $"รหัส {code} ในระบบเป็นของ {savedFirst} {savedLast} แต่ในไฟล์เป็น {fileFirst} {fileLast} ถ้ารหัสผิดให้แก้ในไฟล์ ถ้าชื่อเปลี่ยนจริงให้แก้ที่แท็บนักเรียนก่อน";
 
     /// แถวที่มีข้อมูล (ข้ามแถวว่าง) · ไม่มีข้อมูลเลยหรือมากเกินเพดานเป็นจุดผิด
     public static List<SheetRow> DataRows(Sheet sheet, ImportErrors errors)

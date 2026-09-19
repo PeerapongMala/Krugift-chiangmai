@@ -45,7 +45,7 @@ public static class ImportTemplates
             var rule = sheet.Range(2, column, PreparedLastRow, column).CreateDataValidation();
             rule.Decimal.Between(0, (double)items[i].MaxScore);
             rule.ErrorTitle = "คะแนนไม่ถูกต้อง";
-            rule.ErrorMessage = $"ใส่ตัวเลข 0 ถึง {Cells.Format(items[i].MaxScore)} · ปล่อยว่าง = ไม่เปลี่ยนคะแนนเดิม";
+            rule.ErrorMessage = $"ใส่ตัวเลข 0 ถึง {Cells.Format(items[i].MaxScore)} ปล่อยว่าง = ไม่เปลี่ยนคะแนนเดิม";
             sheet.Column(column).Width = Math.Clamp(headers[column - 1].Length + 4, 14, 40);
         }
 

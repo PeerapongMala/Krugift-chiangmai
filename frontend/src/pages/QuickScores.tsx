@@ -23,7 +23,14 @@ type Result = {
 }
 
 const selectClass =
-  'h-9 w-full rounded-md border border-input bg-card px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring'
+  'h-10 w-full rounded-md border border-input bg-card px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring'
+
+/** จัดห้องเป็นกลุ่มตามชื่อที่ครูตั้งไว้ คงลำดับที่ server ส่งมา */
+function groupByTerm(rooms: PublicRoom[] | undefined): [string, PublicRoom[]][] {
+  const groups = new Map<string, PublicRoom[]>()
+  for (const room of rooms ?? []) groups.set(room.term, [...(groups.get(room.term) ?? []), room])
+  return [...groups]
+}
 
 /**
  * ดูคะแนนด่วนโดยไม่ต้องล็อกอิน — ห้อง (dropdown) + เลขที่ (dropdown) + รหัสนักเรียน (พิมพ์)
@@ -57,8 +64,17 @@ export default function QuickScores() {
   }
 
   if (result) {
+    // เด็กไม่รู้จักคำว่า "ภาคเรียน" ในระบบเรา บอกแค่ห้องกับชื่อที่ครูตั้งไว้ก็พอ
     return (
-      <AuthCard title={result.name} description={`${result.classroom} · ภาคเรียน ${result.term}`}>
+      <AuthCard
+        title={result.name}
+        description={
+          <span className="flex flex-col">
+            <span>ห้อง {result.classroom}</span>
+            <span>{result.term}</span>
+          </span>
+        }
+      >
         <ScoreList items={result.items} />
 
         <div className="grid gap-2">
@@ -89,10 +105,15 @@ export default function QuickScores() {
             disabled={rooms.isPending}
           >
             <option value="">{rooms.isPending ? 'กำลังโหลด...' : '— เลือกห้อง —'}</option>
-            {rooms.data?.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name} · {r.term}
-              </option>
+            {/* จัดกลุ่มตามชื่อที่ครูตั้ง (optgroup ของเบราว์เซอร์) แทนการเอาชื่อมาต่อท้ายห้องด้วยตัวคั่น */}
+            {groupByTerm(rooms.data).map(([term, list]) => (
+              <optgroup key={term} label={term}>
+                {list.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>

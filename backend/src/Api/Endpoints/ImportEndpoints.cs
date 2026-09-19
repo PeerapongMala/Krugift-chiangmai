@@ -32,7 +32,7 @@ public static class ImportEndpoints
     static IResult TooLarge => Results.Problem(SheetReader.TooLarge, statusCode: StatusCodes.Status413PayloadTooLarge);
 
     static IResult ChangedMeanwhile => Problems.Conflict(
-        "ข้อมูลของห้องนี้ถูกแก้พร้อมกัน ไม่ได้บันทึกอะไรเลย · กรุณากดตรวจไฟล์อีกครั้ง");
+        "ข้อมูลของห้องนี้ถูกแก้พร้อมกัน ไม่ได้บันทึกอะไรเลย กรุณากดตรวจไฟล์อีกครั้ง");
 
     public static void MapImport(this WebApplication app)
     {
@@ -172,7 +172,7 @@ public static class ImportEndpoints
     }
 
     static IResult StillInvalid(int errorCount) => Problems.Conflict(
-        $"ไฟล์นี้มีจุดผิด {errorCount} จุด ไม่ได้บันทึกอะไรเลย · ข้อมูลในระบบอาจเปลี่ยนไปหลังตรวจ กรุณากดตรวจไฟล์อีกครั้ง");
+        $"ไฟล์นี้มีจุดผิด {errorCount} จุด ไม่ได้บันทึกอะไรเลย ข้อมูลในระบบอาจเปลี่ยนไปหลังตรวจ กรุณากดตรวจไฟล์อีกครั้ง");
 
     static object Preview<TPlan>(ImportResult<TPlan> result) where TPlan : class, IImportPlan => new
     {

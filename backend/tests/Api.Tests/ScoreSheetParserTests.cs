@@ -66,7 +66,7 @@ public class ScoreSheetParserTests
     {
         var error = SingleError(ScoreSheetParser.Parse(Sheet(["รหัสนักเรียน", "สอบกลางภาค (30)"], ["90002", 10]), Room()));
 
-        Assert.Equal("\"สอบกลางภาค\" ในไฟล์เต็ม 30 แต่ในระบบเต็ม 20 · ถ้าจะเปลี่ยนคะแนนเต็มให้แก้ที่แท็บรายการคะแนนก่อน", error.Message);
+        Assert.Equal("\"สอบกลางภาค\" ในไฟล์เต็ม 30 แต่ในระบบเต็ม 20 ถ้าจะเปลี่ยนคะแนนเต็มให้แก้ที่แท็บรายการคะแนนก่อน", error.Message);
     }
 
     [Theory]

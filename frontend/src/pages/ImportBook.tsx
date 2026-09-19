@@ -20,6 +20,7 @@ type SheetReport = {
   classroom: string
   students: number
   items: number
+  itemNames: string[]
   scores: number
   isRoomSheet: boolean
   errorCount: number
@@ -32,7 +33,7 @@ type Preview = { sheets: SheetReport[]; errorCount: number; errors: ImportError[
 function checkFile(file: File | null): string | null {
   if (!file) return 'กรุณาเลือกไฟล์ Excel (.xlsx)'
   if (!file.name.toLowerCase().endsWith('.xlsx'))
-    return 'รองรับเฉพาะไฟล์ .xlsx · ถ้าเป็น .xls ให้เปิดใน Excel แล้วเลือก Save As เป็น Excel Workbook (.xlsx)'
+    return 'รองรับเฉพาะไฟล์ .xlsx ถ้าเป็น .xls ให้เปิดใน Excel แล้วเลือก Save As เป็น Excel Workbook (.xlsx)'
   if (file.size === 0) return 'ไฟล์ว่างเปล่า'
   if (file.size > IMPORT_MAX_BYTES) return `ไฟล์ใหญ่เกิน ${IMPORT_MAX_BYTES / 1024 / 1024} MB`
   return null
@@ -135,7 +136,7 @@ export default function ImportBook() {
               <FileUp aria-hidden="true" />
               เลือกไฟล์ Excel
             </label>
-            <p className="text-sm break-all">{file ? file.name : 'ลากไฟล์มาวางตรงนี้ก็ได้ · .xlsx ไม่เกิน 2 MB'}</p>
+            <p className="text-sm break-all">{file ? file.name : 'ลากไฟล์มาวางตรงนี้ก็ได้ (.xlsx ไม่เกิน 2 MB)'}</p>
           </div>
           <FormError message={checking.error} />
           <Button type="submit" disabled={busy} className="justify-self-start">
@@ -164,11 +165,25 @@ export default function ImportBook() {
                     />
                     <span className="min-w-0">
                       <span className="font-medium">{sheet.name}</span>
-                      <span className="block text-xs text-muted-foreground">
-                        {!sheet.isRoomSheet
-                          ? 'ไม่ใช่ชีทห้องเรียน'
-                          : `${sheet.classroom} · นักเรียน ${sheet.students} คน · รายการคะแนน ${sheet.items} รายการ · คะแนน ${sheet.scores} ช่อง`}
-                      </span>
+                      {sheet.isRoomSheet ? (
+                        <span className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                          <span>{sheet.classroom}</span>
+                          <span>นักเรียน {sheet.students} คน</span>
+                          <span>คะแนน {sheet.scores} ช่อง</span>
+                        </span>
+                      ) : (
+                        <span className="block text-xs text-muted-foreground">ไม่ใช่ชีทห้องเรียน</span>
+                      )}
+                      {/* บอกชื่อรายการที่จะได้ ครูจะได้เห็นก่อนว่าเอาคอลัมน์ไหนมาบ้าง */}
+                      {sheet.itemNames.length > 0 && (
+                        <span className="mt-1 flex flex-wrap gap-1">
+                          {sheet.itemNames.map((name) => (
+                            <span key={name} className="rounded-full bg-muted px-2 py-0.5 text-xs">
+                              {name}
+                            </span>
+                          ))}
+                        </span>
+                      )}
                     </span>
                   </label>
                   {sheet.errorCount > 0 && (
@@ -212,7 +227,7 @@ export default function ImportBook() {
 function ErrorTable({ errors, total }: { errors: ImportError[]; total: number }) {
   return (
     <div className="mt-4">
-      <h3 className="font-medium text-destructive">พบจุดที่ต้องแก้ {total} จุด · ยังไม่ได้บันทึกอะไร</h3>
+      <h3 className="font-medium text-destructive">พบจุดที่ต้องแก้ {total} จุด ยังไม่ได้บันทึกอะไร</h3>
       <div className="mt-2 overflow-x-auto">
         <table className="w-full text-left text-sm [&_td:first-child]:whitespace-nowrap [&_td:last-child]:[overflow-wrap:anywhere] [&_th]:whitespace-nowrap">
           <thead>

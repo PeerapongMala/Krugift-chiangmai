@@ -6,7 +6,8 @@ export function FormError({ message }: { message?: string }) {
 
   return (
     <Alert variant="destructive">
-      <AlertDescription>{message}</AlertDescription>
+      {/* whitespace-pre-line: error หลายข้อจาก server ขึ้นบรรทัดละข้อ ไม่ต้องมีตัวคั่น */}
+      <AlertDescription className="whitespace-pre-line">{message}</AlertDescription>
     </Alert>
   )
 }

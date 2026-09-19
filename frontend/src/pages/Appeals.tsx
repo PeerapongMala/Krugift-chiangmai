@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router'
 import { AppealStatusBadge, type AppealStatus } from '@/components/AppealStatusBadge'
+import { Meta } from '@/components/Meta'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
 import { Rows, Row } from '@/components/Rows'
@@ -53,10 +54,15 @@ export default function Appeals() {
                       )}
                       {appeal.item}
                     </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {isTeacher && `${appeal.student} (${appeal.studentCode}) · `}
-                      {appeal.classroom} · ภาคเรียน {appeal.term}
-                    </p>
+                    <Meta>
+                      {isTeacher && (
+                        <span>
+                          {appeal.student} ({appeal.studentCode})
+                        </span>
+                      )}
+                      <span>{appeal.classroom}</span>
+                      <span>{appeal.term}</span>
+                    </Meta>
                     {appeal.lastMessage && (
                       <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{appeal.lastMessage}</p>
                     )}

@@ -6,6 +6,7 @@ import { Field } from '@/components/Field'
 import { ClassroomTabs } from '@/components/ClassroomTabs'
 import { FormError } from '@/components/FormError'
 import { Modal } from '@/components/Modal'
+import { Meta } from '@/components/Meta'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
 import { Rows, Row, RowActions } from '@/components/Rows'
@@ -104,11 +105,10 @@ export default function Items() {
               <Row key={item.id}>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{item.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    เต็ม {item.maxScore} คะแนน
-                    {' · '}
-                    {item.scoredCount > 0 ? `กรอกแล้ว ${item.scoredCount} คน` : 'ยังไม่ได้กรอกคะแนน'}
-                  </p>
+                  <Meta>
+                    <span>เต็ม {item.maxScore} คะแนน</span>
+                    <span>{item.scoredCount > 0 ? `กรอกแล้ว ${item.scoredCount} คน` : 'ยังไม่ได้กรอกคะแนน'}</span>
+                  </Meta>
                 </div>
 
                 <RowActions>

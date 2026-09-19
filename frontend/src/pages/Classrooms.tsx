@@ -6,6 +6,7 @@ import { useConfirm } from '@/components/ConfirmDialog'
 import { Field } from '@/components/Field'
 import { FormError } from '@/components/FormError'
 import { Modal } from '@/components/Modal'
+import { Meta } from '@/components/Meta'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
 import { Rows, Row, RowActions } from '@/components/Rows'
@@ -99,9 +100,10 @@ export default function Classrooms() {
               <Row key={room.id}>
                 <Link to={routes.classroom(room.id)} className="min-w-0 flex-1 hover:underline">
                   <p className="truncate font-medium">{room.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    นักเรียน {room.studentCount} คน · รายการคะแนน {room.itemCount} รายการ
-                  </p>
+                  <Meta>
+                    <span>นักเรียน {room.studentCount} คน</span>
+                    <span>รายการคะแนน {room.itemCount} รายการ</span>
+                  </Meta>
                 </Link>
 
                 <RowActions>

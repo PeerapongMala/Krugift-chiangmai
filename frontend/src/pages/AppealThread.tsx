@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router'
 import { AppealStatusBadge, type AppealStatus } from '@/components/AppealStatusBadge'
 import { useConfirm } from '@/components/ConfirmDialog'
 import { FormError } from '@/components/FormError'
+import { Meta } from '@/components/Meta'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
 import { Button } from '@/components/ui/button'
@@ -90,20 +91,29 @@ export default function AppealThread() {
           <>
             <PageHeader
               title={t.item}
-              description={`${isTeacher ? `${t.student} (${t.studentCode}) · ` : ''}${t.classroom} · ภาคเรียน ${t.term}`}
+              description={
+                <Meta className="text-sm">
+                  {isTeacher && (
+                    <span>
+                      {t.student} ({t.studentCode})
+                    </span>
+                  )}
+                  <span>{t.classroom}</span>
+                  <span>{t.term}</span>
+                </Meta>
+              }
             >
               <AppealStatusBadge status={t.status} viewer={isTeacher ? 'teacher' : 'student'} />
             </PageHeader>
 
-            <p className="mb-4 rounded-lg border bg-card px-3 py-2 text-sm">
-              คะแนนตอนนี้ <b className="tabular-nums">{t.score ?? '—'}</b> / {t.maxScore}
+            <p className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border bg-card px-3 py-2 text-sm">
+              <span>
+                คะแนนตอนนี้ <b className="tabular-nums">{t.score ?? '—'}</b> / {t.maxScore}
+              </span>
               {isTeacher && (
-                <>
-                  {' · '}
-                  <Link to={routes.classroomScores(t.classroomId)} className="underline underline-offset-2">
-                    ไปแก้ในตารางคะแนน
-                  </Link>
-                </>
+                <Link to={routes.classroomScores(t.classroomId)} className="underline underline-offset-2">
+                  ไปแก้ในตารางคะแนน
+                </Link>
               )}
             </p>
 
@@ -118,9 +128,9 @@ export default function AppealThread() {
                       mine ? 'justify-self-end bg-primary text-primary-foreground' : 'justify-self-start border bg-card',
                     )}
                   >
-                    <p className="mb-1 text-xs opacity-80">
-                      {m.fromTeacher ? 'ครู' : 'นักเรียน'} ·{' '}
-                      {new Date(m.at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })}
+                    <p className="mb-1 flex flex-wrap gap-x-2 text-xs opacity-80">
+                      <span>{m.fromTeacher ? 'ครู' : 'นักเรียน'}</span>
+                      <span>{new Date(m.at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })}</span>
                     </p>
                     <p className="break-words whitespace-pre-wrap">{m.body}</p>
                   </li>

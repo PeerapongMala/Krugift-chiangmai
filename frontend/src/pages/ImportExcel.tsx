@@ -31,7 +31,7 @@ type Preview = {
 const KINDS: Record<Kind, { title: string; howTo: string; back: (classroomId: number) => string; backLabel: string; doneLabel: string }> = {
   students: {
     title: 'นำเข้ารายชื่อนักเรียนจาก Excel',
-    howTo: 'คอลัมน์: เลขที่ · รหัสนักเรียน · ชื่อ · นามสกุล',
+    howTo: 'คอลัมน์: เลขที่, รหัสนักเรียน, ชื่อ, นามสกุล',
     back: routes.classroom,
     backLabel: '← นักเรียนในห้อง',
     doneLabel: 'ไปดูรายชื่อนักเรียน',
@@ -51,7 +51,7 @@ const isKind = (value: string | undefined): value is Kind => value === 'students
 function checkFile(file: File | null): string | null {
   if (!file) return 'กรุณาเลือกไฟล์ Excel (.xlsx)'
   if (!file.name.toLowerCase().endsWith('.xlsx'))
-    return 'รองรับเฉพาะไฟล์ .xlsx · ถ้าเป็น .xls หรือ .csv ให้เปิดใน Excel แล้วเลือก Save As เป็น Excel Workbook (.xlsx)'
+    return 'รองรับเฉพาะไฟล์ .xlsx ถ้าเป็น .xls หรือ .csv ให้เปิดใน Excel แล้วเลือก Save As เป็น Excel Workbook (.xlsx)'
   if (file.size === 0) return 'ไฟล์ว่างเปล่า'
   if (file.size > IMPORT_MAX_BYTES) return `ไฟล์ใหญ่เกิน ${IMPORT_MAX_BYTES / 1024 / 1024} MB`
   return null
@@ -181,7 +181,7 @@ function ImportForm({ classroomId, kind }: { classroomId: number; kind: Kind }) 
                 <FileUp aria-hidden="true" />
                 เลือกไฟล์ Excel
               </label>
-              <p className="text-sm break-all">{file ? file.name : 'ลากไฟล์มาวางตรงนี้ก็ได้ · .xlsx ไม่เกิน 2 MB'}</p>
+              <p className="text-sm break-all">{file ? file.name : 'ลากไฟล์มาวางตรงนี้ก็ได้ (.xlsx ไม่เกิน 2 MB)'}</p>
             </div>
             <FormError message={checking.error} />
             <Button type="submit" disabled={busy} className="justify-self-start">
@@ -240,7 +240,7 @@ function ErrorTable({ preview }: { preview: Preview }) {
   return (
     <section aria-labelledby="import-errors" className="mt-4 rounded-lg border border-destructive/40 bg-card p-4">
       <h2 id="import-errors" className="font-medium text-destructive">
-        พบจุดที่ต้องแก้ {preview.errorCount} จุด · ยังไม่ได้บันทึกอะไร
+        พบจุดที่ต้องแก้ {preview.errorCount} จุด ยังไม่ได้บันทึกอะไร
       </h2>
       <p className="mt-1 mb-3 text-sm text-muted-foreground">
         {preview.errorCount > preview.errors.length && `แสดง ${preview.errors.length} จุดแรก`}

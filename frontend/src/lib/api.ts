@@ -39,7 +39,8 @@ type ApiInit = RequestInit & { json?: unknown }
 function fromValidationErrors(errors: unknown): string | undefined {
   if (!errors || typeof errors !== 'object') return undefined
   const messages = Object.values(errors as Record<string, string[]>).flat().filter(Boolean)
-  return messages.length > 0 ? messages.join(' · ') : undefined
+  // ขึ้นบรรทัดใหม่แทนการคั่นด้วยสัญลักษณ์ (FormError เรนเดอร์ด้วย whitespace-pre-line)
+  return messages.length > 0 ? messages.join('\n') : undefined
 }
 
 /**

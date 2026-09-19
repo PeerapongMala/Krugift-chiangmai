@@ -114,8 +114,8 @@ public static class TermEndpoints
                 Summary = new[]
                 {
                     $"ลบภาคเรียน {term.Name} แล้ว",
-                    $"ห้องเรียน {removedClassrooms} ห้อง · รายชื่อในห้อง {removedEnrollments} รายการ",
-                    $"รายการคะแนน {removedItems} รายการ · คะแนน {removedScores} ช่อง · คำถาม {removedAppeals} เรื่อง",
+                    $"ห้องเรียน {removedClassrooms} ห้อง รายชื่อในห้อง {removedEnrollments} รายการ",
+                    $"รายการคะแนน {removedItems} รายการ คะแนน {removedScores} ช่อง คำถาม {removedAppeals} เรื่อง",
                 },
             });
         });

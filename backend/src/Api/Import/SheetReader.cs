@@ -11,10 +11,10 @@ namespace Api.Import;
 public static class SheetReader
 {
     public const string NotXlsx =
-        "ไฟล์นี้ไม่ใช่ Excel .xlsx หรือไฟล์เสีย · ถ้าเป็น .xls หรือ .csv ให้เปิดใน Excel แล้วเลือก Save As เป็น Excel Workbook (.xlsx)";
+        "ไฟล์นี้ไม่ใช่ Excel .xlsx หรือไฟล์เสีย ถ้าเป็น .xls หรือ .csv ให้เปิดใน Excel แล้วเลือก Save As เป็น Excel Workbook (.xlsx)";
 
     public static readonly string TooLarge =
-        $"ไฟล์ใหญ่เกิน {Limits.ImportMaxBytes / (1024 * 1024)} MB · ไฟล์ของห้องหนึ่งปกติไม่ถึง 100 KB ลองลบแผ่นงานหรือรูปภาพที่ไม่ใช้ออก";
+        $"ไฟล์ใหญ่เกิน {Limits.ImportMaxBytes / (1024 * 1024)} MB ไฟล์ของห้องหนึ่งปกติไม่ถึง 100 KB ลองลบแผ่นงานหรือรูปภาพที่ไม่ใช้ออก";
 
     /// xlsx ปกติมีส่วนประกอบไม่กี่สิบไฟล์ข้างใน
     const int MaxZipEntries = 1000;
@@ -60,7 +60,7 @@ public static class SheetReader
             {
                 total += entry.Length;
                 if (total > Limits.ImportMaxUnzippedBytes)
-                    return "ข้อมูลในไฟล์ใหญ่ผิดปกติ ไม่ใช่ไฟล์คะแนนทั่วไป · ดาวน์โหลดไฟล์ตัวอย่างไปใช้แทน";
+                    return "ข้อมูลในไฟล์ใหญ่ผิดปกติ ไม่ใช่ไฟล์คะแนนทั่วไป ดาวน์โหลดไฟล์ตัวอย่างไปใช้แทน";
             }
             return null;
         }
@@ -83,7 +83,7 @@ public static class SheetReader
         if (lastRow - HeaderRows > Limits.ImportMaxRows)
             return (null, $"ไฟล์มีข้อมูลเกิน {Limits.ImportMaxRows} แถว ให้แยกเป็นไฟล์ละห้อง");
         if (lastColumn > MaxColumns)
-            return (null, $"ไฟล์มีคอลัมน์เกิน {MaxColumns} คอลัมน์ · คอลัมน์คะแนนได้ไม่เกิน {Limits.ImportMaxItems} รายการ");
+            return (null, $"ไฟล์มีคอลัมน์เกิน {MaxColumns} คอลัมน์ คอลัมน์คะแนนได้ไม่เกิน {Limits.ImportMaxItems} รายการ");
 
         var header = Enumerable.Range(1, lastColumn).Select(c => ToCell(sheet.Cell(1, c))).ToList();
         var rows = Enumerable.Range(HeaderRows + 1, lastRow - HeaderRows)
