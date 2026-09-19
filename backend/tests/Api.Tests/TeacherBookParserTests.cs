@@ -88,7 +88,7 @@ public class TeacherBookParserTests
     {
         var (plan, _) = Parse(Sample());
 
-        Assert.Equal(["เก็บ 1 (25 คะแนน) · สอบ 1", "เก็บ 1 (25 คะแนน)", "Midterm", "แบบฝึกหัด 1"],
+        Assert.Equal(["เก็บ 1 · สอบ 1", "เก็บ 1", "Midterm", "แบบฝึกหัด 1"],
             plan!.Items.Select(i => i.Name));
         Assert.Equal([45m, 10m, 35m, 1m], plan.Items.Select(i => i.MaxScore));
     }
@@ -277,5 +277,20 @@ public class TeacherBookParserTests
         var (plan, _) = Parse(sheet);
 
         Assert.Equal(["เก็บ 2 · เอกสาร"], plan!.Items.Select(i => i.Name));
+    }
+
+    [Fact]
+    public void ชื่อรายการตัดวงเล็บบอกคะแนนเต็มออก()
+    {
+        var sheet = Book("ห้อง 1",
+            Row("ปีที่ 1/1"),
+            Row(null, null, null, "เก็บ 2 (25 คะแนน) / เศษส่วน"),
+            Row(null, null, null, "สอบ 1"),
+            Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 30),
+            Row(1, "สมชาย ใจดี", "70001", 20));
+
+        var (plan, _) = Parse(sheet);
+
+        Assert.Equal(["เก็บ 2 / เศษส่วน · สอบ 1"], plan!.Items.Select(i => i.Name));
     }
 }

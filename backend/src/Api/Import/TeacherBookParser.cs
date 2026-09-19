@@ -26,6 +26,10 @@ public static partial class TeacherBookParser
     [GeneratedRegex(@"ปีที่\s*(\d+)\s*/\s*(\d+)")]
     private static partial Regex ClassroomName();
 
+    /// "เก็บ 1 (25 คะแนน)" → "เก็บ 1" · คะแนนเต็มเก็บแยกอยู่แล้ว ไม่ต้องมีในชื่อให้ยาว
+    [GeneratedRegex(@"\s*\(\s*\d+(\.\d+)?\s*คะแนน\s*\)")]
+    private static partial Regex MaxScoreInName();
+
     /// คำที่เป็นป้ายกำกับ ไม่ใช่ชื่อรายการ
     static readonly string[] LabelWords = ["เต็ม", "คะแนน"];
 
@@ -198,7 +202,7 @@ public static partial class TeacherBookParser
             }
 
         var parts = new[] { group, sub }
-            .Select(Cells.Normalize)
+            .Select(p => Cells.Normalize(MaxScoreInName().Replace(p, "")))
             .Where(p => p != "" && !LabelWords.Contains(p))
             .Distinct()
             .ToList();
