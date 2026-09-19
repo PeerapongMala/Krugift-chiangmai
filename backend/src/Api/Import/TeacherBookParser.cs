@@ -17,21 +17,21 @@ public static partial class TeacherBookParser
     /// หัวตารางอยู่ไม่เกินแถวนี้ · ไฟล์ครูมีหัวเรื่อง 5 แถว เผื่อไว้เยอะแล้ว
     const int MaxHeaderRow = 20;
 
-    /// ชื่อรายการต่อจากคอลัมน์ป้ายข้าง ๆ ได้กี่คอลัมน์ (เช่น "แบบฝึกหัด" + "1")
-    const int LabelLookahead = 1;
-
     const string NicknameHeader = "ชื่อเล่น";
+
+    /// หัวคอลัมน์ที่ถือว่าเป็นการสอบย่อย เช่น "สอบ 1" "สอบ 2"
+    const string ExamWord = "สอบ";
+
+    /// สอบใหญ่ที่ครูเขียนหัวเป็นภาษาอังกฤษ · เก็บเป็นชื่อไทยให้เด็กอ่านเข้าใจ
+    static readonly Dictionary<string, string> BigExams = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Midterm"] = "สอบกลางภาค",
+        ["Final"] = "สอบปลายภาค",
+    };
 
     /// "...ชั้นมัธยมศึกษาปีที่ 1/1 ปีการศึกษา 2569" → ม.1/1
     [GeneratedRegex(@"ปีที่\s*(\d+)\s*/\s*(\d+)")]
     private static partial Regex ClassroomName();
-
-    /// "เก็บ 1 (25 คะแนน)" → "เก็บ 1" · คะแนนเต็มเก็บแยกอยู่แล้ว ไม่ต้องมีในชื่อให้ยาว
-    [GeneratedRegex(@"\s*\(\s*\d+(\.\d+)?\s*คะแนน\s*\)")]
-    private static partial Regex MaxScoreInName();
-
-    /// คำที่เป็นป้ายกำกับ ไม่ใช่ชื่อรายการ
-    static readonly string[] LabelWords = ["เต็ม", "คะแนน"];
 
     /// ชีทที่ไม่มีหัวตาราง (เช่น ชีทสรุปคะแนนรวม) ไม่ใช่ห้องเรียน ข้ามได้เลย ไม่ใช่จุดผิด
     public static bool IsRoomSheet(BookSheet sheet) => FindHeaderRow(sheet) != 0;
@@ -132,7 +132,10 @@ public static partial class TeacherBookParser
                 continue;
             }
 
-            items.Add(new BookItem(c, UniqueName(ItemName(sheet, headerRow, c, maxScore), Cells.ColumnLetter(c), used), maxScore));
+            // ครูขอเก็บเฉพาะคะแนนสอบ · เอกสาร จิตพิสัย แบบฝึกหัด และคอลัมน์ที่คิดจากสูตร ไม่ต้องเอาเข้า
+            if (ExamName(sheet, headerRow, c) is not { } name) continue;
+
+            items.Add(new BookItem(c, UniqueName(name, Cells.ColumnLetter(c), used), maxScore));
             if (items.Count > Limits.ImportMaxItems)
             {
                 errors.File($"ชีท {sheet.Name}: คอลัมน์คะแนนเกิน {Limits.ImportMaxItems} รายการ");
@@ -141,7 +144,7 @@ public static partial class TeacherBookParser
         }
 
         if (items.Count == 0)
-            errors.File($"ชีท {sheet.Name}: ไม่พบคอลัมน์คะแนน · คอลัมน์คะแนนต้องมีคะแนนเต็มเป็นตัวเลขอยู่แถวหัวตาราง");
+            errors.File($"ชีท {sheet.Name}: ไม่พบคอลัมน์คะแนนสอบ คอลัมน์สอบต้องมีคำว่า สอบ / Midterm / Final อยู่หัวตาราง และมีคะแนนเต็มเป็นตัวเลข");
 
         return items;
     }
@@ -185,34 +188,27 @@ public static partial class TeacherBookParser
         }
     }
 
-    /// ชื่อรายการ = ชื่อกลุ่ม (2 แถวเหนือหัวตาราง) + ป้ายคอลัมน์ถัดไปถ้ามี + ชื่อย่อย (แถวเหนือหัวตาราง)
-    static string ItemName(BookSheet sheet, int headerRow, int column, decimal maxScore)
+    /// <summary>
+    /// ชื่อรายการของคอลัมน์สอบ · คืน null ถ้าไม่ใช่คอลัมน์สอบ (ครูขอเก็บเฉพาะคะแนนสอบ)
+    ///   "เก็บ 1 (25 คะแนน) / จำนวนเต็ม" + "สอบ 1" → "จำนวนเต็ม สอบ 1"
+    ///   "Midterm" → "สอบกลางภาค" · "Final" → "สอบปลายภาค"
+    /// </summary>
+    static string? ExamName(BookSheet sheet, int headerRow, int column)
     {
-        var group = sheet.Text(headerRow - 2, column);
-        var sub = sheet.Text(headerRow - 1, column);
+        var group = Cells.Normalize(sheet.Text(headerRow - 2, column));
+        var sub = Cells.Normalize(sheet.Text(headerRow - 1, column));
 
-        // "แบบฝึกหัด" อยู่คอลัมน์หนึ่ง เลขชุด "1" อยู่คอลัมน์ถัดไปที่ไม่ใช่คอลัมน์คะแนน
-        // ทำเฉพาะตอนที่คอลัมน์นี้ยังไม่มีชื่อย่อยเป็นของตัวเอง ไม่งั้นจะไปหยิบชื่อกลุ่มของคอลัมน์ถัดไปมาต่อ
-        if (IsLabelOnly(sub))
-            for (var next = column + 1; next <= column + LabelLookahead; next++)
-            {
-                if (sheet.Cell(headerRow, next).Kind == CellKind.Number) break;
-                var label = sheet.Text(headerRow - 2, next);
-                if (label != "" && label != group) group = $"{group} {label}".Trim();
-            }
+        if (BigExams.TryGetValue(group, out var bigExam))
+            // Midterm/Final merge คร่อมคอลัมน์คะแนนดิบกับคอลัมน์ที่คิดจากสูตร เอาเฉพาะคอลัมน์แรกของกรอบ
+            return Cells.Normalize(sheet.Text(headerRow - 2, column - 1)) == group ? null : bigExam;
 
-        var parts = new[] { group, sub }
-            .Select(p => Cells.Normalize(MaxScoreInName().Replace(p, "")))
-            .Where(p => p != "" && !LabelWords.Contains(p))
-            .Distinct()
-            .ToList();
+        if (!sub.StartsWith(ExamWord, StringComparison.Ordinal)) return null;
 
-        var name = string.Join(" · ", parts);
-        if (name == "") name = $"คะแนนเต็ม {Cells.Format(maxScore)}";
+        // ชื่อกลุ่มของครูเขียนว่า "เก็บ 1 (25 คะแนน) / ชื่อเรื่อง" · เอาเฉพาะชื่อเรื่องหลังเครื่องหมาย /
+        var topic = group.Contains('/') ? Cells.Normalize(group[(group.IndexOf('/') + 1)..]) : "";
+        var name = topic == "" ? sub : $"{topic} {sub}";
         return name.Length > Limits.NameLength ? name[..Limits.NameLength] : name;
     }
-
-    static bool IsLabelOnly(string text) => text == "" || LabelWords.Contains(Cells.Normalize(text));
 
     /// ชื่อรายการซ้ำกันไม่ได้ (คอลัมน์ที่คำนวณจากคะแนนดิบมักไม่มีหัวของตัวเอง) ต่อท้ายด้วยชื่อคอลัมน์
     static string UniqueName(string name, string columnLetter, HashSet<string> used)

@@ -57,7 +57,7 @@ public static class BookImportEndpoints
 
             var parsed = ParseAll(book!, chosen);
             if (parsed.ErrorCount > 0)
-                return Problems.Invalid($"ไฟล์ยังมีจุดที่ต้องแก้ {parsed.ErrorCount} จุด ไม่ได้บันทึกอะไรเลย · กรุณากดตรวจไฟล์อีกครั้ง");
+                return Problems.Invalid($"ไฟล์ยังมีจุดที่ต้องแก้ {parsed.ErrorCount} จุด ไม่ได้บันทึกอะไรเลย กรุณากดตรวจไฟล์อีกครั้ง");
 
             try
             {
@@ -65,14 +65,14 @@ public static class BookImportEndpoints
             }
             catch (DbUpdateException)
             {
-                return Problems.Conflict("ข้อมูลถูกแก้พร้อมกัน ไม่ได้บันทึกอะไรเลย · กรุณากดตรวจไฟล์อีกครั้ง");
+                return Problems.Conflict("ข้อมูลถูกแก้พร้อมกัน ไม่ได้บันทึกอะไรเลย กรุณากดตรวจไฟล์อีกครั้ง");
             }
 
             return Results.Ok(new { Summary = new BookPlan(parsed.Plans).Summary });
         }).WithMetadata(UploadLimit);
     }
 
-    record SheetReport(string Name, string Classroom, int Students, int Items, int Scores, bool IsRoomSheet, int ErrorCount);
+    record SheetReport(string Name, string Classroom, int Students, int Items, IReadOnlyList<string> ItemNames, int Scores, bool IsRoomSheet, int ErrorCount);
 
     record ParsedBook(List<SheetReport> Sheets, List<ImportError> Errors, int ErrorCount, List<BookSheetPlan> Plans);
 
@@ -89,7 +89,7 @@ public static class BookImportEndpoints
 
             if (!TeacherBookParser.IsRoomSheet(sheet))
             {
-                reports.Add(new SheetReport(sheet.Name, "", 0, 0, 0, IsRoomSheet: false, ErrorCount: 0));
+                reports.Add(new SheetReport(sheet.Name, "", 0, 0, [], 0, IsRoomSheet: false, ErrorCount: 0));
                 continue;
             }
 
@@ -101,7 +101,8 @@ public static class BookImportEndpoints
             allErrors.AddRange(result.Errors.Select(e => e with { Message = $"ชีท {sheet.Name}: {e.Message}" }));
 
             reports.Add(new SheetReport(sheet.Name, plan?.ClassroomName ?? "", plan?.Students.Count ?? 0,
-                plan?.Items.Count ?? 0, plan?.Scores.Count ?? 0, IsRoomSheet: true, result.ErrorCount));
+                plan?.Items.Count ?? 0, plan?.Items.Select(i => i.Name).ToList() ?? [], plan?.Scores.Count ?? 0,
+                IsRoomSheet: true, result.ErrorCount));
 
             if (result.ErrorCount == 0 && plan is not null) plans.Add(plan);
         }

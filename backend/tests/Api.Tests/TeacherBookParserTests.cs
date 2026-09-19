@@ -14,11 +14,13 @@ public class TeacherBookParserTests
     /// ชีทย่อส่วนที่หน้าตาเหมือนไฟล์ครู: เลขที่ · คำนำหน้า/ชื่อ/นามสกุล (merge 3 ช่อง) · ชื่อเล่น · รหัส · คะแนน
     static BookSheet Sample() => Book("ห้อง 1",
         Row("รายชื่อนักเรียนชั้นมัธยมศึกษาปีที่ 1/1  ปีการศึกษา 2569"),
-        Row(null, null, null, null, null, null, "เก็บ 1 (25 คะแนน)", "เก็บ 1 (25 คะแนน)", "Midterm", "แบบฝึกหัด", "1"),
-        Row(null, null, null, null, null, null, "สอบ 1", null, null, "เต็ม", null),
-        Row("เลขที่", "ชื่อ - นามสกุล", "ชื่อ - นามสกุล", "ชื่อ - นามสกุล", "ชื่อเล่น", "รหัสนักเรียน", 45, 10, 35, 1, null),
-        Row(1, "เด็กหญิง", "กชณิภา", "วัชระวรากร", "ไอ", "690001", 32.5, 7.22, 33, 1),
-        Row(2, "เด็กชาย", "กรชวัล", "มงพลเมือง", "ปีโป้", "690006", 14.5, null, 7, null));
+        Row(null, null, null, null, null, null, "เก็บ 1 (25 คะแนน) / จำนวนเต็ม", "เก็บ 1 (25 คะแนน) / จำนวนเต็ม",
+            "เก็บ 1 (25 คะแนน) / จำนวนเต็ม", "Midterm", "Midterm", "แบบฝึกหัด", "1"),
+        Row(null, null, null, null, null, null, "สอบ 1", null, "เอกสาร", null, null, "เต็ม", null),
+        Row("เลขที่", "ชื่อ - นามสกุล", "ชื่อ - นามสกุล", "ชื่อ - นามสกุล", "ชื่อเล่น", "รหัสนักเรียน",
+            45, 10, 5, 35, 20, 1, null),
+        Row(1, "เด็กหญิง", "กชณิภา", "วัชระวรากร", "ไอ", "690001", 32.5, 7.22, 5, 33, 18.86, 1),
+        Row(2, "เด็กชาย", "กรชวัล", "มงพลเมือง", "ปีโป้", "690006", 14.5, null, 4, null, null, null));
 
     static (BookSheetPlan? Plan, ImportErrors Errors) Parse(BookSheet sheet)
     {
@@ -40,8 +42,8 @@ public class TeacherBookParserTests
     {
         var sheet = Book("ห้องพิเศษ",
             Row("รายชื่อนักเรียน"),
-            Row(null, null, null, "สอบ"),
             Row(null, null, null, null),
+            Row(null, null, null, "สอบ 1"),
             Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 10),
             Row(1, "สมชาย ใจดี", "70001", 5));
 
@@ -70,8 +72,8 @@ public class TeacherBookParserTests
     {
         var sheet = Book("ห้อง 9",
             Row("ปีที่ 2/3"),
-            Row(null, null, null, null, "สอบ"),
             Row(null, null, null, null, null),
+            Row(null, null, null, null, "สอบ 1"),
             Row("เลขที่", "ชื่อ - นามสกุล", "ชื่อ - นามสกุล", "รหัสนักเรียน", 10),
             Row(1, "สมชาย", "ใจดี", "70001", 9));
 
@@ -84,13 +86,28 @@ public class TeacherBookParserTests
     }
 
     [Fact]
-    public void ชื่อรายการมาจากชื่อกลุ่มต่อชื่อย่อย()
+    public void เอาเฉพาะคอลัมน์สอบและตั้งชื่อเป็นชื่อเรื่องต่อด้วยชื่อสอบ()
     {
         var (plan, _) = Parse(Sample());
 
-        Assert.Equal(["เก็บ 1 · สอบ 1", "เก็บ 1", "Midterm", "แบบฝึกหัด 1"],
-            plan!.Items.Select(i => i.Name));
-        Assert.Equal([45m, 10m, 35m, 1m], plan.Items.Select(i => i.MaxScore));
+        // เอกสาร แบบฝึกหัด และคอลัมน์ที่คิดจากสูตร ไม่ถูกนำเข้า
+        Assert.Equal(["จำนวนเต็ม สอบ 1", "สอบกลางภาค"], plan!.Items.Select(i => i.Name));
+        Assert.Equal([45m, 35m], plan.Items.Select(i => i.MaxScore));
+    }
+
+    [Fact]
+    public void ไม่มีชื่อเรื่องใช้ชื่อสอบอย่างเดียว()
+    {
+        var sheet = Book("ห้อง 1",
+            Row("ปีที่ 1/1"),
+            Row(null, null, null, "เก็บ 2", "Final", "Final"),
+            Row(null, null, null, "สอบ 2", null, null),
+            Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 10, 30, 20),
+            Row(1, "สมชาย ใจดี", "70001", 9, 25, 16.67));
+
+        var (plan, _) = Parse(sheet);
+
+        Assert.Equal(["สอบ 2", "สอบปลายภาค"], plan!.Items.Select(i => i.Name));
     }
 
     [Fact]
@@ -98,14 +115,14 @@ public class TeacherBookParserTests
     {
         var sheet = Book("ห้อง 1",
             Row("ปีที่ 1/1"),
-            Row(null, null, null, "สอบ", "สอบ"),
-            Row(null, null, null, null, null),
+            Row(null, null, null, "ก / เรื่องเดียวกัน", "ก / เรื่องเดียวกัน"),
+            Row(null, null, null, "สอบ 1", "สอบ 1"),
             Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 10, 10),
             Row(1, "สมชาย ใจดี", "70001", 5, 6));
 
         var (plan, _) = Parse(sheet);
 
-        Assert.Equal(["สอบ", "สอบ (คอลัมน์ E)"], plan!.Items.Select(i => i.Name));
+        Assert.Equal(["เรื่องเดียวกัน สอบ 1", "เรื่องเดียวกัน สอบ 1 (คอลัมน์ E)"], plan!.Items.Select(i => i.Name));
     }
 
     [Fact]
@@ -114,8 +131,9 @@ public class TeacherBookParserTests
         var (plan, errors) = Parse(Sample());
 
         Assert.Equal(0, errors.Count);
-        Assert.Equal(4, plan!.Scores.Count(s => s.Row == 0));
-        Assert.Equal(2, plan.Scores.Count(s => s.Row == 1));
+        // คนแรกมีทั้งสอบ 1 และสอบกลางภาค · คนที่สองเว้นสอบกลางภาคไว้
+        Assert.Equal(2, plan!.Scores.Count(s => s.Row == 0));
+        Assert.Equal(1, plan.Scores.Count(s => s.Row == 1));
     }
 
     [Fact]
@@ -123,8 +141,8 @@ public class TeacherBookParserTests
     {
         var sheet = Book("ห้อง 1",
             Row("ปีที่ 1/1"),
-            Row(null, null, null, "สอบ"),
             Row(null, null, null, null),
+            Row(null, null, null, "สอบ 1"),
             Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 10),
             Row(1, "สมชาย ใจดี", "70001", -1));
 
@@ -140,8 +158,8 @@ public class TeacherBookParserTests
     {
         var sheet = Book("ห้อง 1",
             Row("ปีที่ 1/1"),
-            Row(null, null, null, "สอบ"),
             Row(null, null, null, null),
+            Row(null, null, null, "สอบ 1"),
             Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 10),
             Row(1, "สมชาย ใจดี", "70001", 5),
             Row(1, "สมหญิง ใจงาม", "70001", 6));
@@ -156,8 +174,8 @@ public class TeacherBookParserTests
     {
         var sheet = Book("ห้อง 1",
             Row("ปีที่ 1/1"),
-            Row(null, null, null, "สอบ"),
             Row(null, null, null, null),
+            Row(null, null, null, "สอบ 1"),
             Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 10),
             Row(1, "สมชาย ใจดี", "70001", 5),
             Row(null, null, null, null),
@@ -201,8 +219,8 @@ public class TeacherBookParserTests
     {
         var sheet = Book("ห้อง 1",
             Row("ปีที่ 1/1"),
-            Row(null, null, null, "สอบ"),
             Row(null, null, null, null),
+            Row(null, null, null, "สอบ 1"),
             Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 10),
             Row(1, "สมชาย ใจดี", "70001", 5),
             Row(null, null, null, null),
@@ -220,8 +238,8 @@ public class TeacherBookParserTests
     {
         var sheet = Book("ห้อง 1",
             Row("ปีที่ 1/1"),
-            Row(null, null, null, "สอบ"),
             Row(null, null, null, null),
+            Row(null, null, null, "สอบ 1"),
             Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 10),
             Row("หนึ่ง", "สมชาย ใจดี", "70001", 5));
 
@@ -235,8 +253,8 @@ public class TeacherBookParserTests
     {
         var sheet = Book("ห้อง 1",
             Row("ปีที่ 1/1"),
-            Row(null, null, null, "สอบ"),
             Row(null, null, null, null),
+            Row(null, null, null, "สอบ 1"),
             Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 10),
             Row(1, "สมชาย ใจดี", "70001", 7.222222222));
 
@@ -251,8 +269,8 @@ public class TeacherBookParserTests
     {
         var sheet = Book("ห้อง 1",
             Row("ปีที่ 1/1"),
-            Row(null, null, null, "สอบ"),
             Row(null, null, null, null),
+            Row(null, null, null, "สอบ 1"),
             Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 10),
             Row(1, "สมชาย ใจดี", "70001", 10.5),
             Row(2, "สมหญิง ใจงาม", "70002", 9));
@@ -269,28 +287,14 @@ public class TeacherBookParserTests
     {
         var sheet = Book("ห้อง 1",
             Row("ปีที่ 1/1"),
-            Row(null, null, null, "เก็บ 2", "Final"),
-            Row(null, null, null, "เอกสาร", null),
+            Row(null, null, null, "เก็บ 2 / เศษส่วน", "Final"),
+            Row(null, null, null, "สอบ 1", null),
             Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 5, null),
             Row(1, "สมชาย ใจดี", "70001", 5));
 
         var (plan, _) = Parse(sheet);
 
-        Assert.Equal(["เก็บ 2 · เอกสาร"], plan!.Items.Select(i => i.Name));
+        Assert.Equal(["เศษส่วน สอบ 1"], plan!.Items.Select(i => i.Name));
     }
 
-    [Fact]
-    public void ชื่อรายการตัดวงเล็บบอกคะแนนเต็มออก()
-    {
-        var sheet = Book("ห้อง 1",
-            Row("ปีที่ 1/1"),
-            Row(null, null, null, "เก็บ 2 (25 คะแนน) / เศษส่วน"),
-            Row(null, null, null, "สอบ 1"),
-            Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 30),
-            Row(1, "สมชาย ใจดี", "70001", 20));
-
-        var (plan, _) = Parse(sheet);
-
-        Assert.Equal(["เก็บ 2 / เศษส่วน · สอบ 1"], plan!.Items.Select(i => i.Name));
-    }
 }
