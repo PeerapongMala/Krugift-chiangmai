@@ -81,6 +81,45 @@ public static class TermEndpoints
             return Results.NoContent();
         });
 
+        // ลบทั้งภาคเรียนพร้อมข้อมูลข้างในทุกอย่าง · ทางออกเวลานำเข้าไฟล์ผิดภาคเรียนหรือผิดชีท
+        // กันพลาดด้วยการให้พิมพ์ชื่อภาคเรียนมายืนยัน (ปุ่มเดียวจบไม่ได้ เพราะคะแนนทั้งภาคเรียนหายถาวร)
+        g.MapPost("/terms/{id:int}/delete-all", async (int id, NameRequest req, ClaimsPrincipal user, AppDbContext db) =>
+        {
+            var term = await db.FindTerm(user, id);
+            if (term is null) return Problems.NotFound("ภาคเรียนนี้");
+            if (req.Name.Trim() != term.Name)
+                return Problems.Invalid($"พิมพ์ชื่อภาคเรียนให้ตรงกับ “{term.Name}” เพื่อยืนยันการลบ");
+
+            var classrooms = db.Classrooms.Where(c => c.TermId == id).Select(c => c.Id);
+            var items = db.Items.Where(i => classrooms.Contains(i.ClassroomId)).Select(i => i.Id);
+
+            await using var transaction = await db.Database.BeginTransactionAsync();
+
+            // ลบจากปลายทางเข้าหาต้นทาง ไม่งั้นติด foreign key
+            var appeals = db.Appeals.Where(a => items.Contains(a.ItemId)).Select(a => a.Id);
+            await db.AppealMessages.Where(m => appeals.Contains(m.AppealId)).ExecuteDeleteAsync();
+            var removedAppeals = await db.Appeals.Where(a => items.Contains(a.ItemId)).ExecuteDeleteAsync();
+            await db.ScoreAudits.Where(a => items.Contains(a.ItemId)).ExecuteDeleteAsync();
+            var removedScores = await db.Scores.Where(s => items.Contains(s.ItemId)).ExecuteDeleteAsync();
+            var removedItems = await db.Items.Where(i => classrooms.Contains(i.ClassroomId)).ExecuteDeleteAsync();
+            var removedEnrollments = await db.Enrollments.Where(e => classrooms.Contains(e.ClassroomId)).ExecuteDeleteAsync();
+            var removedClassrooms = await db.Classrooms.Where(c => c.TermId == id).ExecuteDeleteAsync();
+            await db.Terms.Where(t => t.Id == id).ExecuteDeleteAsync();
+
+            await transaction.CommitAsync();
+
+            // ตัวนักเรียนไม่ได้ลบ เพราะยังมีคะแนนของภาคเรียนอื่นผูกอยู่
+            return Results.Ok(new
+            {
+                Summary = new[]
+                {
+                    $"ลบภาคเรียน {term.Name} แล้ว",
+                    $"ห้องเรียน {removedClassrooms} ห้อง · รายชื่อในห้อง {removedEnrollments} รายการ",
+                    $"รายการคะแนน {removedItems} รายการ · คะแนน {removedScores} ช่อง · คำถาม {removedAppeals} เรื่อง",
+                },
+            });
+        });
+
         // ---------- ห้องเรียน ----------
 
         g.MapGet("/terms/{termId:int}/classrooms", async (int termId, ClaimsPrincipal user, AppDbContext db) =>
