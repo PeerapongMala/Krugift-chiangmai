@@ -558,6 +558,80 @@ def run():
         owner("DELETE", "/api/classrooms/%d/students/%d" % (room3_id, s["studentId"]))
     owner("DELETE", "/api/classrooms/%d" % room3_id)
 
+    # ---------------------------------------------------------------- นำเข้าไฟล์ครู (หลายชีท)
+    g = "BOOK"
+    status, book_term = owner("POST", "/api/terms", {"name": "E2E ไฟล์ครู"})
+    record(g, "สร้างภาคเรียนสำหรับไฟล์ครู", status)
+    book_term_id = book_term["id"]
+    book_base = "/api/terms/%d/import/book" % book_term_id
+
+    # ชีทเดียวหน้าตาแบบไฟล์ครู: แถวหัวเรื่อง → ชื่อกลุ่ม → ชื่อย่อย → หัวตาราง+คะแนนเต็ม → นักเรียน
+    book_ok = xlsx([
+        ["รายชื่อนักเรียนชั้นมัธยมศึกษาปีที่ 6/9  ปีการศึกษา 2569"],
+        [None, None, None, "เก็บ 1 (20 คะแนน)"],
+        [None, None, None, "สอบ 1"],
+        ["เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 20],
+        [1, "อี ทู", "90001", 12.5],
+        [2, "อี สาม", "90002", 20],
+        ["แบบฝึกหัด", "ส่งครบ 4"],
+    ])
+    book_bad = xlsx([
+        ["รายชื่อนักเรียนชั้นมัธยมศึกษาปีที่ 6/9  ปีการศึกษา 2569"],
+        [None, None, None, "สอบ"],
+        [None, None, None, None],
+        ["เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 10],
+        [1, "อี ทู", "90001", -5],
+        [1, "อี สาม", "9000#", 3],
+    ])
+
+    record(g, "นักเรียนตรวจไฟล์ครู", *upload(stu, book_base + "/preview", [("file", "book.xlsx", book_ok)]))
+    record(g, "ครูอื่นตรวจไฟล์ครูของภาคเรียนเรา", *upload(other, book_base + "/preview", [("file", "book.xlsx", book_ok)]))
+    record(g, "ไฟล์ขยะที่ตั้งชื่อเป็น .xlsx", *upload(owner, book_base + "/preview", [("file", "book.xlsx", b"not excel")]))
+
+    status, res = upload(owner, book_base + "/preview", [("file", "book.xlsx", book_ok)])
+    record(g, "ตรวจไฟล์ครูที่ถูกต้อง", status)
+    value(g, "  ชีทที่เจอ", [(s["name"], s["classroom"], s["students"], s["items"], s["scores"], s["isRoomSheet"])
+                            for s in field(res, "sheets") or []])
+    value(g, "  ยังไม่สร้างห้อง", owner("GET", "/api/terms/%d/classrooms" % book_term_id)[1])
+
+    status, res = upload(owner, book_base + "/preview", [("file", "book.xlsx", book_bad)])
+    record(g, "ตรวจไฟล์ครูที่มีจุดผิด", status)
+    value(g, "  จุดผิดที่เจอ", errors_of(res))
+
+    record(g, "ยืนยันโดยไม่เลือกชีท", *upload(owner, book_base + "/commit", [("file", "book.xlsx", book_ok)]))
+    record(g, "ยืนยันชีทที่ไม่มีในไฟล์", *upload(owner, book_base + "/commit", [("file", "book.xlsx", book_ok)],
+                                                [("sheets", "ห้องที่ไม่มีจริง")]))
+    record(g, "ยืนยันชีทที่ยังมีจุดผิด", *upload(owner, book_base + "/commit", [("file", "book.xlsx", book_bad)],
+                                                [("sheets", "Sheet1")]))
+    value(g, "  ไม่บันทึกอะไรเลย", owner("GET", "/api/terms/%d/classrooms" % book_term_id)[1])
+
+    status, res = upload(owner, book_base + "/commit", [("file", "book.xlsx", book_ok)], [("sheets", "Sheet1")])
+    record(g, "ยืนยันนำเข้าไฟล์ครู", status)
+    value(g, "  สรุป", field(res, "summary"))
+    book_rooms = owner("GET", "/api/terms/%d/classrooms" % book_term_id)[1]
+    value(g, "  ห้องที่ได้", [(r["name"], r["studentCount"], r["itemCount"]) for r in book_rooms])
+    book_room_id = book_rooms[0]["id"] if book_rooms else 0
+    value(g, "  รายการคะแนนกับคะแนนเต็ม",
+          [(i["name"], i["maxScore"]) for i in owner("GET", "/api/classrooms/%d/items" % book_room_id)[1] or []])
+
+    status, res = upload(owner, book_base + "/commit", [("file", "book.xlsx", book_ok)], [("sheets", "Sheet1")])
+    record(g, "นำเข้าไฟล์เดิมซ้ำ ไม่สร้างของซ้ำ", status)
+    value(g, "  ห้องยังเท่าเดิม", [(r["name"], r["studentCount"], r["itemCount"])
+                                  for r in owner("GET", "/api/terms/%d/classrooms" % book_term_id)[1]])
+
+    # ---------------------------------------------------------------- ลบภาคเรียนพร้อมข้อมูล
+    g = "PURGE"
+    record(g, "ลบธรรมดาทั้งที่ยังมีห้อง", *owner("DELETE", "/api/terms/%d" % book_term_id))
+    record(g, "พิมพ์ชื่อยืนยันไม่ตรง", *owner("POST", "/api/terms/%d/delete-all" % book_term_id, {"name": "ชื่อผิด"}))
+    record(g, "นักเรียนสั่งลบทั้งภาคเรียน", *stu("POST", "/api/terms/%d/delete-all" % book_term_id, {"name": "E2E ไฟล์ครู"}))
+    record(g, "ครูอื่นสั่งลบภาคเรียนของเรา", *other("POST", "/api/terms/%d/delete-all" % book_term_id, {"name": "E2E ไฟล์ครู"}))
+    status, res = owner("POST", "/api/terms/%d/delete-all" % book_term_id, {"name": "E2E ไฟล์ครู"})
+    record(g, "พิมพ์ชื่อตรง ลบได้", status)
+    value(g, "  สรุปที่ลบไป", field(res, "summary"))
+    value(g, "  ภาคเรียนหายไปแล้ว", owner("GET", "/api/terms/%d/classrooms" % book_term_id)[0])
+    value(g, "  นักเรียนยังอยู่ในระบบ",
+          [s["studentCode"] for s in owner("GET", "/api/classrooms/%d/students" % room_id)[1] or []])
+
     # ---------------------------------------------------------------- ดูคะแนนด่วน (ไม่ล็อกอิน)
     g = "PUBLIC"
     pub = Client()
