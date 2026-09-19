@@ -21,8 +21,10 @@ type Student = {
   studentId: number
   no: number
   studentCode: string
+  title: string
   firstName: string
   lastName: string
+  nickname: string
   hasGoogle: boolean
 }
 
@@ -50,8 +52,10 @@ export default function Students() {
   function read(f: FormData) {
     return {
       studentCode: String(f.get('studentCode') ?? ''),
+      title: String(f.get('title') ?? ''),
       firstName: String(f.get('firstName') ?? ''),
       lastName: String(f.get('lastName') ?? ''),
+      nickname: String(f.get('nickname') ?? ''),
       no: Number(f.get('no')),
     }
   }
@@ -81,7 +85,7 @@ export default function Students() {
     const ok = await form.run(async () => {
       await api(`/classrooms/${classroomId}/students/${editing.studentId}`, {
         method: 'PATCH',
-        json: { firstName: v.firstName, lastName: v.lastName, no: v.no },
+        json: { title: v.title, firstName: v.firstName, lastName: v.lastName, nickname: v.nickname, no: v.no },
       })
       await refresh()
     })
@@ -143,8 +147,10 @@ export default function Students() {
                 <span className="w-8 shrink-0 text-center text-sm text-muted-foreground">{s.no}</span>
 
                 <div className="min-w-0 flex-1">
+                  {/* ไม่ใส่คำนำหน้าในรายการ ชื่อไทยยาวอยู่แล้ว จอ 400px จะโดนตัดจนอ่านนามสกุลไม่ออก */}
                   <p className="truncate font-medium">
                     {s.firstName} {s.lastName}
+                    {s.nickname && <span className="font-normal text-muted-foreground"> ({s.nickname})</span>}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
                     {s.studentCode}
@@ -182,8 +188,10 @@ export default function Students() {
         error={form.error}
       >
         <Field label="รหัสนักเรียน" name="studentCode" inputMode="numeric" autoComplete="off" required />
+        <Field label="คำนำหน้า" name="title" placeholder="เด็กหญิง" autoComplete="off" />
         <Field label="ชื่อ" name="firstName" required />
         <Field label="นามสกุล" name="lastName" required />
+        <Field label="ชื่อเล่น" name="nickname" autoComplete="off" />
         <Field label="เลขที่ในห้อง" name="no" type="number" min={1} max={999} defaultValue={1} required />
       </Modal>
 
@@ -198,8 +206,10 @@ export default function Students() {
         busy={form.busy}
         error={form.error}
       >
+        <Field label="คำนำหน้า" name="title" defaultValue={editing?.title} autoComplete="off" />
         <Field label="ชื่อ" name="firstName" defaultValue={editing?.firstName} required />
         <Field label="นามสกุล" name="lastName" defaultValue={editing?.lastName} required />
+        <Field label="ชื่อเล่น" name="nickname" defaultValue={editing?.nickname} autoComplete="off" />
         <Field label="เลขที่ในห้อง" name="no" type="number" min={1} max={999} defaultValue={editing?.no} required />
       </Modal>
 
