@@ -21,6 +21,8 @@ public static class PublicEndpoints
     // ตั้งใจใช้ข้อความเดียวทุกกรณี ไม่บอกว่าผิดช่องไหน กันคนไล่เดาทีละช่อง
     const string Mismatch = "ข้อมูลไม่ตรงกับในระบบ กรุณาตรวจสอบห้อง เลขที่ และรหัสนักเรียนอีกครั้ง";
 
+    const string TooManyWrong = "กรอกผิดหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่";
+
     public static void MapPublic(this WebApplication app)
     {
         var g = app.MapGroup("/api/public");
@@ -38,12 +40,24 @@ public static class PublicEndpoints
                     Term = c.Term.Name,
                     Nos = c.Enrollments.OrderBy(e => e.No).Select(e => e.No).ToList(),
                 })
-                .ToListAsync()));
+                .ToListAsync())).RequireRateLimiting(AuthSetup.PublicLimit);
 
-        g.MapPost("/scores", async (QuickScoreRequest req, AppDbContext db) =>
+        g.MapPost("/scores", async (QuickScoreRequest req, AppDbContext db, LookupLockout lockout, HttpContext http) =>
         {
+            // นับเฉพาะครั้งที่กรอกผิด ไม่ใช่ทุกคำขอ เด็กทั้งห้องที่ออกเน็ต IP เดียวกันจะได้เปิดพร้อมกันได้
+            var ip = http.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            var now = DateTime.UtcNow;
+            if (lockout.IsLocked(ip, now))
+                return Results.Problem(TooManyWrong, statusCode: StatusCodes.Status429TooManyRequests);
+
+            IResult Wrong()
+            {
+                lockout.RecordFailure(ip, now);
+                return Problems.Invalid(Mismatch);
+            }
+
             var code = req.StudentCode?.Trim() ?? "";
-            if (Validate.StudentCode(code) is not null) return Problems.Invalid(Mismatch);
+            if (Validate.StudentCode(code) is not null) return Wrong();
 
             var enrollment = await db.Enrollments
                 .Include(e => e.Student)
@@ -53,7 +67,10 @@ public static class PublicEndpoints
                     && e.No == req.No
                     && e.Student.StudentCode == code
                     && e.Classroom.Term.PublicScores);
-            if (enrollment is null) return Problems.Invalid(Mismatch);
+            if (enrollment is null) return Wrong();
+
+            // กรอกถูกแล้วล้างยอดที่เคยผิดทิ้ง เด็กที่พิมพ์พลาดไปสองสามทีจะได้ไม่มียอดค้าง
+            lockout.Clear(ip);
 
             var studentId = enrollment.StudentId;
             var items = await db.Items
@@ -83,6 +100,6 @@ public static class PublicEndpoints
                 Total = items.Sum(i => i.Value ?? 0),
                 Full = items.Where(i => i.Value != null).Sum(i => i.MaxScore),
             });
-        }).RequireRateLimiting(AuthSetup.LoginLimit);
+        }).RequireRateLimiting(AuthSetup.PublicLimit);
     }
 }

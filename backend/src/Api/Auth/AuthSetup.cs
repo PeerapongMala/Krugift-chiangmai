@@ -10,6 +10,9 @@ public static class AuthSetup
 {
     public const string External = "External"; // cookie ชั่วคราวหลัง Google login ก่อน claim
     public const string LoginLimit = "login";
+    /// หน้าสาธารณะ (ดูคะแนนด่วน) · ปล่อยให้ทั้งโรงเรียนที่ออกเน็ต IP เดียวกันเปิดพร้อมกันได้
+    /// การกันคนเดารหัสอยู่ที่ LookupLockout ซึ่งนับเฉพาะครั้งที่กรอกผิด
+    public const string PublicLimit = "public";
     public const string Teacher = "teacher";
     public const string Student = "student";
     public const string OwnerPolicy = "owner";
@@ -87,6 +90,11 @@ public static class AuthSetup
             o.AddPolicy(LoginLimit, ctx => RateLimitPartition.GetFixedWindowLimiter(
                 ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+
+            // 600/นาที = 10 ครั้ง/วินาที ต่อ IP · พอให้ทั้งโรงเรียนเปิดพร้อมกัน แต่ยังกันคนยิงถล่มจากเครื่องเดียว
+            o.AddPolicy(PublicLimit, ctx => RateLimitPartition.GetFixedWindowLimiter(
+                ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = 600, Window = TimeSpan.FromMinutes(1) }));
         });
 
         builder.Services.Configure<ForwardedHeadersOptions>(o =>

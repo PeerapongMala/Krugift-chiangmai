@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Api.Auth;
+using Api.Common;
 using Api.Data;
 using Api.Endpoints;
 using Microsoft.AspNetCore.DataProtection;
@@ -10,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(o =>
     o.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddProblemDetails();
+// ตัวนับครั้งที่กรอกผิดบนหน้าดูคะแนนด่วน ต้องเป็นตัวเดียวกันทั้งแอป
+builder.Services.AddSingleton<LookupLockout>();
 // ถ้า body พังตั้งแต่ชั้น model binding (ไม่ใช่ JSON / ว่าง / enum ไม่รู้จัก)
 // ค่า default จะโยน exception แล้วข้อความภายในภาษาอังกฤษของ ASP.NET จะรั่วไปถึงผู้ใช้
 // ปิดไว้ให้ตอบ 400 เปล่า ๆ แทน แล้วฝั่งเว็บจะเติมข้อความไทยตามรหัสสถานะเอง

@@ -49,7 +49,8 @@ frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
   - endpoint ของครูต้องเช็คว่า Term เป็นของ `TeacherId` ที่ล็อกอินอยู่ — ใช้ `db.TermsOf(user)` / `db.FindClassroom(user, id)` จาก `Common/TeacherScope.cs` ห้ามเรียก `db.Terms` ตรง ๆ
   - ครูมี 2 ยศ: **Owner** เห็นข้อมูลของครูทุกคน + จัดการรายชื่อครูได้ · **Teacher** เห็นเฉพาะเทอมของตัวเอง (`TeacherScope` จัดการให้แล้ว)
   - endpoint ใน `/api/staff` ต้องเช็คยศจาก **DB ซ้ำ** ไม่เชื่อ claim อย่างเดียว เพราะ cookie อยู่ได้ 30 วัน คนที่เพิ่งโดนลดยศจะยังถือ claim เดิม
-  - login endpoint และ `/api/public/*` ต้องมี `.RequireRateLimiting(AuthSetup.LoginLimit)`
+  - login endpoint ต้องมี `.RequireRateLimiting(AuthSetup.LoginLimit)` (10 ครั้ง/นาที/IP)
+  - `/api/public/*` ใช้ `AuthSetup.PublicLimit` (600 ครั้ง/นาที/IP กัน flood) **ห้ามใช้ LoginLimit** เพราะทั้งโรงเรียนออกเน็ต IP เดียวกัน เด็กทั้งห้องเปิดพร้อมกันจะโดนบล็อกทั้งที่กรอกถูก · การกันคนเดารหัสอยู่ที่ `Common/LookupLockout.cs` ซึ่ง **นับเฉพาะครั้งที่กรอกผิด** (ผิดครบ 10 ครั้ง/นาที/IP → 429 · กรอกถูกล้างยอดทิ้ง)
   - นักเรียนล็อกอินด้วย **Google เท่านั้น** แล้วผูกกับรหัสนักเรียนครั้งแรก (ไม่มีรหัสส่วนตัวจากครู) · ครู unlink ได้
   - **ดูคะแนนด่วนไม่ต้องล็อกอิน** (`/scores`): ห้อง dropdown + เลขที่ dropdown + รหัสนักเรียนพิมพ์ · **ห้ามมี dropdown ชื่อ** (หน้าสาธารณะจะรั่วรายชื่อเด็ก) · ผิดช่องไหนตอบข้อความเดียวกัน · ไม่สร้าง cookie · ครูปิดได้รายภาคเรียน
   - API ตอบ JSON เท่านั้น (ใช้ SameSite=Lax + JSON กัน CSRF แทน antiforgery)
