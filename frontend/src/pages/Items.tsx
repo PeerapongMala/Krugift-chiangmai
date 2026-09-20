@@ -81,16 +81,21 @@ export default function Items() {
   }
 
   async function discard(item: Item) {
+    // กรอกคะแนนไปแล้วต้องบอกให้ชัดว่าคะแนนจะหายไปด้วยกี่คน ไม่ใช่แค่ห้ามลบแล้วให้ไปล้างเองทีละช่อง
+    const scored = item.scoredCount > 0
     const ok = await confirm({
-      title: 'ลบรายการคะแนนนี้?',
-      description: item.name,
+      title: scored ? `ลบรายการนี้พร้อมคะแนน ${item.scoredCount} คน?` : 'ลบรายการคะแนนนี้?',
+      description: scored
+        ? `${item.name}
+คะแนนของนักเรียน ${item.scoredCount} คนและประวัติการแก้คะแนนของรายการนี้จะถูกลบไปด้วย กู้คืนไม่ได้`
+        : item.name,
       confirmLabel: 'ลบ',
       destructive: true,
     })
     if (!ok) return
 
     await rowAction.run(async () => {
-      await api(`/items/${item.id}`, { method: 'DELETE' })
+      await api(`/items/${item.id}?withScores=${scored}`, { method: 'DELETE' })
       await refresh()
     })
   }

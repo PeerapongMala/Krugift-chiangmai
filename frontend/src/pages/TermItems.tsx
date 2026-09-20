@@ -64,6 +64,26 @@ export default function TermItems() {
     })
   }
 
+  async function discard(item: TermItem) {
+    const ok = await confirm({
+      title: `ลบ "${item.name}" ทุกห้อง?`,
+      description: `ลบออกจาก ${item.classrooms} ห้องในภาคเรียนนี้${
+        item.scoredCount > 0 ? `
+คะแนนที่กรอกไว้ ${item.scoredCount} ช่อง ประวัติการแก้คะแนน และคำถามของรายการนี้จะถูกลบไปด้วย กู้คืนไม่ได้` : ''
+      }`,
+      confirmLabel: 'ลบ',
+      destructive: true,
+    })
+    if (!ok) return
+
+    setNote('')
+    await action.run(async () => {
+      await api(`/terms/${termId}/items?name=${encodeURIComponent(item.name)}`, { method: 'DELETE' })
+      await refresh()
+      setNote(`ลบ "${item.name}" ออกจาก ${item.classrooms} ห้องแล้ว`)
+    })
+  }
+
   async function roundScores() {
     setNote('')
     const preview = await api<RoundPreview>(`/terms/${termId}/round-scores`)
@@ -134,6 +154,9 @@ export default function TermItems() {
                     />
                     {item.visible === null ? 'บางห้องซ่อนอยู่' : 'นักเรียนเห็น'}
                   </label>
+                  <Button variant="destructive" size="sm" disabled={action.busy} onClick={() => discard(item)}>
+                    ลบ
+                  </Button>
                 </RowActions>
               </Row>
             ))}

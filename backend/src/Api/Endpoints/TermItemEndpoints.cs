@@ -75,6 +75,24 @@ public static class TermItemEndpoints
             return Results.Ok(new { Classrooms = changed });
         });
 
+        // ลบรายการชื่อนี้ทุกห้อง พร้อมคะแนนและคำถามที่ห้อยอยู่ · ใช้เก็บกวาดรายการที่นำเข้ามาผิด
+        g.MapDelete("/items", async (int termId, string name, ClaimsPrincipal user, AppDbContext db) =>
+        {
+            if (await db.FindTerm(user, termId) is null) return Problems.NotFound("ภาคเรียนนี้");
+
+            var wanted = name?.Trim() ?? "";
+            if (wanted.Length == 0) return Problems.Invalid("กรุณาระบุชื่อรายการคะแนน");
+
+            var ids = await db.ItemsOf(user)
+                .Where(i => i.Classroom.TermId == termId && i.Name == wanted)
+                .Select(i => i.Id)
+                .ToListAsync();
+            if (ids.Count == 0) return Problems.NotFound("รายการคะแนนนี้ในภาคเรียนนี้");
+
+            await ItemEndpoints.DeleteItems(db, ids);
+            return Results.Ok(new { Classrooms = ids.Count });
+        });
+
         // ---------- ปัดคะแนนเป็นจำนวนเต็มทั้งภาคเรียน ----------
 
         // ดูก่อนว่าจะเปลี่ยนกี่ช่อง ครูจะได้ตัดสินใจก่อนกดจริง (ปัดแล้วเศษหายจากคะแนนปัจจุบัน เหลือแค่ในประวัติ)

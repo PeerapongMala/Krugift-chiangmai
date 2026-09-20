@@ -107,19 +107,39 @@ public static class ItemEndpoints
             return Results.NoContent();
         });
 
-        g.MapDelete("/items/{id:int}", async (int id, ClaimsPrincipal user, AppDbContext db) =>
+        // withScores=true = ครูยืนยันแล้วว่าให้ลบคะแนนไปพร้อมกัน (หน้าเว็บบอกจำนวนคนก่อนถาม)
+        // withScores เป็น query ที่ไม่ส่งมาก็ได้ ต้องใส่ค่า default ไม่งั้น Minimal API ถือว่าบังคับแล้วตอบ 400
+        g.MapDelete("/items/{id:int}", async (int id, ClaimsPrincipal user, AppDbContext db, bool withScores = false) =>
         {
             var item = await db.FindItem(user, id);
             if (item is null) return Problems.NotFound("รายการคะแนนนี้");
 
-            // กันลบทิ้งทั้งที่กรอกคะแนนไปแล้ว เพราะ cascade จะลากคะแนนหายหมดโดยครูไม่ทันรู้ตัว
+            // กันลบทิ้งทั้งที่กรอกคะแนนไปแล้ว เพราะคะแนนจะหายหมดโดยครูไม่ทันรู้ตัว
             var scored = await db.Scores.CountAsync(s => s.ItemId == id && s.Value != null);
-            if (scored > 0)
+            if (scored > 0 && !withScores)
                 return Problems.Conflict($"รายการนี้มีคะแนนที่กรอกไว้ {scored} คน ต้องล้างคะแนนให้หมดก่อนจึงลบได้");
 
-            db.Items.Remove(item);
-            await db.SaveChangesAsync();
+            await DeleteItems(db, [id]);
             return Results.NoContent();
         });
+    }
+
+    /// <summary>
+    /// ลบรายการคะแนนพร้อมของที่ห้อยอยู่ ใน transaction เดียว
+    /// ลำดับต้องเป็น คำถาม → ประวัติ → คะแนน → รายการ เหมือนตอนลบทั้งภาคเรียน ไม่งั้นติด foreign key
+    /// ประวัติการแก้คะแนนหายไปด้วยโดยธรรมชาติ เพราะมันผูกกับรายการที่ถูกลบ
+    /// </summary>
+    internal static async Task DeleteItems(AppDbContext db, IReadOnlyList<int> itemIds)
+    {
+        await using var tx = await db.Database.BeginTransactionAsync();
+
+        var appealIds = await db.Appeals.Where(a => itemIds.Contains(a.ItemId)).Select(a => a.Id).ToListAsync();
+        await db.AppealMessages.Where(m => appealIds.Contains(m.AppealId)).ExecuteDeleteAsync();
+        await db.Appeals.Where(a => itemIds.Contains(a.ItemId)).ExecuteDeleteAsync();
+        await db.ScoreAudits.Where(a => itemIds.Contains(a.ItemId)).ExecuteDeleteAsync();
+        await db.Scores.Where(s => itemIds.Contains(s.ItemId)).ExecuteDeleteAsync();
+        await db.Items.Where(i => itemIds.Contains(i.Id)).ExecuteDeleteAsync();
+
+        await tx.CommitAsync();
     }
 }

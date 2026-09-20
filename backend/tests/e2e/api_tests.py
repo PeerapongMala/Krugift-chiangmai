@@ -19,6 +19,7 @@ snapshot เก็บทั้ง status และ "ข้อความไท�
 import http.cookiejar
 import io
 import json
+from urllib.parse import quote
 import os
 import sys
 import time
@@ -670,8 +671,9 @@ def run():
     book_rooms = owner("GET", "/api/terms/%d/classrooms" % book_term_id)[1]
     value(g, "  ห้องที่ได้", [(r["name"], r["studentCount"], r["itemCount"]) for r in book_rooms])
     book_room_id = book_rooms[0]["id"] if book_rooms else 0
-    value(g, "  รายการคะแนนกับคะแนนเต็ม",
-          [(i["name"], i["maxScore"]) for i in owner("GET", "/api/classrooms/%d/items" % book_room_id)[1] or []])
+    book_items = owner("GET", "/api/classrooms/%d/items" % book_room_id)[1] or []
+    value(g, "  รายการคะแนนกับคะแนนเต็ม", [(i["name"], i["maxScore"]) for i in book_items])
+    book_item_id = book_items[0]["id"] if book_items else 0
 
     status, res = upload(owner, book_base + "/commit", [("file", "book.xlsx", book_ok)], [("sheets", "Sheet1")])
     record(g, "นำเข้าไฟล์เดิมซ้ำ ไม่สร้างของซ้ำ", status)
@@ -725,6 +727,20 @@ def run():
     record(g, "นำเข้าซ้ำแบบติ๊กปัดเศษ", status)
     value(g, "  คะแนนที่นำเข้า", sorted(str(s["value"]) for s in
                                        owner("GET", "/api/classrooms/%d/scores" % book_room_id)[1]["scores"]))
+
+    # ลบรายการคะแนนพร้อมคะแนนที่กรอกไว้
+    record(g, "ลบรายการที่มีคะแนนโดยไม่ยืนยัน", *owner("DELETE", "/api/items/%d" % book_item_id))
+    record(g, "ลบรายการพร้อมคะแนนทุกห้องในภาคเรียน",
+           *owner("DELETE", "/api/terms/%d/items?name=%s" % (book_term_id, quote("สอบ 1"))))
+    value(g, "  รายการหายไปจากห้องแล้ว",
+          [i["name"] for i in owner("GET", "/api/classrooms/%d/items" % book_room_id)[1] or []])
+    value(g, "  คะแนนหายไปด้วย",
+          owner("GET", "/api/classrooms/%d/scores" % book_room_id)[1]["scores"])
+    record(g, "ลบรายการชื่อที่ไม่มีแล้ว",
+           *owner("DELETE", "/api/terms/%d/items?name=%s" % (book_term_id, quote("สอบ 1"))))
+    record(g, "ลบรายการโดยไม่ส่งชื่อ", *owner("DELETE", "/api/terms/%d/items?name=%s" % (book_term_id, quote("  "))))
+    record(g, "ครูอื่นลบรายการของภาคเรียนเรา",
+           *other("DELETE", "/api/terms/%d/items?name=%s" % (book_term_id, quote("สอบ 2"))))
 
     # ---------------------------------------------------------------- ลบภาคเรียนพร้อมข้อมูล
     g = "PURGE"
