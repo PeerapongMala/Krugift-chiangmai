@@ -17,7 +17,7 @@ import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
 import { firstError, validate } from '@/lib/validate'
 
-type Item = { id: number; name: string; maxScore: number; sortOrder: number; scoredCount: number }
+type Item = { id: number; name: string; maxScore: number; sortOrder: number; scoredCount: number; teacherOnly: boolean }
 
 export default function Items() {
   const classroomId = Number(useParams().classroomId)
@@ -106,6 +106,8 @@ export default function Items() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{item.name}</p>
                   <Meta>
+                    {/* รายการคะแนนดิบที่นำเข้ามาคู่กัน เด็กไม่เห็นและสอบถามไม่ได้ */}
+                    {item.teacherOnly && <span className="text-primary">เฉพาะครู</span>}
                     <span>เต็ม {item.maxScore} คะแนน</span>
                     <span>{item.scoredCount > 0 ? `กรอกแล้ว ${item.scoredCount} คน` : 'ยังไม่ได้กรอกคะแนน'}</span>
                   </Meta>

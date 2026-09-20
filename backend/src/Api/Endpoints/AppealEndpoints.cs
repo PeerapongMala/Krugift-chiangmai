@@ -59,8 +59,9 @@ public static class AppealEndpoints
 
             var studentId = user.UserId();
             // ต้องเป็นรายการในห้องที่ตัวเองลงชื่ออยู่เท่านั้น
+            // รายการที่ครูดูคนเดียวถือว่าไม่มีในสายตานักเรียน สอบถามไม่ได้
             var item = await db.Items.FirstOrDefaultAsync(i =>
-                i.Id == req.ItemId && i.Classroom.Enrollments.Any(e => e.StudentId == studentId));
+                i.Id == req.ItemId && !i.TeacherOnly && i.Classroom.Enrollments.Any(e => e.StudentId == studentId));
             if (item is null) return Problems.NotFound("รายการคะแนนนี้ในห้องของคุณ");
 
             // เรื่องเดิมยังไม่ปิด ให้คุยต่อในเรื่องเดิม ครูจะได้ไม่ต้องตอบซ้ำหลายที่

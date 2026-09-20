@@ -29,6 +29,7 @@ public static class ItemEndpoints
                     i.Name,
                     i.MaxScore,
                     i.SortOrder,
+                    i.TeacherOnly,
                     // ครูจะได้รู้ว่ารายการไหนกรอกคะแนนไปแล้วบ้าง ลบทิ้งจะได้ไม่เผลอ
                     ScoredCount = db.Scores.Count(s => s.ItemId == i.Id && s.Value != null),
                 })

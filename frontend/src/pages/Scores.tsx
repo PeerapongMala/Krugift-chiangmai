@@ -11,7 +11,7 @@ import { api, errorMessage } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { validate } from '@/lib/validate'
 
-type Item = { id: number; name: string; maxScore: number }
+type Item = { id: number; name: string; maxScore: number; teacherOnly: boolean }
 type Pupil = { studentId: number; no: number; studentCode: string; firstName: string; lastName: string }
 type Cell = { itemId: number; studentId: number; value: number }
 type Grid = { items: Item[]; students: Pupil[]; scores: Cell[] }
@@ -125,6 +125,8 @@ function GridTable({
               <th key={item.id} className="min-w-24 px-2 py-2 text-center font-medium">
                 <span className="block truncate">{item.name}</span>
                 <span className="block text-xs font-normal text-muted-foreground">เต็ม {item.maxScore}</span>
+                {/* คะแนนดิบที่นำเข้ามาคู่กัน เด็กไม่เห็นรายการนี้ */}
+                {item.teacherOnly && <span className="block text-xs font-normal text-primary">เฉพาะครู</span>}
               </th>
             ))}
             <th className="min-w-20 px-3 py-2 text-center font-medium">

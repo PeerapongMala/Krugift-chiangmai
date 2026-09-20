@@ -209,13 +209,21 @@ public static class BookImportEndpoints
             var item = existing.FirstOrDefault(i => i.Name == row.Name);
             if (item is null)
             {
-                item = new AssessmentItem { ClassroomId = classroomId, Name = row.Name, MaxScore = row.MaxScore, SortOrder = ++order };
+                item = new AssessmentItem
+                {
+                    ClassroomId = classroomId,
+                    Name = row.Name,
+                    MaxScore = row.MaxScore,
+                    SortOrder = ++order,
+                    TeacherOnly = row.TeacherOnly,
+                };
                 db.Items.Add(item);
                 existing.Add(item);
             }
             else
             {
                 item.MaxScore = row.MaxScore;
+                item.TeacherOnly = row.TeacherOnly;
             }
             result.Add(item);
         }

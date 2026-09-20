@@ -113,7 +113,12 @@ public static partial class TeacherBookParser
         return sheet.Name;
     }
 
-    /// คอลัมน์คะแนน = คอลัมน์หลังข้อมูลนักเรียนที่หัวตารางเป็นตัวเลข (ตัวเลขนั้นคือคะแนนเต็ม)
+    /// <summary>
+    /// คอลัมน์ที่นำเข้า: เอาเฉพาะคอลัมน์สอบ และการสอบหนึ่งครั้งในไฟล์ครูมี 2 คอลัมน์คู่กัน
+    ///   คอลัมน์แรก   = คะแนนดิบ เช่น สอบ 1 เต็ม 45 → เก็บไว้ให้ครูดูคนเดียว
+    ///   คอลัมน์ถัดไป = คะแนนที่หารเป็นคะแนนเก็บแล้ว เต็ม 10 → อันนี้คือที่เด็กเห็น
+    /// คอลัมน์หารซ้ำอันที่สาม (เช่น คอลัมน์ I ที่หารด้วย 4) ไม่เอา ครูบอกว่าใช้อันแรก
+    /// </summary>
     static List<BookItem> ReadItems(BookSheet sheet, int headerRow, StudentColumns columns, ImportErrors errors)
     {
         var items = new List<BookItem>();
@@ -122,20 +127,25 @@ public static partial class TeacherBookParser
 
         for (var c = columns.LastStudentColumn + 1; c < width; c++)
         {
-            var cell = sheet.Cell(headerRow, c);
-            if (cell.Kind != CellKind.Number) continue;
-
-            var maxScore = Math.Round((decimal)cell.Number, 2);
-            if (Validate.MaxScore(maxScore) is { } error)
-            {
-                errors.Cell(headerRow, Cells.ColumnLetter(c), error);
-                continue;
-            }
-
-            // ครูขอเก็บเฉพาะคะแนนสอบ · เอกสาร จิตพิสัย แบบฝึกหัด และคอลัมน์ที่คิดจากสูตร ไม่ต้องเอาเข้า
+            if (MaxScoreAt(sheet, headerRow, c, errors) is not { } rawMax) continue;
             if (ExamName(sheet, headerRow, c) is not { } name) continue;
 
-            items.Add(new BookItem(c, UniqueName(name, Cells.ColumnLetter(c), used), maxScore));
+            var scaledColumn = c + 1;
+            var scaledMax = MaxScoreAt(sheet, headerRow, scaledColumn, errors);
+            var hasScaled = scaledMax is not null && ExamName(sheet, headerRow, scaledColumn) is null;
+
+            // ชื่อหลักเป็นของคอลัมน์ที่เด็กเห็น ส่วนคะแนนดิบต่อท้ายชื่อไว้ว่าเป็นคะแนนดิบ
+            if (hasScaled)
+            {
+                items.Add(new BookItem(scaledColumn, UniqueName(name, Cells.ColumnLetter(scaledColumn), used), scaledMax!.Value));
+                items.Add(new BookItem(c, UniqueName($"{name} (คะแนนดิบ)", Cells.ColumnLetter(c), used), rawMax, TeacherOnly: true));
+                c = scaledColumn;
+            }
+            else
+            {
+                items.Add(new BookItem(c, UniqueName(name, Cells.ColumnLetter(c), used), rawMax));
+            }
+
             if (items.Count > Limits.ImportMaxItems)
             {
                 errors.File($"ชีท {sheet.Name}: คอลัมน์คะแนนเกิน {Limits.ImportMaxItems} รายการ");
@@ -147,6 +157,21 @@ public static partial class TeacherBookParser
             errors.File($"ชีท {sheet.Name}: ไม่พบคอลัมน์คะแนนสอบ คอลัมน์สอบต้องมีคำว่า สอบ / Midterm / Final อยู่หัวตาราง และมีคะแนนเต็มเป็นตัวเลข");
 
         return items;
+    }
+
+    /// คะแนนเต็มที่หัวตารางของคอลัมน์นี้ · คืน null ถ้าไม่ใช่ตัวเลข (แปลว่าไม่ใช่คอลัมน์คะแนน)
+    static decimal? MaxScoreAt(BookSheet sheet, int headerRow, int column, ImportErrors errors)
+    {
+        var cell = sheet.Cell(headerRow, column);
+        if (cell.Kind != CellKind.Number) return null;
+
+        var maxScore = Math.Round((decimal)cell.Number, 2);
+        if (Validate.MaxScore(maxScore) is { } error)
+        {
+            errors.Cell(headerRow, Cells.ColumnLetter(column), error);
+            return null;
+        }
+        return maxScore;
     }
 
     /// <summary>

@@ -22,8 +22,11 @@ type Result = {
   full: number
 }
 
+// ใช้ select ของเบราว์เซอร์ เพราะบนมือถือมันเด้ง picker ของเครื่องขึ้นมา กดง่ายกว่า dropdown ที่ทำเอง
+// ตอน disabled ต้องดูต่างจริง ๆ ไม่งั้นเด็กกดแล้วงงว่าทำไมไม่มีอะไรขึ้น
 const selectClass =
-  'h-10 w-full rounded-md border border-input bg-card px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring'
+  'h-10 w-full rounded-md border border-input bg-card px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring ' +
+  'disabled:cursor-not-allowed disabled:border-dashed disabled:bg-muted disabled:text-muted-foreground'
 
 /** จัดห้องเป็นกลุ่มตามชื่อที่ครูตั้งไว้ คงลำดับที่ server ส่งมา */
 function groupByTerm(rooms: PublicRoom[] | undefined): [string, PublicRoom[]][] {
@@ -100,11 +103,15 @@ export default function QuickScores() {
           <select
             id="room"
             value={roomId}
-            onChange={(e) => setRoomId(e.target.value)}
+            onChange={(e) => {
+              setRoomId(e.target.value)
+              // เลื่อนไปช่องถัดไปให้เลย จะได้ไม่ต้องเล็งกดเองอีกทีบนมือถือ
+              if (e.target.value) requestAnimationFrame(() => document.getElementById('no')?.focus())
+            }}
             className={selectClass}
             disabled={rooms.isPending}
           >
-            <option value="">{rooms.isPending ? 'กำลังโหลด...' : '— เลือกห้อง —'}</option>
+            <option value="">{rooms.isPending ? 'กำลังโหลด...' : 'เลือกห้อง'}</option>
             {/* จัดกลุ่มตามชื่อที่ครูตั้ง (optgroup ของเบราว์เซอร์) แทนการเอาชื่อมาต่อท้ายห้องด้วยตัวคั่น */}
             {groupByTerm(rooms.data).map(([term, list]) => (
               <optgroup key={term} label={term}>
@@ -122,7 +129,7 @@ export default function QuickScores() {
           <Label htmlFor="no">เลขที่</Label>
           {/* key ทำให้ล้างค่าที่เลือกไว้เมื่อเปลี่ยนห้อง เลขที่ของห้องเก่าจะได้ไม่ค้าง */}
           <select key={roomId} id="no" name="no" defaultValue="" className={selectClass} disabled={!room}>
-            <option value="">{room ? '— เลือกเลขที่ —' : 'เลือกห้องก่อน'}</option>
+            <option value="">{room ? 'เลือกเลขที่' : 'เลือกห้องก่อน'}</option>
             {room?.nos.map((n) => (
               <option key={n} value={n}>
                 {n}

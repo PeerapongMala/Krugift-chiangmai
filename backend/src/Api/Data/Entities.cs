@@ -128,6 +128,9 @@ public class AssessmentItem
 
     [Comment("ลำดับการแสดง · น้อยขึ้นก่อน")]
     public int SortOrder { get; set; }
+
+    [Comment("true = เห็นเฉพาะครู นักเรียนไม่เห็นและสอบถามไม่ได้ (เช่น คะแนนดิบก่อนคิดเป็นคะแนนเก็บ)")]
+    public bool TeacherOnly { get; set; }
 }
 
 [Comment("คะแนนของนักเรียนต่อรายการ · แก้ผ่านแอปเท่านั้น เพื่อให้มีประวัติใน ScoreAudits")]

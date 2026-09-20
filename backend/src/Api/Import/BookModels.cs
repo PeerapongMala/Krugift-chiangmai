@@ -16,8 +16,8 @@ public record BookSheet(string Name, IReadOnlyList<SheetRow> Rows)
 /// นักเรียนหนึ่งคนที่อ่านได้จากชีท
 public record BookStudent(int Row, int No, string Code, string Title, string FirstName, string LastName, string Nickname);
 
-/// รายการคะแนนหนึ่งคอลัมน์
-public record BookItem(int Column, string Name, decimal MaxScore);
+/// รายการคะแนนหนึ่งคอลัมน์ · TeacherOnly = คะแนนดิบที่ครูดูคนเดียว เด็กไม่เห็น
+public record BookItem(int Column, string Name, decimal MaxScore, bool TeacherOnly = false);
 
 /// คะแนนหนึ่งช่อง · ItemIndex ชี้ไปที่ลำดับใน Items ของชีทเดียวกัน
 public record BookScore(int Row, int ItemIndex, decimal Value);

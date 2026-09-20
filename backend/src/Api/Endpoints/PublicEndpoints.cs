@@ -57,7 +57,8 @@ public static class PublicEndpoints
 
             var studentId = enrollment.StudentId;
             var items = await db.Items
-                .Where(i => i.ClassroomId == req.ClassroomId)
+                // รายการที่ครูดูคนเดียวไม่โผล่ในหน้าสาธารณะเช่นกัน
+                .Where(i => i.ClassroomId == req.ClassroomId && !i.TeacherOnly)
                 .OrderBy(i => i.SortOrder).ThenBy(i => i.Id)
                 .Select(i => new
                 {

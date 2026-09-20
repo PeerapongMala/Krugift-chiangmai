@@ -27,7 +27,9 @@ public static class MeEndpoints
                     Classroom = e.Classroom.Name,
                     Term = e.Classroom.Term.Name,
                     e.No,
+                    // รายการที่ครูตั้งไว้ว่าดูคนเดียว (เช่น คะแนนดิบก่อนคิดเป็นคะแนนเก็บ) เด็กไม่เห็น
                     Items = e.Classroom.Items
+                        .Where(i => !i.TeacherOnly)
                         .OrderBy(i => i.SortOrder).ThenBy(i => i.Id)
                         .Select(i => new
                         {

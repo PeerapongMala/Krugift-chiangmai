@@ -86,13 +86,16 @@ public class TeacherBookParserTests
     }
 
     [Fact]
-    public void เอาเฉพาะคอลัมน์สอบและตั้งชื่อเป็นชื่อเรื่องต่อด้วยชื่อสอบ()
+    public void เอาเฉพาะคอลัมน์สอบ_คะแนนที่หารแล้วให้เด็กเห็น_คะแนนดิบเฉพาะครู()
     {
         var (plan, _) = Parse(Sample());
 
-        // เอกสาร แบบฝึกหัด และคอลัมน์ที่คิดจากสูตร ไม่ถูกนำเข้า
-        Assert.Equal(["จำนวนเต็ม สอบ 1", "สอบกลางภาค"], plan!.Items.Select(i => i.Name));
-        Assert.Equal([45m, 35m], plan.Items.Select(i => i.MaxScore));
+        // เอกสาร แบบฝึกหัด และคอลัมน์หารซ้ำอันที่สาม ไม่ถูกนำเข้า
+        Assert.Equal(
+            ["จำนวนเต็ม สอบ 1", "จำนวนเต็ม สอบ 1 (คะแนนดิบ)", "สอบกลางภาค", "สอบกลางภาค (คะแนนดิบ)"],
+            plan!.Items.Select(i => i.Name));
+        Assert.Equal([10m, 45m, 20m, 35m], plan.Items.Select(i => i.MaxScore));
+        Assert.Equal([false, true, false, true], plan.Items.Select(i => i.TeacherOnly));
     }
 
     [Fact]
@@ -107,7 +110,7 @@ public class TeacherBookParserTests
 
         var (plan, _) = Parse(sheet);
 
-        Assert.Equal(["สอบ 2", "สอบปลายภาค"], plan!.Items.Select(i => i.Name));
+        Assert.Equal(["สอบ 2", "สอบปลายภาค", "สอบปลายภาค (คะแนนดิบ)"], plan!.Items.Select(i => i.Name));
     }
 
     [Fact]
@@ -131,8 +134,8 @@ public class TeacherBookParserTests
         var (plan, errors) = Parse(Sample());
 
         Assert.Equal(0, errors.Count);
-        // คนแรกมีทั้งสอบ 1 และสอบกลางภาค · คนที่สองเว้นสอบกลางภาคไว้
-        Assert.Equal(2, plan!.Scores.Count(s => s.Row == 0));
+        // คนแรกมีทั้งคะแนนหารแล้วและคะแนนดิบของสอบ 1 กับสอบกลางภาค · คนที่สองมีแค่คะแนนดิบของสอบ 1
+        Assert.Equal(4, plan!.Scores.Count(s => s.Row == 0));
         Assert.Equal(1, plan.Scores.Count(s => s.Row == 1));
     }
 

@@ -27,7 +27,7 @@ public static class ScoreEndpoints
             var items = await db.ItemsOf(user)
                 .Where(i => i.ClassroomId == id)
                 .OrderBy(i => i.SortOrder).ThenBy(i => i.Id)
-                .Select(i => new { i.Id, i.Name, i.MaxScore })
+                .Select(i => new { i.Id, i.Name, i.MaxScore, i.TeacherOnly })
                 .ToListAsync();
 
             var students = await db.EnrollmentsOf(user)
