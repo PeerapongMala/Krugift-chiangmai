@@ -7,11 +7,14 @@ import { Meta } from '@/components/Meta'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
 import { Rows, Row, RowActions } from '@/components/Rows'
+import { TabToolbar } from '@/components/TabToolbar'
+import { TermTabs } from '@/components/TermTabs'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { api } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
+import { useTermName } from '@/lib/useTermName'
 
 /** รายการคะแนนชื่อเดียวกันของทุกห้องในภาคเรียน รวมเป็นแถวเดียว */
 type TermItem = {
@@ -43,6 +46,7 @@ export default function TermItems() {
   const { confirm, dialog } = useConfirm()
   /** ผลของการปัดคะแนน ถ้าไม่บอกครูจะไม่เห็นว่าเกิดอะไรขึ้น เพราะตัวเลขอยู่อีกหน้า */
   const [note, setNote] = useState('')
+  const termName = useTermName(termId)
 
   // รายการกับคะแนนของทุกห้องเปลี่ยนพร้อมกัน ล้าง cache ของห้องทั้งหมดด้วย
   const refresh = () =>
@@ -87,17 +91,19 @@ export default function TermItems() {
 
   return (
     <>
-      <Link to={routes.term(termId)} className="mb-3 inline-block text-sm text-muted-foreground hover:text-foreground">
-        ← กลับไปหน้าห้องเรียน
+      <Link to={routes.teacher} className="mb-3 inline-block text-sm text-muted-foreground hover:text-foreground">
+        ← กลับไปหน้าภาคเรียน
       </Link>
 
-      <PageHeader title="รายการคะแนนทั้งภาคเรียน">
+      <PageHeader title={termName || 'ภาคเรียน'} description="สวิตช์ในหน้านี้มีผลกับทุกห้องพร้อมกัน" />
+
+      <TermTabs termId={termId} active="items" />
+
+      <TabToolbar>
         <Button variant="outline" disabled={action.busy} onClick={roundScores}>
           ปัดคะแนนเป็นจำนวนเต็ม
         </Button>
-      </PageHeader>
-
-      <p className="mb-3 text-sm text-muted-foreground">สวิตช์ในหน้านี้มีผลกับทุกห้องพร้อมกัน</p>
+      </TabToolbar>
 
       {note && <p className="mb-3 rounded-lg bg-accent px-3 py-2 text-sm">{note}</p>}
 

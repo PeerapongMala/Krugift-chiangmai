@@ -10,10 +10,13 @@ import { Meta } from '@/components/Meta'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
 import { Rows, Row, RowActions } from '@/components/Rows'
+import { TabToolbar } from '@/components/TabToolbar'
+import { TermTabs } from '@/components/TermTabs'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
+import { useTermName } from '@/lib/useTermName'
 import { validate } from '@/lib/validate'
 
 type Classroom = { id: number; name: string; studentCount: number; itemCount: number }
@@ -31,6 +34,7 @@ export default function Classrooms() {
   const form = useSubmit()
   const rowAction = useSubmit()
   const { confirm, dialog } = useConfirm()
+  const termName = useTermName(termId)
 
   const refresh = () =>
     Promise.all([
@@ -83,17 +87,17 @@ export default function Classrooms() {
         ← กลับไปหน้าภาคเรียน
       </Link>
 
-      <PageHeader title="ห้องเรียน">
-        {/* ทางลัดไปจัดการรายการคะแนนทีเดียวทุกห้อง ไม่ต้องเข้าไปไล่กดทีละห้อง */}
-        <Link to={routes.termItems(termId)} className={buttonVariants({ variant: 'outline' })}>
-          รายการคะแนนทุกห้อง
-        </Link>
+      <PageHeader title={termName || 'ภาคเรียน'} />
+
+      <TermTabs termId={termId} active="classrooms" />
+
+      <TabToolbar>
         <Link to={routes.termImport(termId)} className={buttonVariants({ variant: 'outline' })}>
           <FileUp aria-hidden="true" />
           นำเข้าไฟล์ครู
         </Link>
         <Button onClick={() => setAdding(true)}>เพิ่มห้องเรียน</Button>
-      </PageHeader>
+      </TabToolbar>
 
       <FormError message={rowAction.error} />
 
