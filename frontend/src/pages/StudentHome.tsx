@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
+import { cn } from '@/lib/utils'
 import { validate } from '@/lib/validate'
 
 type MyRoom = { classroomId: number; classroom: string; term: string; no: number; items: ScoreRow[] }
@@ -53,7 +54,10 @@ export default function StudentHome() {
 
       <QueryState query={rooms} empty="ยังไม่มีคะแนน">
         {(list) => (
-          <div className="grid gap-4 md:grid-cols-2">
+          // การ์ด 1 ใบ = 1 วิชาในภาคเรียนหนึ่ง (เด็กอยู่ห้องเดียวต่อวิชา) ตอนนี้ครูสอนวิชาเดียวจึงมีใบเดียว
+          // จัดกลางจอไม่ให้ช่องขวาว่าง · จะมีหลายใบเมื่อเด็กเรียนหลายวิชา (คณิตเพิ่มเติม + คณิตพื้นฐาน)
+          // หรือมีคะแนนข้ามภาคเรียน ตอนนั้นค่อยแตกเป็น 2 คอลัมน์
+          <div className={cn('grid gap-4', list.length > 1 ? 'md:grid-cols-2' : 'mx-auto w-full max-w-xl')}>
             {list.map((room) => (
               <section
                 key={room.classroomId}
