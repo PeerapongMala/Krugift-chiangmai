@@ -17,7 +17,7 @@
 ```bash
 dotnet tool restore                          # dotnet-ef (local tool, ต้องรันจาก root)
 dotnet build ; dotnet test                   # unit test (ฟังก์ชันบริสุทธิ์)
-python backend/tests/e2e/api_tests.py        # e2e + snapshot 248 เคส (ต้องรัน API ก่อน)
+python backend/tests/e2e/api_tests.py        # e2e + snapshot 267 เคส (ต้องรัน API ก่อน)
 python backend/tests/e2e/api_tests.py --update   # บันทึก snapshot ใหม่เมื่อเปลี่ยนโดยตั้งใจ
 dotnet run --project backend/src/Api         # http://localhost:5080, migrate + seed ครูตอน start
 dotnet ef migrations add <Name> --project backend/src/Api -o Data/Migrations
@@ -55,6 +55,7 @@ frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
   - API ตอบ JSON เท่านั้น (ใช้ SameSite=Lax + JSON กัน CSRF แทน antiforgery)
 - **นำเข้าไฟล์ครูจริง (`/api/terms/{id}/import/book`)**: ไฟล์เดียวหลายชีท ชีทละห้อง · หาหัวตารางเอง (แถวที่มี เลขที่ + รหัสนักเรียน) ไม่ฟิกซ์เลขแถว · ชื่อห้องอ่านจากหัวเรื่อง "ชั้นมัธยมศึกษาปีที่ 1/1" → ม.1/1 · ชีทที่ไม่มีหัวตาราง (เช่น คะแนนรวม) ข้ามเงียบ ไม่ใช่จุดผิด · หยุดอ่านที่ท้ายตาราง เพราะครูเขียนหมายเหตุไว้ใต้รายชื่อ · คะแนนที่เป็นสูตรปัดเหลือ 2 ตำแหน่ง · ถ้าค่าจริงเกินคะแนนเต็มที่หัวเขียนไว้ ใช้ค่ามากสุดที่เจอเป็นคะแนนเต็ม · นำเข้าซ้ำได้ (จับคู่จากรหัสนักเรียนและชื่อรายการ) และนำเข้าคนละภาคเรียนได้
 - **Import Excel = all-or-nothing:** preview ไม่เขียนอะไร · commit ตรวจซ้ำกับข้อมูลล่าสุด ผิดแม้จุดเดียวไม่บันทึกอะไรเลย · ผ่านหมดเขียนใน transaction เดียว + audit · รวบรวมจุดผิดทุกจุด (แถว/คอลัมน์) ในรอบเดียว · ช่องคะแนนว่าง = ไม่เปลี่ยนคะแนนเดิม · กฎดักใหม่ใส่ที่ `Import/Cells.cs` หรือ parser **พร้อมเทสต์ทุกครั้ง**
+- **ซ่อนรายการคะแนนรายอัน:** `AssessmentItem.TeacherOnly` = เห็นเฉพาะครู · ครูสลับด้วยสวิตช์ "นักเรียนเห็น" บนแถวในหน้ารายการคะแนน (`PATCH /api/items/{id}/visibility` ส่งแค่ `visible` ไม่ต้องส่งชื่อ/คะแนนเต็ม) · รายการที่ซ่อนไม่โผล่ใน `/api/me/scores` และ `/api/public/scores` และนักเรียนสอบถามไม่ได้ · คะแนนรวมนับเฉพาะรายการที่เห็นและมีคะแนนแล้ว · คะแนนดิบจากไฟล์ครูถูกตั้งซ่อนให้อัตโนมัติตอนนำเข้า
 - **Error:** ใช้ `Results.Problem("ข้อความภาษาไทย", statusCode: …)` แล้ว `api()` ฝั่งเว็บจะเอา `detail` ไปแสดงให้ผู้ใช้เอง
 - **คะแนนห้ามเกินคะแนนเต็ม:** เช็คในโค้ด เพราะ check constraint ข้ามตารางไม่ได้ · **แก้คะแนนทุกครั้งต้องเขียน `ScoreAudit`**
 - **เวลา:** เก็บเป็น UTC (`DateTime.UtcNow`)
