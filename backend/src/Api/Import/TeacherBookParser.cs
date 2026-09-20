@@ -55,7 +55,7 @@ public static partial class TeacherBookParser
             return null;
         }
 
-        var items = RaiseMaxScores(sheet, headerRow, columns, ReadItems(sheet, headerRow, columns, errors));
+        var items = ReadItems(sheet, headerRow, columns, errors);
         var (students, scores) = ReadRows(sheet, headerRow, columns, items, errors, roundScores);
 
         if (students.Count == 0) errors.File($"ชีท {sheet.Name}: ไม่พบข้อมูลนักเรียน");
@@ -118,10 +118,11 @@ public static partial class TeacherBookParser
     }
 
     /// <summary>
-    /// คอลัมน์ที่นำเข้า: เอาเฉพาะคอลัมน์สอบ และการสอบหนึ่งครั้งในไฟล์ครูมี 2 คอลัมน์คู่กัน
-    ///   คอลัมน์แรก   = คะแนนดิบ เช่น สอบ 1 เต็ม 45 → เก็บไว้ให้ครูดูคนเดียว
-    ///   คอลัมน์ถัดไป = คะแนนที่หารเป็นคะแนนเก็บแล้ว เต็ม 10 → อันนี้คือที่เด็กเห็น
-    /// คอลัมน์หารซ้ำอันที่สาม (เช่น คอลัมน์ I ที่หารด้วย 4) ไม่เอา ครูบอกว่าใช้อันแรก
+    /// คอลัมน์ที่นำเข้า: เอาเฉพาะคอลัมน์สอบ ซึ่งในไฟล์ครูมีคะแนนดิบ 1 คอลัมน์ตามด้วยคอลัมน์ที่หารแล้ว
+    ///   คอลัมน์แรก    = คะแนนดิบ เช่น สอบ 1 เต็ม 45 → เก็บไว้ให้ครูดูคนเดียว
+    ///   คอลัมน์ที่หาร = คะแนนเก็บ เต็ม 10 → อันนี้คือที่เด็กเห็น
+    /// ครูทำคอลัมน์หารไว้หลายแบบติดกัน (H หารด้วย 45 · I หารด้วย 40) ครูยืนยันให้ใช้ "อันสุดท้าย"
+    /// คอลัมน์ที่มีหัวของตัวเอง (เช่น เอกสาร) ถือเป็นรายการอื่น ไม่ใช่คอลัมน์หารของสอบครั้งนี้
     /// </summary>
     static List<BookItem> ReadItems(BookSheet sheet, int headerRow, StudentColumns columns, ImportErrors errors)
     {
@@ -134,9 +135,9 @@ public static partial class TeacherBookParser
             if (MaxScoreAt(sheet, headerRow, c, errors) is not { } rawMax) continue;
             if (ExamName(sheet, headerRow, c) is not { } name) continue;
 
-            var scaledColumn = c + 1;
-            var scaledMax = MaxScoreAt(sheet, headerRow, scaledColumn, errors);
-            var hasScaled = scaledMax is not null && ExamName(sheet, headerRow, scaledColumn) is null;
+            var scaledColumn = LastScaledColumn(sheet, headerRow, c, width);
+            var scaledMax = scaledColumn > c ? MaxScoreAt(sheet, headerRow, scaledColumn, errors) : null;
+            var hasScaled = scaledMax is not null;
 
             // ชื่อหลักเป็นของคอลัมน์ที่เด็กเห็น ส่วนคะแนนดิบต่อท้ายชื่อไว้ว่าเป็นคะแนนดิบ
             if (hasScaled)
@@ -163,8 +164,33 @@ public static partial class TeacherBookParser
         return items;
     }
 
+    /// <summary>
+    /// คอลัมน์หารอันสุดท้ายที่ต่อจากคะแนนดิบ · คืนเลขคอลัมน์ดิบเองถ้าไม่มีคอลัมน์หารเลย
+    /// เดินต่อไปตราบใดที่คอลัมน์นั้นมีคะแนนเต็มเป็นตัวเลข และยังอยู่ใต้หัวเดียวกับคะแนนดิบ
+    /// หัวว่าง = คอลัมน์ที่คิดมาจากคะแนนดิบช่องซ้าย · หัวข้อความเดียวกัน = ครู merge คร่อมไว้ (เช่น Midterm ที่ merge M4:N5)
+    /// หัวที่เขียนข้อความอื่น (เช่น เอกสาร) = รายการใหม่ ต้องหยุด
+    /// ไม่ส่ง errors เข้าไปตอนเดิน เพราะคอลัมน์ที่หยุดจะถูกวนซ้ำในลูปหลักและรายงานจุดผิดที่นั่นแล้ว
+    /// </summary>
+    static int LastScaledColumn(BookSheet sheet, int headerRow, int rawColumn, int width)
+    {
+        var rawSub = Cells.Normalize(sheet.Text(headerRow - 1, rawColumn));
+        var last = rawColumn;
+
+        for (var c = rawColumn + 1; c < width; c++)
+        {
+            if (MaxScoreAt(sheet, headerRow, c, errors: null) is null) break;
+
+            var sub = Cells.Normalize(sheet.Text(headerRow - 1, c));
+            if (sub != "" && sub != rawSub) break;
+            if (ExamName(sheet, headerRow, c) is not null) break;
+
+            last = c;
+        }
+        return last;
+    }
+
     /// คะแนนเต็มที่หัวตารางของคอลัมน์นี้ · คืน null ถ้าไม่ใช่ตัวเลข (แปลว่าไม่ใช่คอลัมน์คะแนน)
-    static decimal? MaxScoreAt(BookSheet sheet, int headerRow, int column, ImportErrors errors)
+    static decimal? MaxScoreAt(BookSheet sheet, int headerRow, int column, ImportErrors? errors)
     {
         var cell = sheet.Cell(headerRow, column);
         if (cell.Kind != CellKind.Number) return null;
@@ -172,30 +198,10 @@ public static partial class TeacherBookParser
         var maxScore = Math.Round((decimal)cell.Number, 2);
         if (Validate.MaxScore(maxScore) is { } error)
         {
-            errors.Cell(headerRow, Cells.ColumnLetter(column), error);
+            errors?.Cell(headerRow, Cells.ColumnLetter(column), error);
             return null;
         }
         return maxScore;
-    }
-
-    /// <summary>
-    /// คอลัมน์ที่ครูใส่สูตรแปลงคะแนนบางทีให้ค่าเกินคะแนนเต็มที่เขียนไว้บนหัว (เช่น หัวว่าเต็ม 10 แต่คำนวณได้ 10.5)
-    /// ใช้ค่าที่มากที่สุดในคอลัมน์นั้นเป็นคะแนนเต็มแทน ครูจะได้ไม่ต้องแก้ไฟล์ทุกครั้งที่นำเข้า
-    /// </summary>
-    static List<BookItem> RaiseMaxScores(BookSheet sheet, int headerRow, StudentColumns columns, List<BookItem> items)
-    {
-        var rows = DataRowNumbers(sheet, headerRow, columns).ToList();
-
-        return items.Select(item =>
-        {
-            var highest = item.MaxScore;
-            foreach (var r in rows)
-            {
-                var cell = Round2(sheet.Cell(r, item.Column));
-                if (cell.Kind == CellKind.Number && (decimal)cell.Number > highest) highest = (decimal)cell.Number;
-            }
-            return highest > item.MaxScore && Validate.MaxScore(highest) is null ? item with { MaxScore = highest } : item;
-        }).ToList();
     }
 
     /// แถวนักเรียนในตาราง · ใช้ร่วมกันทั้งตอนหาคะแนนเต็มจริงและตอนอ่านข้อมูล จะได้หยุดที่ท้ายตารางเหมือนกัน
@@ -314,10 +320,21 @@ public static partial class TeacherBookParser
         return text;
     }
 
+    /// <summary>
+    /// สูตรหารของครูให้ค่าเกินคะแนนเต็มได้ (เช่น (43/40)*10 = 10.75 ทั้งที่เต็ม 10)
+    /// ครูสั่งให้ตัดลงมาเท่าคะแนนเต็ม คนที่ทำได้เกินจึงได้เต็มพอดี และทุกห้องมีคะแนนเต็มเท่ากัน
+    /// คะแนนดิบไม่ได้รับผลอะไร เพราะไม่เคยเกินคะแนนเต็มของตัวเอง
+    /// </summary>
+    static SheetCell CapAtMax(SheetCell cell, decimal maxScore) =>
+        cell.Kind == CellKind.Number && (decimal)cell.Number > maxScore ? SheetCell.Of((double)maxScore) : cell;
+
     /// คอลัมน์ที่ครูใส่สูตรแปลงคะแนน (เช่น 32.5 → 7.222222222) มีทศนิยมยาวกว่าที่ DB เก็บได้
     /// ปัดให้เหลือ 2 ตำแหน่งตั้งแต่ตอนอ่าน ไม่ถือเป็นจุดผิด เพราะเป็นค่าที่ Excel คำนวณเองไม่ใช่ครูพิมพ์ผิด
+    /// ปัดครึ่งขึ้นเหมือนที่ Excel แสดงให้ครูเห็น (ค่า default ของ Math.Round ปัดครึ่งไปเลขคู่ 8.125 จะกลายเป็น 8.12)
     static SheetCell Round2(SheetCell cell) =>
-        cell.Kind == CellKind.Number ? SheetCell.Of((double)Math.Round((decimal)cell.Number, 2)) : cell;
+        cell.Kind == CellKind.Number
+            ? SheetCell.Of((double)Math.Round((decimal)cell.Number, 2, MidpointRounding.AwayFromZero))
+            : cell;
 
     static void ReadScores(BookSheet sheet, int row, List<BookItem> items, int studentIndex, List<BookScore> scores,
         ImportErrors errors, bool roundScores)
@@ -327,7 +344,7 @@ public static partial class TeacherBookParser
             var cell = sheet.Cell(row, items[i].Column);
             if (cell.Kind == CellKind.Blank) continue;
 
-            var (value, error) = Cells.Score(Round2(cell), items[i].MaxScore);
+            var (value, error) = Cells.Score(CapAtMax(Round2(cell), items[i].MaxScore), items[i].MaxScore);
             if (error is not null)
             {
                 errors.Cell(row, Cells.ColumnLetter(items[i].Column), error);

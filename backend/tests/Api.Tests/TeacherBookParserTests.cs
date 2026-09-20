@@ -129,6 +129,45 @@ public class TeacherBookParserTests
     }
 
     [Fact]
+    public void มีคอลัมน์หารติดกันหลายอันให้เอาอันสุดท้าย()
+    {
+        // ไฟล์ครูจริง: G ดิบเต็ม 45 · H = (G/45)*10 · I = (G/40)*10 · ครูยืนยันให้ใช้ I
+        var sheet = Book("ห้อง 1",
+            Row("รายชื่อนักเรียนชั้นมัธยมศึกษาปีที่ 1/1"),
+            Row(null, null, null, "เก็บ 1 / จำนวนเต็ม", "เก็บ 1 / จำนวนเต็ม", "เก็บ 1 / จำนวนเต็ม", "เก็บ 1 / จำนวนเต็ม"),
+            Row(null, null, null, "สอบ 1", null, null, "เอกสาร"),
+            Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 45, 10, 10, 5),
+            Row(1, "อี ทู", "690001", 32.5, 7.22, 8.13, 5));
+
+        var (plan, errors) = Parse(sheet);
+
+        Assert.Equal(0, errors.Count);
+        // เอาคอลัมน์หารอันสุดท้าย (8.13) เป็นคะแนนที่เด็กเห็น · เก็บคะแนนดิบไว้ให้ครู · คอลัมน์ "เอกสาร" ไม่ถูกดูด
+        Assert.Equal(["จำนวนเต็ม สอบ 1", "จำนวนเต็ม สอบ 1 (คะแนนดิบ)"], plan!.Items.Select(i => i.Name));
+        Assert.Equal([10m, 45m], plan.Items.Select(i => i.MaxScore));
+        Assert.Equal([8.13m, 32.5m], plan.Scores.Select(s => s.Value));
+    }
+
+    [Fact]
+    public void หัวสอบที่merteคร่อมทั้งสองคอลัมน์ยังจับคู่ดิบกับหารได้()
+    {
+        // ไฟล์ครูจริง merge หัว Midterm คร่อม M4:N5 ทั้งสองแถว ช่องหัวของคอลัมน์หารจึงถูกเติมข้อความเดียวกัน
+        var sheet = Book("ห้อง 1",
+            Row("ปีที่ 1/1"),
+            Row(null, null, null, "Midterm", "Midterm", "แบบฝึกหัด"),
+            Row(null, null, null, "Midterm", "Midterm", "ส่งงาน"),
+            Row("เลขที่", "ชื่อ - นามสกุล", "รหัสนักเรียน", 35, 20, 5),
+            Row(1, "อี ทู", "690001", 33, 18.86, 5));
+
+        var (plan, errors) = Parse(sheet);
+
+        Assert.Equal(0, errors.Count);
+        Assert.Equal(["สอบกลางภาค", "สอบกลางภาค (คะแนนดิบ)"], plan!.Items.Select(i => i.Name));
+        Assert.Equal([20m, 35m], plan.Items.Select(i => i.MaxScore));
+        Assert.Equal([18.86m, 33m], plan.Scores.Select(s => s.Value));
+    }
+
+    [Fact]
     public void ปัดคะแนนที่หารแล้วเป็นจำนวนเต็ม_คะแนนดิบคงค่าตามไฟล์()
     {
         var errors = new ImportErrors();
@@ -287,7 +326,7 @@ public class TeacherBookParserTests
     }
 
     [Fact]
-    public void คะแนนเกินคะแนนเต็มที่หัวตารางใช้ค่ามากสุดเป็นคะแนนเต็ม()
+    public void คะแนนที่เกินคะแนนเต็มถูกตัดลงมาเท่าคะแนนเต็ม()
     {
         var sheet = Book("ห้อง 1",
             Row("ปีที่ 1/1"),
@@ -300,8 +339,9 @@ public class TeacherBookParserTests
         var (plan, errors) = Parse(sheet);
 
         Assert.Equal(0, errors.Count);
-        Assert.Equal(10.5m, plan!.Items[0].MaxScore);
-        Assert.Equal([10.5m, 9m], plan.Scores.Select(s => s.Value));
+        // คะแนนเต็มยังเป็น 10 ตามที่ครูเขียนหัวตาราง ส่วน 10.5 ถูกตัดลงมาเป็น 10
+        Assert.Equal(10m, plan!.Items[0].MaxScore);
+        Assert.Equal([10m, 9m], plan.Scores.Select(s => s.Value));
     }
 
     [Fact]
