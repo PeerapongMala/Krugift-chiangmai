@@ -329,6 +329,46 @@ def run():
     record(g, "นักเรียนออกจากระบบ", *pupil("POST", "/api/auth/logout"))
     record(g, "ออกแล้วดูภาคเรียนอีก", *pupil("GET", "/api/terms"))
 
+    # ---------------------------------------------------------------- รายการที่ครูดูคนเดียว
+    g = "HIDDEN"
+    status, hidden = owner("POST", "/api/classrooms/%d/items" % room_id,
+                           {"name": "คะแนนดิบทดสอบ", "maxScore": 50, "teacherOnly": True})
+    record(g, "ครูสร้างรายการแบบซ่อนจากนักเรียน", status)
+    hidden_id = hidden["id"] if isinstance(hidden, dict) else 0
+    value(g, "  ธง teacherOnly ที่ได้กลับมา", hidden.get("teacherOnly") if isinstance(hidden, dict) else None)
+    owner("PUT", "/api/scores", {"itemId": hidden_id, "studentId": sid1, "value": 40, "expected": None})
+
+    value(g, "  ครูเห็นรายการนี้ในห้อง",
+          any(i["name"] == "คะแนนดิบทดสอบ" for i in owner("GET", "/api/classrooms/%d/items" % room_id)[1]))
+    value(g, "  ครูเห็นในตารางคะแนน",
+          [(i["name"], i["teacherOnly"]) for i in owner("GET", "/api/classrooms/%d/scores" % room_id)[1]["items"]
+           if i["name"] == "คะแนนดิบทดสอบ"])
+
+    hide = Client()
+    hide("POST", "/api/auth/dev-login-student?studentCode=90001")
+    mine = hide("GET", "/api/me/scores")[1]
+    names = [i["name"] for r in mine for i in r["items"]]
+    value(g, "  นักเรียนไม่เห็นรายการนี้", "คะแนนดิบทดสอบ" not in names)
+    record(g, "นักเรียนสอบถามรายการที่ซ่อน", *hide("POST", "/api/appeals", {"itemId": hidden_id, "body": "ขอดูคะแนนหน่อย"}))
+
+    pub2 = Client()
+    status, res = pub2("POST", "/api/public/scores", {"classroomId": room_id, "no": 20, "studentCode": "90001"})
+    record(g, "ดูคะแนนด่วนหลังมีรายการซ่อน", status)
+    value(g, "  หน้าสาธารณะไม่เห็นรายการที่ซ่อน",
+          "คะแนนดิบทดสอบ" not in [i["name"] for i in res["items"]] if isinstance(res, dict) else None)
+    value(g, "  คะแนนรวมนับเฉพาะรายการที่มีคะแนนแล้ว",
+          "%s / %s" % (res.get("total"), res.get("full")) if isinstance(res, dict) else None)
+
+    record(g, "ครูเปลี่ยนรายการซ่อนให้นักเรียนเห็นได้",
+           *owner("PATCH", "/api/items/%d" % hidden_id, {"name": "คะแนนดิบทดสอบ", "maxScore": 50, "teacherOnly": False}))
+    mine2 = hide("GET", "/api/me/scores")[1]
+    value(g, "  เปลี่ยนแล้วนักเรียนเห็นทันที",
+          "คะแนนดิบทดสอบ" in [i["name"] for r in mine2 for i in r["items"]])
+
+    # เก็บกวาดรายการทดสอบ
+    owner("PUT", "/api/scores", {"itemId": hidden_id, "studentId": sid1, "value": None, "expected": 40})
+    owner("DELETE", "/api/items/%d" % hidden_id)
+
     # ---------------------------------------------------------------- ท้วงคะแนน
     g = "APPEAL"
     stu = Client()

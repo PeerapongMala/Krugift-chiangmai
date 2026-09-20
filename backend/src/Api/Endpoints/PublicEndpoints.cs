@@ -77,8 +77,9 @@ public static class PublicEndpoints
                 Classroom = enrollment.Classroom.Name,
                 Term = enrollment.Classroom.Term.Name,
                 Items = items,
+                // รวมเฉพาะรายการที่มีคะแนนแล้ว รายการที่ครูยังไม่ได้สอบไม่ถูกนับเป็นคะแนนที่หายไป
                 Total = items.Sum(i => i.Value ?? 0),
-                Full = items.Sum(i => i.MaxScore),
+                Full = items.Where(i => i.Value != null).Sum(i => i.MaxScore),
             });
         }).RequireRateLimiting(AuthSetup.LoginLimit);
     }

@@ -41,7 +41,11 @@ export default function Items() {
     ])
 
   function read(f: FormData) {
-    return { name: String(f.get('name') ?? ''), maxScore: Number(f.get('maxScore')) }
+    return {
+      name: String(f.get('name') ?? ''),
+      maxScore: Number(f.get('maxScore')),
+      teacherOnly: f.get('teacherOnly') === 'on',
+    }
   }
 
   async function create(f: FormData) {
@@ -138,6 +142,7 @@ export default function Items() {
       >
         <Field label="ชื่อรายการ" name="name" placeholder="สอบกลางภาค" required />
         <Field label="คะแนนเต็ม" name="maxScore" type="number" min={0.01} step={0.01} defaultValue={10} required />
+        <TeacherOnlyField />
       </Modal>
 
       {/* key ทำให้ modal สร้างใหม่ทุกครั้งที่เปลี่ยนรายการ defaultValue จะได้อัปเดตตาม */}
@@ -160,9 +165,25 @@ export default function Items() {
           defaultValue={editing?.maxScore}
           required
         />
+        <TeacherOnlyField defaultChecked={editing?.teacherOnly} />
       </Modal>
 
       {dialog}
     </>
+  )
+}
+
+/** ติ๊กแล้วนักเรียนจะไม่เห็นรายการนี้และสอบถามไม่ได้ · ใช้กับคะแนนดิบหรือคะแนนที่ยังไม่อยากประกาศ */
+function TeacherOnlyField({ defaultChecked }: { defaultChecked?: boolean }) {
+  return (
+    <label className="flex min-h-10 cursor-pointer items-center gap-3 text-sm">
+      <input
+        type="checkbox"
+        name="teacherOnly"
+        defaultChecked={defaultChecked}
+        className="size-5 shrink-0 accent-primary"
+      />
+      ซ่อนจากนักเรียน (เห็นเฉพาะครู)
+    </label>
   )
 }

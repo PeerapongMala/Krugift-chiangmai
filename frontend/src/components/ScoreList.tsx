@@ -21,8 +21,10 @@ export function ScoreList({
     return <p className="text-center text-sm text-muted-foreground">ครูยังไม่ได้เพิ่มรายการคะแนน</p>
   }
 
-  const total = round2(items.reduce((sum, i) => sum + (i.value ?? 0), 0))
-  const full = round2(items.reduce((sum, i) => sum + Number(i.maxScore), 0))
+  // นับเฉพาะรายการที่มีคะแนนแล้ว รายการที่ครูยังไม่ได้สอบจะได้ไม่ถูกนับเป็นคะแนนที่หายไป
+  const graded = items.filter((i) => i.value !== null)
+  const total = round2(graded.reduce((sum, i) => sum + (i.value ?? 0), 0))
+  const full = round2(graded.reduce((sum, i) => sum + Number(i.maxScore), 0))
 
   return (
     <ul className="grid gap-2">

@@ -6,7 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Endpoints;
 
-public record ItemRequest(string Name, decimal MaxScore);
+/// TeacherOnly = ซ่อนจากนักเรียน (ค่าเริ่มต้นคือไม่ซ่อน)
+public record ItemRequest(string Name, decimal MaxScore, bool TeacherOnly = false);
 
 /// รายการที่เอาไว้ให้คะแนน เช่น "สอบกลางภาค 20 คะแนน" · หนึ่งห้องมีได้หลายรายการ
 public static class ItemEndpoints
@@ -56,11 +57,12 @@ public static class ItemEndpoints
                 Name = name,
                 MaxScore = req.MaxScore,
                 SortOrder = nextOrder + 1,
+                TeacherOnly = req.TeacherOnly,
             };
             db.Items.Add(item);
             await db.SaveChangesAsync();
 
-            return Results.Ok(new { item.Id, item.Name, item.MaxScore, item.SortOrder, ScoredCount = 0 });
+            return Results.Ok(new { item.Id, item.Name, item.MaxScore, item.SortOrder, item.TeacherOnly, ScoredCount = 0 });
         });
 
         g.MapPatch("/items/{id:int}", async (int id, ItemRequest req, ClaimsPrincipal user, AppDbContext db) =>
@@ -85,6 +87,7 @@ public static class ItemEndpoints
 
             item.Name = name;
             item.MaxScore = req.MaxScore;
+            item.TeacherOnly = req.TeacherOnly;
             await db.SaveChangesAsync();
             return Results.NoContent();
         });
