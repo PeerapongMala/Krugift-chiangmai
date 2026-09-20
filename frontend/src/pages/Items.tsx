@@ -12,6 +12,7 @@ import { QueryState } from '@/components/QueryState'
 import { Rows, Row, RowActions } from '@/components/Rows'
 import { TabToolbar } from '@/components/TabToolbar'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { api } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
@@ -71,6 +72,14 @@ export default function Items() {
     if (ok) setEditing(null)
   }
 
+  // สวิตช์บนแถว: ปิด = นักเรียนไม่เห็นรายการนี้และสอบถามไม่ได้ ครูยังกรอกคะแนนได้ตามปกติ
+  async function toggleVisible(item: Item) {
+    await rowAction.run(async () => {
+      await api(`/items/${item.id}/visibility`, { method: 'PATCH', json: { visible: item.teacherOnly } })
+      await refresh()
+    })
+  }
+
   async function discard(item: Item) {
     const ok = await confirm({
       title: 'ลบรายการคะแนนนี้?',
@@ -107,17 +116,26 @@ export default function Items() {
           <Rows>
             {list.map((item) => (
               <Row key={item.id}>
-                <div className="min-w-0 flex-1">
+                {/* ชื่อรายการยาว (เช่น "จำนวนเต็ม สอบ 1 (คะแนนดิบ)") บนมือถือกินเต็มบรรทัด
+                    สวิตช์กับปุ่มจึงตกไปบรรทัดล่าง ไม่ไปบีบชื่อจนอ่านไม่ออก */}
+                <div className="min-w-0 flex-1 basis-full sm:basis-auto">
                   <p className="truncate font-medium">{item.name}</p>
                   <Meta>
-                    {/* รายการคะแนนดิบที่นำเข้ามาคู่กัน เด็กไม่เห็นและสอบถามไม่ได้ */}
-                    {item.teacherOnly && <span className="text-primary">เฉพาะครู</span>}
                     <span>เต็ม {item.maxScore} คะแนน</span>
                     <span>{item.scoredCount > 0 ? `กรอกแล้ว ${item.scoredCount} คน` : 'ยังไม่ได้กรอกคะแนน'}</span>
                   </Meta>
                 </div>
 
                 <RowActions>
+                  {/* ห่อด้วย label กดที่ข้อความก็สลับได้ ไม่ต้องเล็งสวิตช์เล็ก ๆ บนมือถือ */}
+                  <label className="flex h-10 cursor-pointer items-center gap-2 rounded-md px-2 text-sm">
+                    <Switch
+                      checked={!item.teacherOnly}
+                      onCheckedChange={() => toggleVisible(item)}
+                      disabled={rowAction.busy}
+                    />
+                    นักเรียนเห็น
+                  </label>
                   <Button variant="outline" size="sm" disabled={rowAction.busy} onClick={() => setEditing(item)}>
                     แก้ไข
                   </Button>
