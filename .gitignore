@@ -507,3 +507,14 @@ CLAUDE.local.md
 
 # ไฟล์ชั่วคราวของ Playwright MCP (snapshot/screenshot/console log)
 /.playwright-mcp/
+
+# ตัวติดตั้งที่เผลอโหลดมาไว้ในโฟลเดอร์โปรเจกต์
+*.exe
+*.msi
+
+# ตั้งค่าเฉพาะเครื่องหรือเครื่องมือ ไม่เกี่ยวกับโค้ด
+/.vscode/
+/.impeccable/
+
+# บันทึกรีวิว UX เก็บไว้ดูเองในเครื่อง
+/docs/review/
