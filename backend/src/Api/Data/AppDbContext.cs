@@ -1,9 +1,15 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IDataProtectionKeyContext
 {
+    /// กุญแจที่ ASP.NET ใช้เข้ารหัส cookie ล็อกอิน
+    /// ต้องเก็บใน DB เพราะไฟล์ใน container ของ Render หายทุกครั้งที่ deploy
+    /// กุญแจหาย = cookie ของทุกคนถอดรหัสไม่ออก = หลุดออกจากระบบพร้อมกันทั้งโรงเรียน
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
+
     public DbSet<Teacher> Teachers => Set<Teacher>();
     public DbSet<Term> Terms => Set<Term>();
     public DbSet<Classroom> Classrooms => Set<Classroom>();
@@ -23,6 +29,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        // convention ด้านบนจำกัด string ไว้ 200 ตัว แต่กุญแจเป็น XML ยาวเป็นพันตัว ถ้าโดนตัดคือใช้ไม่ได้เลย
+        b.Entity<DataProtectionKey>(e =>
+        {
+            // SetMaxLength(null) เพื่อล้างลิมิต 200 ตัวที่ convention ใส่ให้ ไม่งั้น metadata ยังค้างอยู่ในโมเดล
+            e.Property(k => k.Xml).HasColumnType("text").Metadata.SetMaxLength(null);
+            e.Property(k => k.FriendlyName).HasColumnType("text").Metadata.SetMaxLength(null);
+        });
+
         b.Entity<Teacher>(e =>
         {
             e.HasIndex(x => x.Email).IsUnique();

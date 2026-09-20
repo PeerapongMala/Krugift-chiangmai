@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Api.Auth;
 using Api.Data;
 using Api.Endpoints;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,13 @@ builder.Services.Configure<RouteHandlerOptions>(o => o.ThrowOnBadRequest = false
 // enum ใน JSON ใช้ชื่อ ไม่ใช่ตัวเลข — ฝั่งเว็บจะได้ส่ง {"role":"Owner"} และอ่านค่ากลับมาแบบเดียวกัน
 builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+// กุญแจเข้ารหัส cookie เก็บใน DB ไม่ใช่ไฟล์ใน container
+// Render สร้าง container ใหม่ทุกครั้งที่ deploy ถ้ากุญแจอยู่ในไฟล์ ทุกคนจะหลุดออกจากระบบทุกครั้งที่ขึ้นเวอร์ชันใหม่
+// SetApplicationName ต้องคงที่ ไม่งั้น ASP.NET จะมองว่าเป็นคนละแอปแล้วไม่ยอมใช้กุญแจเดิม
+builder.Services.AddDataProtection()
+    .PersistKeysToDbContext<AppDbContext>()
+    .SetApplicationName("krugift");
+
 builder.AddAppAuth();
 
 var app = builder.Build();
