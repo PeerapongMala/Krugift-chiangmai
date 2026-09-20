@@ -625,6 +625,19 @@ def run():
     value(g, "  รายการคะแนนกับคะแนนเต็ม", [(i["name"], i["maxScore"]) for i in book_items])
     book_item_id = book_items[0]["id"] if book_items else 0
 
+    # ครูเปลี่ยนชื่อรายการในเว็บให้ต่างจากหัวตารางในไฟล์ แล้วนำเข้าไฟล์เดิมซ้ำ
+    # ต้องอัปเดตรายการเดิม (จับคู่ด้วยหัวตารางที่จำไว้) ไม่ใช่สร้างรายการใหม่ตามชื่อในไฟล์
+    record(g, "ครูเปลี่ยนชื่อรายการเอง",
+           *owner("PATCH", "/api/terms/%d/items" % book_term_id,
+                  {"name": "สอบ 1", "newName": "สอบเก็บคะแนนครั้งที่ 1", "maxScore": 20}))
+    status, _ = upload(owner, book_base + "/commit", [("file", "book.xlsx", book_ok)], [("sheets", "Sheet1")])
+    record(g, "นำเข้าซ้ำหลังเปลี่ยนชื่อ", status)
+    value(g, "  ไม่เกิดรายการซ้ำ และชื่อที่ครูตั้งยังอยู่",
+          [(i["name"], i["maxScore"]) for i in owner("GET", "/api/classrooms/%d/items" % book_room_id)[1] or []])
+    record(g, "เปลี่ยนชื่อกลับเป็นชื่อในไฟล์",
+           *owner("PATCH", "/api/terms/%d/items" % book_term_id,
+                  {"name": "สอบเก็บคะแนนครั้งที่ 1", "newName": "สอบ 1", "maxScore": 20}))
+
     status, res = upload(owner, book_base + "/commit", [("file", "book.xlsx", book_ok)], [("sheets", "Sheet1")])
     record(g, "นำเข้าไฟล์เดิมซ้ำ ไม่สร้างของซ้ำ", status)
     value(g, "  ห้องยังเท่าเดิม", [(r["name"], r["studentCount"], r["itemCount"])

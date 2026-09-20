@@ -210,13 +210,18 @@ public static class BookImportEndpoints
 
         foreach (var row in plan.Items)
         {
-            var item = existing.FirstOrDefault(i => i.Name == row.Name);
+            // จับคู่ด้วยหัวตารางในไฟล์ก่อน ครูจะได้เปลี่ยนชื่อที่แสดงในเว็บได้โดยนำเข้าซ้ำแล้วไม่เกิดรายการใหม่
+            // ถ้ายังไม่มี SourceKey (ข้อมูลที่นำเข้าก่อนมีฟีเจอร์นี้) ค่อยจับคู่ด้วยชื่อแล้วเติม SourceKey ให้
+            var item = existing.FirstOrDefault(i => i.SourceKey == row.Name)
+                       ?? existing.FirstOrDefault(i => i.SourceKey.Length == 0 && i.Name == row.Name);
+
             if (item is null)
             {
                 item = new AssessmentItem
                 {
                     ClassroomId = classroomId,
                     Name = row.Name,
+                    SourceKey = row.Name,
                     MaxScore = row.MaxScore,
                     SortOrder = ++order,
                     TeacherOnly = row.TeacherOnly,
@@ -226,6 +231,8 @@ public static class BookImportEndpoints
             }
             else
             {
+                // ไม่แตะ Name เพราะครูอาจตั้งชื่อเองไว้แล้ว · คะแนนเต็มกับการซ่อนยังยึดตามไฟล์
+                item.SourceKey = row.Name;
                 item.MaxScore = row.MaxScore;
                 item.TeacherOnly = row.TeacherOnly;
             }
