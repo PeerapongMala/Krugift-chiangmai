@@ -9,7 +9,14 @@ export function AuthCard({ title, description, children }: { title: string; desc
       <Card className="w-full max-w-sm">
         {/* CardHeader เป็น grid จัดกลางแนวนอนต้องใช้ justify-items-center ไม่ใช่ items-center */}
         <CardHeader className="justify-items-center gap-2 text-center">
-          <Mascot name="orange" priority className="h-28 w-auto" />
+          {/* กดคาปิบาร่าแล้วโหลดหน้าแรกใหม่ เหมือนกดโลโก้แอป · ใช้ <a> ไม่ใช่ <Link> เพราะอยากให้โหลดใหม่ทั้งหน้าจริง ๆ */}
+          <a
+            href="/"
+            aria-label="กลับหน้าแรก"
+            className="rounded-full transition hover:brightness-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          >
+            <Mascot name="orange" priority className="h-28 w-auto" />
+          </a>
           <CardTitle className="text-xl">{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
