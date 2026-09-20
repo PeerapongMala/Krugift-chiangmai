@@ -93,7 +93,8 @@ docker compose --profile local-db up --build
 Render ฟรีให้ Docker ได้ 1 service ส่วน DB ใช้ Neon แยกต่างหาก
 
 1. **Neon** สร้าง project แล้วคัดลอก connection string แบบ .NET (Npgsql)
-2. **Google OAuth** ที่ console.cloud.google.com เพิ่ม redirect URI เป็น `https://<ชื่อ service>.onrender.com/signin-google`
+2. **Google OAuth** ที่ console.cloud.google.com เพิ่ม redirect URI เป็น `https://<ชื่อ service>.onrender.com/api/signin-google`
+   (path เป็น `/api/signin-google` ไม่ใช่ `/signin-google` ตามค่า `CallbackPath` ใน `Auth/AuthSetup.cs`)
 3. **Render** → New → Web Service → เลือก repo นี้ → Runtime **Docker** (อ่าน `Dockerfile` ที่ราก repo เอง ไม่ต้องตั้ง build command)
 4. ใส่ Environment variables ให้ครบตาม `.env.example`
    `ConnectionStrings__Default` · `Google__ClientId` · `Google__ClientSecret` · `TEACHER_EMAILS`
