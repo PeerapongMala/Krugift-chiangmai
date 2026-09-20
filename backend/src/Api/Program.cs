@@ -40,6 +40,7 @@ app.MapStaff();
 app.MapTerms();
 app.MapStudents();
 app.MapItems();
+app.MapTermItems();
 app.MapScores();
 app.MapImport();
 app.MapBookImport();
