@@ -75,6 +75,8 @@ public static class PublicEndpoints
             {
                 Name = $"{enrollment.Student.FirstName} {enrollment.Student.LastName}",
                 Classroom = enrollment.Classroom.Name,
+                // เลขที่ที่คนกรอกเข้ามาเอง ส่งกลับไปแสดงบนหน้าผล จะได้มั่นใจว่าเปิดถูกคน
+                enrollment.No,
                 Term = enrollment.Classroom.Term.Name,
                 Items = items,
                 // รวมเฉพาะรายการที่มีคะแนนแล้ว รายการที่ครูยังไม่ได้สอบไม่ถูกนับเป็นคะแนนที่หายไป

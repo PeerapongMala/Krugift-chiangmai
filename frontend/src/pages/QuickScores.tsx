@@ -16,6 +16,7 @@ type PublicRoom = { id: number; name: string; term: string; nos: number[] }
 type Result = {
   name: string
   classroom: string
+  no: number
   term: string
   items: { name: string; maxScore: number; value: number | null }[]
   total: number
@@ -73,7 +74,9 @@ export default function QuickScores() {
         title={result.name}
         description={
           <span className="flex flex-col">
-            <span>ห้อง {result.classroom}</span>
+            <span>
+              ห้อง {result.classroom} เลขที่ {result.no}
+            </span>
             <span>{result.term}</span>
           </span>
         }
