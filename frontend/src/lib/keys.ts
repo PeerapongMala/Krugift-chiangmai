@@ -8,6 +8,8 @@ export const routes = {
   teacher: '/teacher',
   staff: '/teacher/staff',
   term: (termId: number) => `/teacher/terms/${termId}`,
+  /** รายการคะแนนของทั้งภาคเรียน — ซ่อน/แสดงและปัดคะแนนทีเดียวทุกห้อง */
+  termItems: (termId: number) => `/teacher/terms/${termId}/items`,
   classroom: (classroomId: number) => `/teacher/classrooms/${classroomId}`,
   classroomItems: (classroomId: number) => `/teacher/classrooms/${classroomId}/items`,
   classroomScores: (classroomId: number) => `/teacher/classrooms/${classroomId}/scores`,
@@ -38,6 +40,7 @@ export const qk = {
   term: (termId: number) => ['terms', termId] as const,
 
   classrooms: (termId: number) => ['terms', termId, 'classrooms'] as const,
+  termItems: (termId: number) => ['terms', termId, 'items'] as const,
   classroom: (classroomId: number) => ['classrooms', classroomId] as const,
   students: (classroomId: number) => ['classrooms', classroomId, 'students'] as const,
   items: (classroomId: number) => ['classrooms', classroomId, 'items'] as const,

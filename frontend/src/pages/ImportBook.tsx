@@ -48,6 +48,8 @@ export default function ImportBook() {
   const [preview, setPreview] = useState<Preview | null>(null)
   const [chosen, setChosen] = useState<string[]>([])
   const [imported, setImported] = useState<string[] | null>(null)
+  // ปัดคะแนนที่หารแล้วเป็นจำนวนเต็มตั้งแต่ตอนนำเข้า (คะแนนดิบของครูเก็บค่าตามไฟล์เสมอ)
+  const [round, setRound] = useState(false)
   const checking = useSubmit()
   const saving = useSubmit()
   const busy = checking.busy || saving.busy
@@ -56,6 +58,7 @@ export default function ImportBook() {
     const body = new FormData()
     body.append('file', selected)
     if (sheets) body.append('sheets', sheets.join(','))
+    body.append('round', String(round))
     return api<T>(`/terms/${termId}/import/book/${step}`, { method: 'POST', body })
   }
 
@@ -138,6 +141,21 @@ export default function ImportBook() {
             </label>
             <p className="text-sm break-all">{file ? file.name : 'ลากไฟล์มาวางตรงนี้ก็ได้ (.xlsx ไม่เกิน 2 MB)'}</p>
           </div>
+          <label className="flex min-h-10 cursor-pointer items-center gap-3 text-sm">
+            <input
+              type="checkbox"
+              checked={round}
+              onChange={(e) => {
+                setRound(e.target.checked)
+                // ผลที่ preview โชว์ไว้คำนวณจากค่าเดิม ต้องกดตรวจใหม่ ไม่งั้นที่บันทึกจะไม่ตรงกับที่เห็น
+                setPreview(null)
+                setChosen([])
+              }}
+              className="size-5 shrink-0 accent-primary"
+            />
+            ปัดคะแนนที่หารแล้วเป็นจำนวนเต็ม (7.33 เป็น 7 และ 7.5 เป็น 8)
+          </label>
+
           <FormError message={checking.error} />
           <Button type="submit" disabled={busy} className="justify-self-start">
             {checking.busy ? 'กำลังตรวจ...' : 'ตรวจไฟล์'}

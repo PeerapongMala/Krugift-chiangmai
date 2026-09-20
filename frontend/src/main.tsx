@@ -20,6 +20,7 @@ import Items from '@/pages/Items'
 import Scores from '@/pages/Scores'
 import StudentHome from '@/pages/StudentHome'
 import Students from '@/pages/Students'
+import TermItems from '@/pages/TermItems'
 import Terms from '@/pages/Terms'
 
 const queryClient = new QueryClient({
@@ -45,6 +46,7 @@ const router = createBrowserRouter([
             children: [
               { path: '/teacher', element: <Terms /> },
               { path: '/teacher/terms/:termId', element: <Classrooms /> },
+              { path: '/teacher/terms/:termId/items', element: <TermItems /> },
               { path: '/teacher/terms/:termId/import', element: <ImportBook /> },
               { path: '/teacher/classrooms/:classroomId', element: <Students /> },
               { path: '/teacher/classrooms/:classroomId/items', element: <Items /> },

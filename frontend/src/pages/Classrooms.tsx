@@ -84,6 +84,10 @@ export default function Classrooms() {
       </Link>
 
       <PageHeader title="ห้องเรียน">
+        {/* ทางลัดไปจัดการรายการคะแนนทีเดียวทุกห้อง ไม่ต้องเข้าไปไล่กดทีละห้อง */}
+        <Link to={routes.termItems(termId)} className={buttonVariants({ variant: 'outline' })}>
+          รายการคะแนนทุกห้อง
+        </Link>
         <Link to={routes.termImport(termId)} className={buttonVariants({ variant: 'outline' })}>
           <FileUp aria-hidden="true" />
           นำเข้าไฟล์ครู
