@@ -4,6 +4,7 @@ export const routes = {
   login: '/login',
   claim: '/claim',
   quickScores: '/scores',
+  privacy: '/privacy',
   teacher: '/teacher',
   staff: '/teacher/staff',
   term: (termId: number) => `/teacher/terms/${termId}`,

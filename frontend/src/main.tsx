@@ -14,6 +14,7 @@ import QuickScores from '@/pages/QuickScores'
 import Classrooms from '@/pages/Classrooms'
 import StaffPage from '@/pages/Staff'
 import ImportBook from '@/pages/ImportBook'
+import Privacy from '@/pages/Privacy'
 import ImportExcel from '@/pages/ImportExcel'
 import Items from '@/pages/Items'
 import Scores from '@/pages/Scores'
@@ -34,6 +35,8 @@ const router = createBrowserRouter([
       { path: '/claim', element: <Claim /> },
       // สาธารณะ ไม่ต้องล็อกอิน
       { path: '/scores', element: <QuickScores /> },
+      // Google บังคับให้มีหน้านโยบายความเป็นส่วนตัวก่อนเปิดให้คนทั่วไปล็อกอินด้วยบัญชี Google
+      { path: '/privacy', element: <Privacy /> },
       {
         element: <RequireRole role="teacher" />,
         children: [

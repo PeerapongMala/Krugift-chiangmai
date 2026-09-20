@@ -31,6 +31,10 @@ export default function Login() {
       <Link to={routes.quickScores} className={buttonVariants()}>
         ดูคะแนนด่วน (ไม่ต้องเข้าสู่ระบบ)
       </Link>
+
+      <Link to={routes.privacy} className="text-center text-xs text-muted-foreground underline underline-offset-2">
+        นโยบายความเป็นส่วนตัว
+      </Link>
     </AuthCard>
   )
 }
