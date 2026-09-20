@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { MessageCircleQuestion } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Modal } from '@/components/Modal'
@@ -69,12 +70,14 @@ export default function StudentHome() {
                 <ScoreList
                   items={room.items}
                   action={(item) => (
+                    // outline ไม่ใช่ ghost เพราะเด็กต้องเห็นตั้งแต่แรกว่ากดได้ ไม่ใช่นึกว่าเป็นข้อความเฉย ๆ
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       aria-label={`สอบถามคะแนน ${item.name}`}
                       onClick={() => openModal({ item, classroom: room.classroom })}
                     >
+                      <MessageCircleQuestion aria-hidden="true" />
                       สอบถาม
                     </Button>
                   )}

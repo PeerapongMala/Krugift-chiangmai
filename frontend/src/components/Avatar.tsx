@@ -1,3 +1,4 @@
+import { Pencil } from 'lucide-react'
 import { useState } from 'react'
 import { Mascot } from '@/components/Mascot'
 import { AVATAR_NAMES, type MascotName } from '@/lib/mascots'
@@ -36,18 +37,29 @@ export function Avatar({ className }: { className?: string }) {
   }
 
   return (
+    // group ทำให้ไอคอนดินสอโผล่ตอนเอาเมาส์ชี้ · บนมือถือไม่มี hover จึงยังต้องพึ่ง aria-label กับขนาดปุ่มที่กดง่าย
     <button
       type="button"
       onClick={showNext}
       title="กดเพื่อเปลี่ยนรูป"
       aria-label="เปลี่ยนรูปโปรไฟล์"
       className={cn(
-        'flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent',
-        'transition hover:brightness-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+        'group relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full',
+        'bg-accent ring-1 ring-transparent transition',
+        'hover:ring-primary/40 hover:brightness-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
         className,
       )}
     >
-      <Mascot name={name} className="h-9 w-auto" />
+      <Mascot name={name} className="h-9 w-auto transition group-hover:scale-105" />
+
+      {/* ป้ายดินสอคลุมทับตอนชี้ บอกว่ารูปนี้เปลี่ยนได้ */}
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 grid place-items-center bg-foreground/45 text-background opacity-0 transition
+                   group-hover:opacity-100 group-focus-visible:opacity-100"
+      >
+        <Pencil className="size-4" />
+      </span>
     </button>
   )
 }
