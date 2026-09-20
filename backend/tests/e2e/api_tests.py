@@ -365,6 +365,25 @@ def run():
     value(g, "  เปลี่ยนแล้วนักเรียนเห็นทันที",
           "คะแนนดิบทดสอบ" in [i["name"] for r in mine2 for i in r["items"]])
 
+    # สวิตช์บนแถวรายการคะแนน (สลับอย่างเดียว ไม่ต้องส่งชื่อ/คะแนนเต็มมาด้วย)
+    record(g, "สวิตช์ปิดไม่ให้นักเรียนเห็น",
+           *owner("PATCH", "/api/items/%d/visibility" % hidden_id, {"visible": False}))
+    value(g, "  ปิดแล้วนักเรียนไม่เห็น",
+          "คะแนนดิบทดสอบ" not in [i["name"] for r in hide("GET", "/api/me/scores")[1] for i in r["items"]])
+    record(g, "สวิตช์เปิดให้นักเรียนเห็น",
+           *owner("PATCH", "/api/items/%d/visibility" % hidden_id, {"visible": True}))
+    value(g, "  เปิดแล้วนักเรียนเห็นทันที",
+          "คะแนนดิบทดสอบ" in [i["name"] for r in hide("GET", "/api/me/scores")[1] for i in r["items"]])
+    value(g, "  ชื่อกับคะแนนเต็มไม่ถูกแตะ",
+          [(i["name"], i["maxScore"]) for i in owner("GET", "/api/classrooms/%d/items" % room_id)[1]
+           if i["id"] == hidden_id])
+    record(g, "สวิตช์ของรายการที่ไม่มีอยู่",
+           *owner("PATCH", "/api/items/999999/visibility", {"visible": False}))
+    record(g, "ครูอื่นกดสวิตช์ของรายการครูอื่น",
+           *other("PATCH", "/api/items/%d/visibility" % hidden_id, {"visible": False}))
+    record(g, "คนไม่ล็อกอินกดสวิตช์",
+           *anon("PATCH", "/api/items/%d/visibility" % hidden_id, {"visible": False}))
+
     # เก็บกวาดรายการทดสอบ
     owner("PUT", "/api/scores", {"itemId": hidden_id, "studentId": sid1, "value": None, "expected": 40})
     owner("DELETE", "/api/items/%d" % hidden_id)

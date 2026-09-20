@@ -9,6 +9,9 @@ namespace Api.Endpoints;
 /// TeacherOnly = ซ่อนจากนักเรียน (ค่าเริ่มต้นคือไม่ซ่อน)
 public record ItemRequest(string Name, decimal MaxScore, bool TeacherOnly = false);
 
+/// Visible = นักเรียนเห็นรายการนี้ (ตรงข้ามกับ TeacherOnly) ใช้กับสวิตช์บนหน้ารายการคะแนน
+public record ItemVisibilityRequest(bool Visible);
+
 /// รายการที่เอาไว้ให้คะแนน เช่น "สอบกลางภาค 20 คะแนน" · หนึ่งห้องมีได้หลายรายการ
 public static class ItemEndpoints
 {
@@ -88,6 +91,18 @@ public static class ItemEndpoints
             item.Name = name;
             item.MaxScore = req.MaxScore;
             item.TeacherOnly = req.TeacherOnly;
+            await db.SaveChangesAsync();
+            return Results.NoContent();
+        });
+
+        // สลับให้นักเรียนเห็น/ไม่เห็นทีละรายการ แยกจาก PATCH เต็มรูปแบบข้างบน
+        // เพราะครูแค่กดสวิตช์ ไม่ควรต้องส่งชื่อกับคะแนนเต็มมาด้วย (ส่งมาผิดจะทับของเดิม)
+        g.MapPatch("/items/{id:int}/visibility", async (int id, ItemVisibilityRequest req, ClaimsPrincipal user, AppDbContext db) =>
+        {
+            var item = await db.FindItem(user, id);
+            if (item is null) return Problems.NotFound("รายการคะแนนนี้");
+
+            item.TeacherOnly = !req.Visible;
             await db.SaveChangesAsync();
             return Results.NoContent();
         });
