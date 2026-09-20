@@ -2,10 +2,14 @@ import type { ReactNode } from 'react'
 import { Credit } from '@/components/Credit'
 import { Mascot } from '@/components/Mascot'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { APP_NAME } from '@/lib/app'
 
 export function AuthCard({ title, description, children }: { title: string; description?: ReactNode; children: ReactNode }) {
   return (
     <div className="auth-bg relative flex min-h-svh flex-col items-center justify-center gap-4 px-4 pt-8 pb-14">
+      {/* หน้าพวกนี้ไม่มีแถบหัวเว็บ ถ้าไม่บอกชื่อแอปคนเปิดจะไม่รู้ว่ากำลังดูของใคร */}
+      <p className="text-sm font-semibold text-muted-foreground">{APP_NAME}</p>
+
       <Card className="w-full max-w-sm">
         {/* CardHeader เป็น grid จัดกลางแนวนอนต้องใช้ justify-items-center ไม่ใช่ items-center */}
         <CardHeader className="justify-items-center gap-2 text-center">
