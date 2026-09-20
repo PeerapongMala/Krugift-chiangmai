@@ -1,0 +1,32 @@
+# รันทั้งระบบบนเครื่องตัวเองแบบเดียวกับที่จะขึ้น production
+#   cp .env.example .env   แล้วเติมค่า
+#   docker compose up --build   →   http://localhost:8080
+#
+# DB ใช้ Neon เหมือน production (ไม่ต้องมี postgres ในนี้)
+# อยากลองกับ postgres ในเครื่อง: docker compose --profile local-db up --build
+# แล้วตั้ง ConnectionStrings__Default=Host=db;Database=krugift;Username=krugift;Password=krugift
+
+services:
+  app:
+    build: .
+    ports:
+      - '8080:8080'
+    env_file: .env
+    environment:
+      PORT: 8080
+    restart: unless-stopped
+
+  db:
+    profiles: ['local-db']
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: krugift
+      POSTGRES_USER: krugift
+      POSTGRES_PASSWORD: krugift
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

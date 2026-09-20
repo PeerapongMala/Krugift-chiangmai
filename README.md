@@ -75,16 +75,37 @@ cd frontend && bun run dev
 ```bash
 git clone https://github.com/PeerapongMala/Krugift-chiangmai.git
 cd Krugift-chiangmai
-cp .env.example .env         # แล้วแก้ค่า Google / TEACHER_EMAILS ใน .env
+cp .env.example .env         # เติม connection string ของ Neon, Google, TEACHER_EMAILS
 docker compose up --build
 ```
-เปิดเว็บที่ http://localhost:8080 · DB เป็น postgres ใน compose ไม่ต้องใช้ Neon
+เปิดเว็บที่ http://localhost:8080 · image เดียวมีทั้งเว็บและ API (เว็บ build แล้วอยู่ใน `wwwroot`)
 
-อยากได้ hot reload แต่ใช้ DB จาก Docker:
+อยากลองกับ postgres ในเครื่องแทน Neon:
 ```bash
-docker compose up postgres   # รันแค่ DB
-# แล้วรัน API + web ตามแบบที่ 1 โดยตั้ง ConnectionStrings:Default ให้ชี้ไปที่ localhost:5432
+docker compose --profile local-db up --build
+# ตั้งใน .env → ConnectionStrings__Default=Host=db;Database=krugift;Username=krugift;Password=krugift
 ```
+
+---
+
+## ขึ้น production (Render)
+
+Render ฟรีให้ Docker ได้ 1 service ส่วน DB ใช้ Neon แยกต่างหาก
+
+1. **Neon** สร้าง project แล้วคัดลอก connection string แบบ .NET (Npgsql)
+2. **Google OAuth** ที่ console.cloud.google.com เพิ่ม redirect URI เป็น `https://<ชื่อ service>.onrender.com/signin-google`
+3. **Render** → New → Web Service → เลือก repo นี้ → Runtime **Docker** (อ่าน `Dockerfile` ที่ราก repo เอง ไม่ต้องตั้ง build command)
+4. ใส่ Environment variables ให้ครบตาม `.env.example`
+   `ConnectionStrings__Default` · `Google__ClientId` · `Google__ClientSecret` · `TEACHER_EMAILS`
+   (Render ส่ง `PORT` มาให้เอง ไม่ต้องตั้ง)
+5. Deploy — ตอน start แอปรัน migration ให้อัตโนมัติ และสร้างครูคนแรกจาก `TEACHER_EMAILS` ถ้าตารางครูยังว่าง
+
+**ข้อควรรู้ของแผนฟรี** service จะหลับเมื่อไม่มีคนใช้ ครั้งแรกที่เปิดหลังหลับจะช้าประมาณ 1 นาที · Neon ไม่ปิด project ถาวรแต่พัก compute ซึ่งปลุกเองใน 1-2 วินาที
+
+### สำรองข้อมูล
+- Neon มี point-in-time restore ในตัว (แผนฟรีย้อนได้ 1 วัน) ใช้กู้กรณีลบผิด
+- อยากได้ไฟล์เก็บเอง: Neon Dashboard → Backups → Download หรือ `pg_dump "<connection string>" -Fc -f krugift-YYYYMMDD.dump` จากเครื่องที่มี PostgreSQL client
+- ไฟล์ dump มีคะแนนและชื่อนักเรียนจริง **ห้ามวางไว้ในโฟลเดอร์ repo** และถ้าจะเก็บบน cloud ต้องเข้ารหัสก่อน
 
 ---
 

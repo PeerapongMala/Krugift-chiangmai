@@ -1,0 +1,30 @@
+# build context เล็กที่สุดเท่าที่จะทำได้ และห้ามมีของลับหรือข้อมูลนักเรียนจริงหลุดเข้า image
+**/bin
+**/obj
+**/node_modules
+**/dist
+.git
+.vs
+.vscode
+.idea
+.playwright-mcp
+.impeccable
+
+# ของลับกับข้อมูลจริง
+**/*.xlsx
+**/*.xls
+**/*.csv
+**/.env
+**/.env.*
+!**/.env.example
+**/appsettings.Development.json
+**/*.user
+
+# ไม่เกี่ยวกับการ build
+*.exe
+docs/
+backend/tests/
+README.md
+CLAUDE.md
+CLAUDE.local.md
+PRODUCT.md

@@ -90,6 +90,6 @@ frontend/src/pages/             1 ไฟล์ต่อ 1 หน้า
 - [x] M5 Import Excel แยก 2 แบบ (รายชื่อนักเรียน / คะแนน) · template ของเราเอง + preview + all-or-nothing · **ได้ไฟล์จริงจากครูแล้ว** อ่านไฟล์ครูได้ตรง (8 ชีท ชีทละห้อง) ผ่านหน้า `/teacher/terms/:termId/import`
 - [x] M6 หน้านักเรียน: คะแนนของฉัน (`/api/me/scores` ดึง studentId จาก cookie เท่านั้น)
 - [x] M7 สอบถามคะแนน (โค้ดใช้ชื่อ Appeal): นักเรียนกด "สอบถาม" ข้างรายการ → thread คุยกับครู · badge ข้อความใหม่บนเมนู (poll ทุก 1 นาที ไม่มี realtime) · ปิดแล้วตอบต่อไม่ได้ เปิดเรื่องใหม่ได้
-- [ ] M8 Dockerfile/compose/.env.example + Render + backup (ผู้ใช้ขอพักไว้ก่อน)
+- [x] M8 Dockerfile (3 stage: Bun build เว็บ → publish API → aspnet alpine) + compose + `.env.example` · build และรัน container ต่อ Neon ผ่านแล้ว · วิธีขึ้น Render กับการสำรองข้อมูลอยู่ใน `README.md`
 
-**ต่อไป:** M8 deploy เมื่อผู้ใช้สั่ง
+**ต่อไป:** deploy ขึ้น Render จริงเมื่อผู้ใช้พร้อม (ต้องตั้ง Google redirect URI ของโดเมนจริงก่อน)
