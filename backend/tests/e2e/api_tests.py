@@ -678,6 +678,54 @@ def run():
     value(g, "  ห้องยังเท่าเดิม", [(r["name"], r["studentCount"], r["itemCount"])
                                   for r in owner("GET", "/api/terms/%d/classrooms" % book_term_id)[1]])
 
+    # ------------------------------------------------- จัดการรายการคะแนนระดับภาคเรียน
+    g = "TERMITEM"
+    term_items = "/api/terms/%d/items" % book_term_id
+
+    record(g, "นักเรียนดูรายการคะแนนทั้งภาคเรียน", *stu("GET", term_items))
+    record(g, "ครูอื่นดูรายการคะแนนภาคเรียนของเรา", *other("GET", term_items))
+    status, groups = owner("GET", term_items)
+    record(g, "ครูดูรายการคะแนนทั้งภาคเรียน", status)
+    value(g, "  รวมตามชื่อ", [(i["name"], i["classrooms"], i["visible"], i["maxScore"], i["scoredCount"],
+                              i["fractionalCount"]) for i in groups or []])
+
+    record(g, "ซ่อนทุกห้องด้วยคำสั่งเดียว",
+           *owner("PATCH", term_items + "/visibility", {"name": "สอบ 1", "visible": False}))
+    value(g, "  ทุกห้องซ่อนแล้ว",
+          [i["teacherOnly"] for i in owner("GET", "/api/classrooms/%d/items" % book_room_id)[1] or []])
+    record(g, "เปิดให้เห็นทุกห้องด้วยคำสั่งเดียว",
+           *owner("PATCH", term_items + "/visibility", {"name": "สอบ 1", "visible": True}))
+    value(g, "  ทุกห้องเห็นแล้ว",
+          [i["teacherOnly"] for i in owner("GET", "/api/classrooms/%d/items" % book_room_id)[1] or []])
+    record(g, "ชื่อรายการที่ไม่มีในภาคเรียน",
+           *owner("PATCH", term_items + "/visibility", {"name": "ไม่มีรายการนี้", "visible": False}))
+    record(g, "ชื่อรายการว่าง", *owner("PATCH", term_items + "/visibility", {"name": "  ", "visible": False}))
+    record(g, "ครูอื่นสั่งซ่อนของภาคเรียนเรา",
+           *other("PATCH", term_items + "/visibility", {"name": "สอบ 1", "visible": False}))
+    record(g, "คนไม่ล็อกอินสั่งซ่อน",
+           *anon("PATCH", term_items + "/visibility", {"name": "สอบ 1", "visible": False}))
+
+    # ปัดคะแนนทั้งภาคเรียน (ไฟล์ตัวอย่างมี 12.5 กับ 20 จึงมีช่องที่ต้องปัด 1 ช่อง)
+    term_round = "/api/terms/%d/round-scores" % book_term_id
+    status, before = owner("GET", term_round)
+    record(g, "ดูว่าจะปัดกี่ช่อง", status)
+    value(g, "  ช่องที่จะเปลี่ยน", (field(before, "count"), field(before, "items")))
+    record(g, "นักเรียนสั่งปัดคะแนน", *stu("POST", term_round))
+    record(g, "ครูอื่นสั่งปัดคะแนนภาคเรียนเรา", *other("POST", term_round))
+    status, done = owner("POST", term_round)
+    record(g, "ครูสั่งปัดคะแนนทั้งภาคเรียน", status)
+    value(g, "  จำนวนช่องที่ปัด", field(done, "changed"))
+    value(g, "  คะแนนหลังปัด", sorted(str(s["value"]) for s in
+                                      owner("GET", "/api/classrooms/%d/scores" % book_room_id)[1]["scores"]))
+    value(g, "  ปัดซ้ำไม่มีอะไรให้ทำ", field(owner("GET", term_round)[1], "count"))
+
+    # นำเข้าไฟล์เดิมโดยติ๊กปัดเศษ คะแนน 12.5 ต้องกลายเป็น 13 ตั้งแต่ตอนนำเข้า
+    status, _ = upload(owner, book_base + "/commit", [("file", "book.xlsx", book_ok)],
+                       [("sheets", "Sheet1"), ("round", "true")])
+    record(g, "นำเข้าซ้ำแบบติ๊กปัดเศษ", status)
+    value(g, "  คะแนนที่นำเข้า", sorted(str(s["value"]) for s in
+                                       owner("GET", "/api/classrooms/%d/scores" % book_room_id)[1]["scores"]))
+
     # ---------------------------------------------------------------- ลบภาคเรียนพร้อมข้อมูล
     g = "PURGE"
     record(g, "ลบธรรมดาทั้งที่ยังมีห้อง", *owner("DELETE", "/api/terms/%d" % book_term_id))
