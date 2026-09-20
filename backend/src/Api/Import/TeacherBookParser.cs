@@ -36,7 +36,11 @@ public static partial class TeacherBookParser
     /// ชีทที่ไม่มีหัวตาราง (เช่น ชีทสรุปคะแนนรวม) ไม่ใช่ห้องเรียน ข้ามได้เลย ไม่ใช่จุดผิด
     public static bool IsRoomSheet(BookSheet sheet) => FindHeaderRow(sheet) != 0;
 
-    public static BookSheetPlan? Parse(BookSheet sheet, ImportErrors errors)
+    /// <param name="roundScores">
+    /// ปัดคะแนนของรายการที่นักเรียนเห็นให้เป็นจำนวนเต็ม (คะแนนดิบของครูไม่ถูกแตะ)
+    /// ครูขอ เพราะคะแนนที่หารแล้วในไฟล์เป็นเลขอย่าง 7.33 ซึ่งอ่านยากสำหรับเด็ก
+    /// </param>
+    public static BookSheetPlan? Parse(BookSheet sheet, ImportErrors errors, bool roundScores = false)
     {
         var headerRow = FindHeaderRow(sheet);
         if (headerRow == 0)
@@ -52,7 +56,7 @@ public static partial class TeacherBookParser
         }
 
         var items = RaiseMaxScores(sheet, headerRow, columns, ReadItems(sheet, headerRow, columns, errors));
-        var (students, scores) = ReadRows(sheet, headerRow, columns, items, errors);
+        var (students, scores) = ReadRows(sheet, headerRow, columns, items, errors, roundScores);
 
         if (students.Count == 0) errors.File($"ชีท {sheet.Name}: ไม่พบข้อมูลนักเรียน");
 
@@ -245,7 +249,7 @@ public static partial class TeacherBookParser
     }
 
     static (List<BookStudent> Students, List<BookScore> Scores) ReadRows(
-        BookSheet sheet, int headerRow, StudentColumns columns, List<BookItem> items, ImportErrors errors)
+        BookSheet sheet, int headerRow, StudentColumns columns, List<BookItem> items, ImportErrors errors, bool roundScores)
     {
         var students = new List<BookStudent>();
         var scores = new List<BookScore>();
@@ -266,7 +270,7 @@ public static partial class TeacherBookParser
             else seenCode[student.Code] = r;
 
             students.Add(student);
-            ReadScores(sheet, r, items, students.Count - 1, scores, errors);
+            ReadScores(sheet, r, items, students.Count - 1, scores, errors, roundScores);
         }
 
         return (students, scores);
@@ -315,7 +319,8 @@ public static partial class TeacherBookParser
     static SheetCell Round2(SheetCell cell) =>
         cell.Kind == CellKind.Number ? SheetCell.Of((double)Math.Round((decimal)cell.Number, 2)) : cell;
 
-    static void ReadScores(BookSheet sheet, int row, List<BookItem> items, int studentIndex, List<BookScore> scores, ImportErrors errors)
+    static void ReadScores(BookSheet sheet, int row, List<BookItem> items, int studentIndex, List<BookScore> scores,
+        ImportErrors errors, bool roundScores)
     {
         for (var i = 0; i < items.Count; i++)
         {
@@ -330,7 +335,12 @@ public static partial class TeacherBookParser
             }
             if (value is null) continue;
 
-            scores.Add(new BookScore(studentIndex, i, value.Value));
+            // ปัดเฉพาะคอลัมน์ที่หารแล้ว (คะแนนดิบเป็นค่าที่ครูกรอกเอง ต้องเก็บไว้ตรงตามไฟล์)
+            var score = roundScores && !items[i].TeacherOnly
+                ? Rounding.ToWhole(value.Value, items[i].MaxScore)
+                : value.Value;
+
+            scores.Add(new BookScore(studentIndex, i, score));
         }
     }
 }

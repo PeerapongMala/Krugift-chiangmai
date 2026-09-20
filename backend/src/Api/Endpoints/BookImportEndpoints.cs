@@ -31,7 +31,7 @@ public static class BookImportEndpoints
             var (book, problem) = await ReadUpload(request);
             if (problem is not null) return problem;
 
-            var parsed = ParseAll(book!, sheets: null);
+            var parsed = ParseAll(book!, sheets: null, RoundRequested(request));
             return Results.Ok(new
             {
                 parsed.Sheets,
@@ -55,7 +55,7 @@ public static class BookImportEndpoints
             var missing = chosen.Where(name => book!.All(s => s.Name != name)).ToList();
             if (missing.Count > 0) return Problems.Invalid($"ไม่พบชีท {string.Join(", ", missing)} ในไฟล์นี้");
 
-            var parsed = ParseAll(book!, chosen);
+            var parsed = ParseAll(book!, chosen, RoundRequested(request));
             if (parsed.ErrorCount > 0)
                 return Problems.Invalid($"ไฟล์ยังมีจุดที่ต้องแก้ {parsed.ErrorCount} จุด ไม่ได้บันทึกอะไรเลย กรุณากดตรวจไฟล์อีกครั้ง");
 
@@ -77,7 +77,11 @@ public static class BookImportEndpoints
     record ParsedBook(List<SheetReport> Sheets, List<ImportError> Errors, int ErrorCount, List<BookSheetPlan> Plans);
 
     /// ตรวจทุกชีท (หรือเฉพาะชีทที่เลือก) · ชีทที่ไม่ใช่ตารางห้องเรียน เช่น ชีทสรุป ข้ามไปเฉย ๆ ไม่ใช่จุดผิด
-    static ParsedBook ParseAll(IReadOnlyList<BookSheet> book, IReadOnlyList<string>? sheets)
+    /// ครูติ๊ก "ปัดคะแนนเป็นจำนวนเต็ม" บนหน้านำเข้า · ส่งมากับ multipart เหมือนช่องอื่น
+    static bool RoundRequested(HttpRequest request) =>
+        request.Form["round"].ToString().Equals("true", StringComparison.OrdinalIgnoreCase);
+
+    static ParsedBook ParseAll(IReadOnlyList<BookSheet> book, IReadOnlyList<string>? sheets, bool roundScores)
     {
         var reports = new List<SheetReport>();
         var allErrors = new List<ImportError>();
@@ -94,7 +98,7 @@ public static class BookImportEndpoints
             }
 
             var errors = new ImportErrors();
-            var plan = TeacherBookParser.Parse(sheet, errors);
+            var plan = TeacherBookParser.Parse(sheet, errors, roundScores);
             var result = errors.Result<BookPlan>(null);
 
             // ใส่ชื่อชีทไว้หน้าข้อความ ครูจะได้รู้ว่าจุดผิดอยู่ชีทไหน (ตารางจุดผิดบอกแค่แถวกับคอลัมน์)

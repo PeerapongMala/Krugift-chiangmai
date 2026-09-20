@@ -129,6 +129,25 @@ public class TeacherBookParserTests
     }
 
     [Fact]
+    public void ปัดคะแนนที่หารแล้วเป็นจำนวนเต็ม_คะแนนดิบคงค่าตามไฟล์()
+    {
+        var errors = new ImportErrors();
+        var plan = TeacherBookParser.Parse(Sample(), errors, roundScores: true);
+
+        Assert.Equal(0, errors.Count);
+        // คนแรกเรียงตามลำดับรายการ: สอบ 1 หารแล้ว 7.22 → 7 · ดิบ 32.5 คงเดิม · กลางภาคหารแล้ว 18.86 → 19 · ดิบ 33 คงเดิม
+        Assert.Equal([7m, 32.5m, 19m, 33m], plan!.Scores.Where(s => s.Row == 0).Select(s => s.Value));
+    }
+
+    [Fact]
+    public void ไม่ติ๊กปัดเศษคะแนนต้องเท่าไฟล์เป๊ะ()
+    {
+        var (plan, _) = Parse(Sample());
+
+        Assert.Equal([7.22m, 32.5m, 18.86m, 33m], plan!.Scores.Where(s => s.Row == 0).Select(s => s.Value));
+    }
+
+    [Fact]
     public void ช่องคะแนนว่างไม่นับเป็นคะแนน()
     {
         var (plan, errors) = Parse(Sample());
