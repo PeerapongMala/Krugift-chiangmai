@@ -2,7 +2,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useConfirm } from '@/components/ConfirmDialog'
+import { Field } from '@/components/Field'
 import { FormError } from '@/components/FormError'
+import { Modal } from '@/components/Modal'
 import { Meta } from '@/components/Meta'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
@@ -14,6 +16,7 @@ import { Switch } from '@/components/ui/switch'
 import { api } from '@/lib/api'
 import { qk, routes } from '@/lib/keys'
 import { useSubmit } from '@/lib/useSubmit'
+import { firstError, validate } from '@/lib/validate'
 import { useTermName } from '@/lib/useTermName'
 
 /** รายการคะแนนชื่อเดียวกันของทุกห้องในภาคเรียน รวมเป็นแถวเดียว */
@@ -43,6 +46,9 @@ export default function TermItems() {
     enabled: Number.isInteger(termId),
   })
   const action = useSubmit()
+  const form = useSubmit()
+  const [adding, setAdding] = useState(false)
+  const [editing, setEditing] = useState<TermItem | null>(null)
   const { confirm, dialog } = useConfirm()
   /** ผลของการปัดคะแนน ถ้าไม่บอกครูจะไม่เห็นว่าเกิดอะไรขึ้น เพราะตัวเลขอยู่อีกหน้า */
   const [note, setNote] = useState('')
@@ -62,6 +68,40 @@ export default function TermItems() {
       await api(`/terms/${termId}/items/visibility`, { method: 'PATCH', json: { name: item.name, visible } })
       await refresh()
     })
+  }
+
+  /** รายการที่เพิ่มจากหน้านี้ถูกสร้างให้ทุกห้องในภาคเรียน ครูจะได้ไม่ต้องไล่เพิ่มทีละห้อง */
+  async function create(f: FormData) {
+    const name = String(f.get('name') ?? '')
+    const maxScore = Number(f.get('maxScore'))
+    if (!form.check(firstError(validate.name(name, 'ชื่อรายการ'), validate.maxScore(maxScore)))) return
+
+    const ok = await form.run(async () => {
+      const done = await api<{ classrooms: number }>(`/terms/${termId}/items`, {
+        method: 'POST',
+        json: { name, maxScore, teacherOnly: f.get('teacherOnly') === 'on' },
+      })
+      await refresh()
+      setNote(`เพิ่ม "${name.trim()}" ให้ ${done.classrooms} ห้องแล้ว`)
+    })
+    if (ok) setAdding(false)
+  }
+
+  async function save(f: FormData) {
+    if (!editing) return
+    const newName = String(f.get('name') ?? '')
+    const maxScore = Number(f.get('maxScore'))
+    if (!form.check(firstError(validate.name(newName, 'ชื่อรายการ'), validate.maxScore(maxScore)))) return
+
+    const ok = await form.run(async () => {
+      const done = await api<{ classrooms: number }>(`/terms/${termId}/items`, {
+        method: 'PATCH',
+        json: { name: editing.name, newName, maxScore },
+      })
+      await refresh()
+      setNote(`แก้ "${newName.trim()}" ใน ${done.classrooms} ห้องแล้ว`)
+    })
+    if (ok) setEditing(null)
   }
 
   async function discard(item: TermItem) {
@@ -123,6 +163,9 @@ export default function TermItems() {
         <Button variant="outline" disabled={action.busy} onClick={roundScores}>
           ปัดคะแนนเป็นจำนวนเต็ม
         </Button>
+        <Button disabled={action.busy} onClick={() => setAdding(true)}>
+          เพิ่มรายการ
+        </Button>
       </TabToolbar>
 
       {note && <p className="mb-3 rounded-lg bg-accent px-3 py-2 text-sm">{note}</p>}
@@ -154,6 +197,9 @@ export default function TermItems() {
                     />
                     {item.visible === null ? 'บางห้องซ่อนอยู่' : 'นักเรียนเห็น'}
                   </label>
+                  <Button variant="outline" size="sm" disabled={action.busy} onClick={() => setEditing(item)}>
+                    แก้ไข
+                  </Button>
                   <Button variant="destructive" size="sm" disabled={action.busy} onClick={() => discard(item)}>
                     ลบ
                   </Button>
@@ -163,6 +209,45 @@ export default function TermItems() {
           </Rows>
         )}
       </QueryState>
+
+      <Modal
+        open={adding}
+        onOpenChange={setAdding}
+        title="เพิ่มรายการคะแนนทุกห้อง"
+        onSubmit={create}
+        submitLabel="เพิ่ม"
+        busy={form.busy}
+        error={form.error}
+      >
+        <Field label="ชื่อรายการ" name="name" placeholder="สอบปลายภาค" required />
+        <Field label="คะแนนเต็ม" name="maxScore" type="number" min={0.01} step={0.01} defaultValue={10} required />
+        <label className="flex min-h-10 cursor-pointer items-center gap-3 text-sm">
+          <input type="checkbox" name="teacherOnly" className="size-5 shrink-0 accent-primary" />
+          ซ่อนจากนักเรียน (เห็นเฉพาะครู)
+        </label>
+      </Modal>
+
+      {/* key ทำให้ modal สร้างใหม่ทุกครั้งที่เปลี่ยนรายการ defaultValue จะได้อัปเดตตาม */}
+      <Modal
+        key={editing?.name}
+        open={editing !== null}
+        onOpenChange={(open) => !open && setEditing(null)}
+        title="แก้ไขรายการคะแนนทุกห้อง"
+        onSubmit={save}
+        busy={form.busy}
+        error={form.error}
+      >
+        <Field label="ชื่อรายการ" name="name" defaultValue={editing?.name} required />
+        <Field
+          label="คะแนนเต็ม"
+          name="maxScore"
+          type="number"
+          min={0.01}
+          step={0.01}
+          defaultValue={editing?.maxScore ?? undefined}
+          required
+        />
+      </Modal>
 
       {dialog}
     </>

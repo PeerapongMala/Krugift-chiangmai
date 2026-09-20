@@ -119,45 +119,52 @@ public class SheetReaderTests
     }
 
     [Fact]
-    public void templateนักเรียน_อ่านกลับแล้วไม่มีอะไรเปลี่ยน()
+    public void ไฟล์ส่งออกมี2ชีทเรียงนักเรียนแล้วคะแนน()
     {
-        var students = Students();
-        var (sheet, error) = SheetReader.Read(ImportTemplates.Students(students));
-        Assert.Null(error);
+        using var workbook = Exported();
 
-        var snapshot = new StudentSnapshot(students,
-            students.ToDictionary(s => s.Code, s => new ExistingStudent(s.StudentId, s.Code, s.FirstName, s.LastName)));
-        var result = StudentSheetParser.Parse(sheet!, snapshot);
-
-        Assert.True(result.IsValid, Errors(result));
-        Assert.False(result.Plan!.HasChanges);
-        Assert.Contains(result.Plan.Students, s => s.Code == "01234");
+        Assert.Equal(["นักเรียน", "คะแนน"], workbook.Worksheets.Select(w => w.Name));
     }
 
     [Fact]
-    public void templateคะแนน_อ่านกลับแล้วไม่มีอะไรเปลี่ยน()
+    public void ชีทนักเรียนมีหัวตารางและรหัสที่ขึ้นต้นด้วยศูนย์ครบ()
     {
-        var students = Students();
-        ExistingItem[] items = [new(1, "สอบกลางภาค", 20m), new(2, "งาน/การบ้าน", 7.5m)];
-        var scores = new Dictionary<(int, int), decimal?> { [(1, 10)] = 17.5m, [(2, 11)] = 7m };
+        using var workbook = Exported();
+        var sheet = workbook.Worksheet("นักเรียน");
 
-        var (sheet, error) = SheetReader.Read(ImportTemplates.Scores(items, students, scores));
-        Assert.Null(error);
-
-        var result = ScoreSheetParser.Parse(sheet!, new ScoreSnapshot(items, students, scores));
-
-        Assert.True(result.IsValid, Errors(result));
-        Assert.False(result.Plan!.HasChanges);
+        Assert.Equal(["เลขที่", "รหัสนักเรียน", "ชื่อ", "นามสกุล"],
+            Enumerable.Range(1, 4).Select(c => sheet.Cell(1, c).GetString()));
+        // รหัสขึ้นต้นด้วย 0 ต้องไม่ถูก Excel ทำเป็นตัวเลขจนศูนย์หาย
+        Assert.Equal("01234", sheet.Cell(2, 2).GetString());
     }
 
     [Fact]
-    public void templateคะแนนห้องว่าง_ยังอ่านหัวตารางได้()
+    public void ชีทคะแนนมีคะแนนเต็มบนหัวและคะแนนของนักเรียน()
+    {
+        using var workbook = Exported();
+        var sheet = workbook.Worksheet("คะแนน");
+
+        Assert.Equal("สอบกลางภาค (20)", sheet.Cell(1, 5).GetString());
+        Assert.Equal("งาน/การบ้าน (7.5)", sheet.Cell(1, 6).GetString());
+        Assert.Equal(17.5, sheet.Cell(2, 5).GetDouble());
+        Assert.Equal(7, sheet.Cell(3, 6).GetDouble());
+    }
+
+    [Fact]
+    public void ห้องที่ยังไม่มีนักเรียนก็ส่งออกได้()
     {
         ExistingItem[] items = [new(1, "สอบกลางภาค", 20m)];
+        using var workbook = new XLWorkbook(
+            new MemoryStream(ImportTemplates.Classroom(items, [], new Dictionary<(int, int), decimal?>())));
 
-        var (sheet, error) = SheetReader.Read(ImportTemplates.Scores(items, [], new Dictionary<(int, int), decimal?>()));
+        Assert.Equal("สอบกลางภาค (20)", workbook.Worksheet("คะแนน").Cell(1, 5).GetString());
+    }
 
-        Assert.Null(error);
-        Assert.Equal(["เลขที่", "รหัสนักเรียน", "ชื่อ", "นามสกุล", "สอบกลางภาค (20)"], sheet!.Header.Select(c => c.Text));
+    /// ไฟล์ส่งออกของห้องตัวอย่าง · นักเรียน 2 คน รายการคะแนน 2 รายการ
+    static XLWorkbook Exported()
+    {
+        ExistingItem[] items = [new(1, "สอบกลางภาค", 20m), new(2, "งาน/การบ้าน", 7.5m)];
+        var scores = new Dictionary<(int, int), decimal?> { [(1, 10)] = 17.5m, [(2, 11)] = 7m };
+        return new XLWorkbook(new MemoryStream(ImportTemplates.Classroom(items, Students(), scores)));
     }
 }

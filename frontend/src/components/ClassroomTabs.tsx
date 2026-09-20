@@ -2,21 +2,21 @@ import { Link } from 'react-router'
 import { routes } from '@/lib/keys'
 import { cn } from '@/lib/utils'
 
-type Tab = 'students' | 'items' | 'scores'
+type Tab = 'students' | 'scores'
 
 const TABS: { key: Tab; label: string; to: (classroomId: number) => string }[] = [
   { key: 'students', label: 'นักเรียน', to: routes.classroom },
-  { key: 'items', label: 'รายการคะแนน', to: routes.classroomItems },
   { key: 'scores', label: 'ตารางคะแนน', to: routes.classroomScores },
 ]
 
 /**
- * แท็บของห้องเรียนหนึ่งห้อง — นักเรียน / รายการ / ตารางคะแนน เป็นมุมมองของห้องเดียวกัน
+ * แท็บของห้องเรียนหนึ่งห้อง — นักเรียน / ตารางคะแนน เป็นมุมมองของห้องเดียวกัน
+ * รายการคะแนนไม่อยู่ตรงนี้ เพราะจัดการทีเดียวทั้งภาคเรียนที่ /teacher/terms/:termId/items
  * ไม่ใช่เมนูหลักของแอป จึงอยู่ใต้หัวข้อหน้า และบอกชัดว่าตอนนี้อยู่แท็บไหน
  */
 export function ClassroomTabs({ classroomId, active }: { classroomId: number; active: Tab }) {
   return (
-    // ไม่ใส่ overflow-x-auto: แท็บ 3 อันพอดีจอ 400px อยู่แล้ว และ overflow จะทำให้ -mb-px ของแท็บ
+    // ไม่ใส่ overflow-x-auto: แท็บพอดีจอ 400px อยู่แล้ว และ overflow จะทำให้ -mb-px ของแท็บ
     // (ให้เส้นใต้ทับขอบล่างพอดี) ล้นแนวตั้ง 1px จน scrollbar โผล่ขึ้นมา
     <nav aria-label="มุมมองของห้องเรียน" className="mb-4 flex flex-wrap gap-1 border-b">
       {TABS.map((tab) => (

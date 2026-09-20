@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router'
 import { useConfirm } from '@/components/ConfirmDialog'
 import { Field } from '@/components/Field'
 import { ClassroomTabs } from '@/components/ClassroomTabs'
-import { ExcelButtons } from '@/components/ExcelButtons'
+import { ExportButton } from '@/components/ExportButton'
 import { FormError } from '@/components/FormError'
 import { Modal } from '@/components/Modal'
 import { Meta } from '@/components/Meta'
@@ -134,7 +134,7 @@ export default function Students() {
       <ClassroomTabs classroomId={classroomId} active="students" />
 
       <TabToolbar>
-        <ExcelButtons classroomId={classroomId} kind="students" />
+        <ExportButton classroomId={classroomId} />
         <Button onClick={() => setAdding(true)}>เพิ่มนักเรียน</Button>
       </TabToolbar>
 

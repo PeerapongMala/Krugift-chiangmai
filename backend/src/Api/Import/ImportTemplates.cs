@@ -4,8 +4,8 @@ using ClosedXML.Excel;
 namespace Api.Import;
 
 /// <summary>
-/// template ของห้องหนึ่งห้อง · ใส่ข้อมูลปัจจุบันไว้ให้ ครูแก้แล้วอัปโหลดกลับได้เลย
-/// ไฟล์ที่ได้อ่านกลับด้วย SheetReader + parser แล้วต้องไม่มีอะไรเปลี่ยน (มีเทสต์ยืนยัน)
+/// ไฟล์ Excel ของห้องหนึ่งห้องพร้อมข้อมูลปัจจุบัน ใช้ตอนครูกดส่งออก
+/// ขาออกอย่างเดียว การนำเข้ามีทางเดียวคือไฟล์ของครูทั้งภาคเรียน
 /// </summary>
 public static class ImportTemplates
 {
@@ -16,19 +16,23 @@ public static class ImportTemplates
 
     const int FirstItemColumn = 5;
 
-    public static byte[] Students(IReadOnlyList<ExistingEnrollment> students)
-    {
-        using var workbook = new XLWorkbook();
-        var sheet = StartSheet(workbook, "นักเรียน", StudentSheetParser.Headers);
-        WriteStudents(sheet, students, (_, _) => { });
-        return Save(workbook);
-    }
+    /// หัวตารางของไฟล์ที่ส่งออก · เรียงเหมือนที่ครูคุ้นจากไฟล์ของตัวเอง
+    static readonly string[] Headers = [Cells.NoHeader, Cells.CodeHeader, Cells.FirstNameHeader, Cells.LastNameHeader];
 
-    public static byte[] Scores(IReadOnlyList<ExistingItem> items, IReadOnlyList<ExistingEnrollment> students,
+    /// หัวคอลัมน์คะแนนใส่คะแนนเต็มไว้ในวงเล็บ ครูจะได้รู้ว่าเต็มเท่าไรโดยไม่ต้องเปิดเว็บเทียบ
+    static string ItemHeader(string name, decimal maxScore) => $"{name} ({Cells.Format(maxScore)})";
+
+    /// ไฟล์เดียวของห้องหนึ่งห้อง 2 ชีท: รายชื่อนักเรียน กับ ตารางคะแนน
+    /// ครูกดส่งออกครั้งเดียวได้ครบ ไม่ต้องเลือกว่าจะเอาอะไร
+    public static byte[] Classroom(IReadOnlyList<ExistingItem> items, IReadOnlyList<ExistingEnrollment> students,
         IReadOnlyDictionary<(int ItemId, int StudentId), decimal?> scores)
     {
         using var workbook = new XLWorkbook();
-        var headers = StudentSheetParser.Headers.Concat(items.Select(i => ScoreSheetParser.ItemHeader(i.Name, i.MaxScore))).ToList();
+
+        var roster = StartSheet(workbook, "นักเรียน", Headers);
+        WriteStudents(roster, students, (_, _) => { });
+
+        var headers = Headers.Concat(items.Select(i => ItemHeader(i.Name, i.MaxScore))).ToList();
         var sheet = StartSheet(workbook, "คะแนน", headers);
 
         WriteStudents(sheet, students, (row, student) =>

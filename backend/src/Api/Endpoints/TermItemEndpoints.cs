@@ -9,6 +9,12 @@ namespace Api.Endpoints;
 /// ซ่อน/แสดงรายการคะแนนชื่อนี้ทุกห้องในภาคเรียนพร้อมกัน
 public record TermItemVisibilityRequest(string Name, bool Visible);
 
+/// เพิ่มรายการคะแนนให้ทุกห้องในภาคเรียนพร้อมกัน
+public record TermItemCreateRequest(string Name, decimal MaxScore, bool TeacherOnly = false);
+
+/// แก้ชื่อหรือคะแนนเต็มของรายการชื่อ Name ทุกห้องในภาคเรียน
+public record TermItemUpdateRequest(string Name, string NewName, decimal MaxScore);
+
 /// <summary>
 /// จัดการรายการคะแนน "ทั้งภาคเรียน" ทีเดียว แทนการไล่ทำทีละห้อง
 /// ไฟล์ครูนำเข้าทีเดียว 8 ห้อง ทุกห้องจึงมีรายการชื่อเดียวกัน (จำนวนเต็ม สอบ 1, สอบกลางภาค, ...)
@@ -58,6 +64,79 @@ public static class TermItemEndpoints
                 .ToList();
 
             return Results.Ok(groups);
+        });
+
+        // เพิ่มรายการเดียวกันให้ทุกห้องในภาคเรียน · ห้องที่มีชื่อนี้อยู่แล้วข้ามไป (นำเข้าซ้ำแล้วกดเพิ่มก็ไม่พัง)
+        g.MapPost("/items", async (int termId, TermItemCreateRequest req, ClaimsPrincipal user, AppDbContext db) =>
+        {
+            if (Validate.Name(req.Name, "ชื่อรายการ") is { } e1) return Problems.Invalid(e1);
+            if (Validate.MaxScore(req.MaxScore) is { } e2) return Problems.Invalid(e2);
+            if (await db.FindTerm(user, termId) is null) return Problems.NotFound("ภาคเรียนนี้");
+
+            var name = req.Name.Trim();
+            var rooms = await db.ClassroomsOf(user)
+                .Where(c => c.TermId == termId)
+                .Select(c => new
+                {
+                    c.Id,
+                    Taken = c.Items.Any(i => i.Name == name),
+                    NextOrder = c.Items.Max(i => (int?)i.SortOrder) ?? 0,
+                })
+                .ToListAsync();
+            if (rooms.Count == 0) return Problems.Invalid("ภาคเรียนนี้ยังไม่มีห้องเรียน");
+
+            var added = rooms.Where(r => !r.Taken).ToList();
+            if (added.Count == 0) return Problems.Duplicate("รายการคะแนน");
+
+            db.Items.AddRange(added.Select(r => new AssessmentItem
+            {
+                ClassroomId = r.Id,
+                Name = name,
+                MaxScore = req.MaxScore,
+                SortOrder = r.NextOrder + 1,
+                TeacherOnly = req.TeacherOnly,
+            }));
+            await db.SaveChangesAsync();
+
+            return Results.Ok(new { Classrooms = added.Count });
+        });
+
+        // แก้ชื่อและคะแนนเต็มพร้อมกันทุกห้อง · ลดคะแนนเต็มต่ำกว่าคะแนนที่กรอกไว้ไม่ได้ เหมือนตอนแก้ทีละห้อง
+        g.MapPatch("/items", async (int termId, TermItemUpdateRequest req, ClaimsPrincipal user, AppDbContext db) =>
+        {
+            if (Validate.Name(req.NewName, "ชื่อรายการ") is { } e1) return Problems.Invalid(e1);
+            if (Validate.MaxScore(req.MaxScore) is { } e2) return Problems.Invalid(e2);
+            if (await db.FindTerm(user, termId) is null) return Problems.NotFound("ภาคเรียนนี้");
+
+            var name = req.Name?.Trim() ?? "";
+            var newName = req.NewName.Trim();
+            if (name.Length == 0) return Problems.Invalid("กรุณาระบุชื่อรายการคะแนน");
+
+            var items = await db.ItemsOf(user)
+                .Where(i => i.Classroom.TermId == termId && i.Name == name)
+                .ToListAsync();
+            if (items.Count == 0) return Problems.NotFound("รายการคะแนนนี้ในภาคเรียนนี้");
+
+            if (newName != name)
+            {
+                var roomIds = items.Select(i => i.ClassroomId).ToList();
+                if (await db.Items.AnyAsync(i => roomIds.Contains(i.ClassroomId) && i.Name == newName))
+                    return Problems.Duplicate("รายการคะแนน");
+            }
+
+            var ids = items.Select(i => i.Id).ToList();
+            var highest = await db.Scores.Where(s => ids.Contains(s.ItemId)).MaxAsync(s => s.Value);
+            if (highest > req.MaxScore)
+                return Problems.Conflict($"มีคะแนนที่กรอกไว้สูงถึง {highest:0.##} ลดคะแนนเต็มต่ำกว่านั้นไม่ได้");
+
+            foreach (var item in items)
+            {
+                item.Name = newName;
+                item.MaxScore = req.MaxScore;
+            }
+            await db.SaveChangesAsync();
+
+            return Results.Ok(new { Classrooms = items.Count });
         });
 
         g.MapPatch("/items/visibility", async (int termId, TermItemVisibilityRequest req, ClaimsPrincipal user, AppDbContext db) =>

@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState, type KeyboardEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { ClassroomTabs } from '@/components/ClassroomTabs'
-import { ExcelButtons } from '@/components/ExcelButtons'
+import { ExportButton } from '@/components/ExportButton'
 import { FormError } from '@/components/FormError'
 import { PageHeader } from '@/components/PageHeader'
 import { QueryState } from '@/components/QueryState'
@@ -14,7 +14,7 @@ import { validate } from '@/lib/validate'
 type Item = { id: number; name: string; maxScore: number; teacherOnly: boolean }
 type Pupil = { studentId: number; no: number; studentCode: string; firstName: string; lastName: string }
 type Cell = { itemId: number; studentId: number; value: number }
-type Grid = { items: Item[]; students: Pupil[]; scores: Cell[] }
+type Grid = { termId: number; items: Item[]; students: Pupil[]; scores: Cell[] }
 
 export default function Scores() {
   const classroomId = Number(useParams().classroomId)
@@ -72,7 +72,7 @@ export default function Scores() {
       <ClassroomTabs classroomId={classroomId} active="scores" />
 
       <TabToolbar>
-        <ExcelButtons classroomId={classroomId} kind="scores" />
+        <ExportButton classroomId={classroomId} />
       </TabToolbar>
 
       <FormError message={error} />
@@ -82,7 +82,7 @@ export default function Scores() {
           data.items.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">
               ยังไม่มีรายการคะแนน —{' '}
-              <Link to={routes.classroomItems(classroomId)} className="underline underline-offset-2">
+              <Link to={routes.termItems(data.termId)} className="underline underline-offset-2">
                 เพิ่มรายการก่อน
               </Link>
             </p>

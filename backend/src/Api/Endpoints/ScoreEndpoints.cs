@@ -22,7 +22,8 @@ public static class ScoreEndpoints
         // ตารางทั้งห้องในคำขอเดียว ฝั่งเว็บจะได้ไม่ต้องยิงทีละช่อง
         g.MapGet("/classrooms/{id:int}/scores", async (int id, ClaimsPrincipal user, AppDbContext db) =>
         {
-            if (await db.FindClassroom(user, id) is null) return Problems.NotFound("ห้องเรียนนี้");
+            var classroom = await db.FindClassroom(user, id);
+            if (classroom is null) return Problems.NotFound("ห้องเรียนนี้");
 
             var items = await db.ItemsOf(user)
                 .Where(i => i.ClassroomId == id)
@@ -42,7 +43,8 @@ public static class ScoreEndpoints
                 .Select(s => new { s.ItemId, s.StudentId, s.Value })
                 .ToListAsync();
 
-            return Results.Ok(new { items, students, scores });
+            // termId ไว้ให้หน้าเว็บลิงก์ไปจัดการรายการคะแนนของภาคเรียนได้ตอนที่ห้องยังไม่มีรายการ
+            return Results.Ok(new { classroom.TermId, items, students, scores });
         });
 
         g.MapPut("/scores", async (SetScoreRequest req, ClaimsPrincipal user, AppDbContext db) =>

@@ -15,8 +15,6 @@ import Classrooms from '@/pages/Classrooms'
 import StaffPage from '@/pages/Staff'
 import ImportBook from '@/pages/ImportBook'
 import Privacy from '@/pages/Privacy'
-import ImportExcel from '@/pages/ImportExcel'
-import Items from '@/pages/Items'
 import Scores from '@/pages/Scores'
 import StudentHome from '@/pages/StudentHome'
 import Students from '@/pages/Students'
@@ -49,9 +47,7 @@ const router = createBrowserRouter([
               { path: '/teacher/terms/:termId/items', element: <TermItems /> },
               { path: '/teacher/terms/:termId/import', element: <ImportBook /> },
               { path: '/teacher/classrooms/:classroomId', element: <Students /> },
-              { path: '/teacher/classrooms/:classroomId/items', element: <Items /> },
               { path: '/teacher/classrooms/:classroomId/scores', element: <Scores /> },
-              { path: '/teacher/classrooms/:classroomId/import/:kind', element: <ImportExcel /> },
               { path: '/teacher/staff', element: <StaffPage /> },
               { path: '/teacher/appeals', element: <Appeals /> },
               { path: '/teacher/appeals/:appealId', element: <AppealThread /> },

@@ -19,6 +19,7 @@ snapshot เก็บทั้ง status และ "ข้อความไท�
 import http.cookiejar
 import io
 import json
+import re
 from urllib.parse import quote
 import os
 import sys
@@ -203,25 +204,37 @@ def run():
     record(g, "ยกเลิกการผูกคนที่ไม่มีอยู่", *owner("POST", "/api/students/999999/unlink"))
 
     # ---------------------------------------------------------------- รายการคะแนน
+    # จัดการที่ระดับภาคเรียน รายการเดียวถูกสร้างให้ทุกห้องในภาคเรียนพร้อมกัน
     g = "ITEM"
-    status, item = owner("POST", "/api/classrooms/%d/items" % room_id, {"name": "สอบกลางภาค", "maxScore": 20})
-    record(g, "สร้างรายการ", status)
-    item_id = item["id"]
-    value(g, "  sortOrder เริ่มที่ 1", item["sortOrder"])
-    status, item2 = owner("POST", "/api/classrooms/%d/items" % room_id, {"name": "เก็บคะแนน", "maxScore": 10})
-    value(g, "  รายการที่สองได้ order 2", item2["sortOrder"])
-    record(g, "ชื่อรายการซ้ำ", *owner("POST", "/api/classrooms/%d/items" % room_id,
-                                      {"name": " สอบกลางภาค ", "maxScore": 5}))
-    record(g, "ชื่อรายการว่าง", *owner("POST", "/api/classrooms/%d/items" % room_id, {"name": " ", "maxScore": 5}))
-    record(g, "คะแนนเต็ม 0", *owner("POST", "/api/classrooms/%d/items" % room_id, {"name": "a", "maxScore": 0}))
-    record(g, "คะแนนเต็มติดลบ", *owner("POST", "/api/classrooms/%d/items" % room_id, {"name": "b", "maxScore": -1}))
-    record(g, "คะแนนเต็มทศนิยมเกิน 2 ตำแหน่ง", *owner("POST", "/api/classrooms/%d/items" % room_id,
-                                                   {"name": "c", "maxScore": 10.555}))
-    record(g, "คะแนนเต็มเกินเพดาน", *owner("POST", "/api/classrooms/%d/items" % room_id,
-                                           {"name": "c", "maxScore": 10000}))
-    record(g, "รายการในห้องที่ไม่มีอยู่", *owner("POST", "/api/classrooms/999999/items",
-                                                 {"name": "d", "maxScore": 5}))
-    record(g, "แก้รายการที่ไม่มีอยู่", *owner("PATCH", "/api/items/999999", {"name": "x", "maxScore": 5}))
+    term_items = "/api/terms/%d/items" % term_id
+    record(g, "สร้างรายการให้ทุกห้อง", *owner("POST", term_items, {"name": "สอบกลางภาค", "maxScore": 20}))
+    record(g, "สร้างรายการที่สอง", *owner("POST", term_items, {"name": "เก็บคะแนน", "maxScore": 10}))
+    items_of_room = owner("GET", "/api/classrooms/%d/items" % room_id)[1]
+    value(g, "  รายการในห้องแรก", [(i["name"], i["maxScore"], i["sortOrder"]) for i in items_of_room])
+    item_id = next(i["id"] for i in items_of_room if i["name"] == "สอบกลางภาค")
+    item2_id = next(i["id"] for i in items_of_room if i["name"] == "เก็บคะแนน")
+
+    record(g, "ชื่อรายการซ้ำ", *owner("POST", term_items, {"name": " สอบกลางภาค ", "maxScore": 5}))
+    record(g, "ชื่อรายการว่าง", *owner("POST", term_items, {"name": " ", "maxScore": 5}))
+    record(g, "คะแนนเต็ม 0", *owner("POST", term_items, {"name": "a", "maxScore": 0}))
+    record(g, "คะแนนเต็มติดลบ", *owner("POST", term_items, {"name": "b", "maxScore": -1}))
+    record(g, "คะแนนเต็มทศนิยมเกิน 2 ตำแหน่ง", *owner("POST", term_items, {"name": "c", "maxScore": 10.555}))
+    record(g, "คะแนนเต็มเกินเพดาน", *owner("POST", term_items, {"name": "c", "maxScore": 10000}))
+    record(g, "สร้างรายการในภาคเรียนที่ไม่มีอยู่",
+           *owner("POST", "/api/terms/999999/items", {"name": "d", "maxScore": 5}))
+    record(g, "คนไม่ล็อกอินสร้างรายการ", *anon("POST", term_items, {"name": "e", "maxScore": 5}))
+    record(g, "ครูอื่นสร้างรายการในภาคเรียนเรา", *other("POST", term_items, {"name": "f", "maxScore": 5}))
+
+    record(g, "แก้ชื่อรายการที่ไม่มีอยู่",
+           *owner("PATCH", term_items, {"name": "ไม่มีจริง", "newName": "x", "maxScore": 5}))
+    record(g, "แก้ชื่อทับรายการที่มีอยู่แล้ว",
+           *owner("PATCH", term_items, {"name": "เก็บคะแนน", "newName": "สอบกลางภาค", "maxScore": 10}))
+    record(g, "เปลี่ยนชื่อและคะแนนเต็มทุกห้อง",
+           *owner("PATCH", term_items, {"name": "เก็บคะแนน", "newName": "เก็บคะแนนใหม่", "maxScore": 12}))
+    value(g, "  ชื่อใหม่ในห้องแรก",
+          [(i["name"], i["maxScore"]) for i in owner("GET", "/api/classrooms/%d/items" % room_id)[1]])
+    record(g, "เปลี่ยนกลับเป็นชื่อเดิม",
+           *owner("PATCH", term_items, {"name": "เก็บคะแนนใหม่", "newName": "เก็บคะแนน", "maxScore": 10}))
 
     # ---------------------------------------------------------------- คะแนน
     g = "SCORE"
@@ -271,12 +284,12 @@ def run():
 
     # ---------------------------------------------------------------- กฎธุรกิจ
     g = "RULES"
-    record(g, "ลดคะแนนเต็มต่ำกว่าที่กรอกไว้", *owner("PATCH", "/api/items/%d" % item_id,
-                                                     {"name": "สอบกลางภาค", "maxScore": 10}))
-    record(g, "เพิ่มคะแนนเต็มได้", *owner("PATCH", "/api/items/%d" % item_id,
-                                          {"name": "สอบกลางภาค", "maxScore": 25}))
+    record(g, "ลดคะแนนเต็มต่ำกว่าที่กรอกไว้", *owner("PATCH", term_items,
+                                                     {"name": "สอบกลางภาค", "newName": "สอบกลางภาค", "maxScore": 10}))
+    record(g, "เพิ่มคะแนนเต็มได้", *owner("PATCH", term_items,
+                                          {"name": "สอบกลางภาค", "newName": "สอบกลางภาค", "maxScore": 25}))
     record(g, "ลบรายการที่มีคะแนนแล้ว", *owner("DELETE", "/api/items/%d" % item_id))
-    record(g, "ลบรายการที่ยังไม่มีคะแนน", *owner("DELETE", "/api/items/%d" % item2["id"]))
+    record(g, "ลบรายการที่ยังไม่มีคะแนน", *owner("DELETE", "/api/items/%d" % item2_id))
     record(g, "ลบห้องที่ยังมีรายการ", *owner("DELETE", "/api/classrooms/%d" % room_id))
 
     # ---------------------------------------------------------------- ครูทั่วไป
@@ -332,11 +345,12 @@ def run():
 
     # ---------------------------------------------------------------- รายการที่ครูดูคนเดียว
     g = "HIDDEN"
-    status, hidden = owner("POST", "/api/classrooms/%d/items" % room_id,
-                           {"name": "คะแนนดิบทดสอบ", "maxScore": 50, "teacherOnly": True})
-    record(g, "ครูสร้างรายการแบบซ่อนจากนักเรียน", status)
-    hidden_id = hidden["id"] if isinstance(hidden, dict) else 0
-    value(g, "  ธง teacherOnly ที่ได้กลับมา", hidden.get("teacherOnly") if isinstance(hidden, dict) else None)
+    record(g, "ครูสร้างรายการแบบซ่อนจากนักเรียน",
+           *owner("POST", term_items, {"name": "คะแนนดิบทดสอบ", "maxScore": 50, "teacherOnly": True}))
+    hidden_row = next((i for i in owner("GET", "/api/classrooms/%d/items" % room_id)[1]
+                       if i["name"] == "คะแนนดิบทดสอบ"), {})
+    hidden_id = hidden_row.get("id", 0)
+    value(g, "  ธง teacherOnly ที่ได้กลับมา", hidden_row.get("teacherOnly"))
     owner("PUT", "/api/scores", {"itemId": hidden_id, "studentId": sid1, "value": 40, "expected": None})
 
     value(g, "  ครูเห็นรายการนี้ในห้อง",
@@ -361,29 +375,29 @@ def run():
           "%s / %s" % (res.get("total"), res.get("full")) if isinstance(res, dict) else None)
 
     record(g, "ครูเปลี่ยนรายการซ่อนให้นักเรียนเห็นได้",
-           *owner("PATCH", "/api/items/%d" % hidden_id, {"name": "คะแนนดิบทดสอบ", "maxScore": 50, "teacherOnly": False}))
+           *owner("PATCH", term_items + "/visibility", {"name": "คะแนนดิบทดสอบ", "visible": True}))
     mine2 = hide("GET", "/api/me/scores")[1]
     value(g, "  เปลี่ยนแล้วนักเรียนเห็นทันที",
           "คะแนนดิบทดสอบ" in [i["name"] for r in mine2 for i in r["items"]])
 
-    # สวิตช์บนแถวรายการคะแนน (สลับอย่างเดียว ไม่ต้องส่งชื่อ/คะแนนเต็มมาด้วย)
+    # สวิตช์อยู่ที่ระดับภาคเรียน กดครั้งเดียวมีผลทุกห้อง
     record(g, "สวิตช์ปิดไม่ให้นักเรียนเห็น",
-           *owner("PATCH", "/api/items/%d/visibility" % hidden_id, {"visible": False}))
+           *owner("PATCH", term_items + "/visibility", {"name": "คะแนนดิบทดสอบ", "visible": False}))
     value(g, "  ปิดแล้วนักเรียนไม่เห็น",
           "คะแนนดิบทดสอบ" not in [i["name"] for r in hide("GET", "/api/me/scores")[1] for i in r["items"]])
     record(g, "สวิตช์เปิดให้นักเรียนเห็น",
-           *owner("PATCH", "/api/items/%d/visibility" % hidden_id, {"visible": True}))
+           *owner("PATCH", term_items + "/visibility", {"name": "คะแนนดิบทดสอบ", "visible": True}))
     value(g, "  เปิดแล้วนักเรียนเห็นทันที",
           "คะแนนดิบทดสอบ" in [i["name"] for r in hide("GET", "/api/me/scores")[1] for i in r["items"]])
     value(g, "  ชื่อกับคะแนนเต็มไม่ถูกแตะ",
           [(i["name"], i["maxScore"]) for i in owner("GET", "/api/classrooms/%d/items" % room_id)[1]
            if i["id"] == hidden_id])
     record(g, "สวิตช์ของรายการที่ไม่มีอยู่",
-           *owner("PATCH", "/api/items/999999/visibility", {"visible": False}))
-    record(g, "ครูอื่นกดสวิตช์ของรายการครูอื่น",
-           *other("PATCH", "/api/items/%d/visibility" % hidden_id, {"visible": False}))
+           *owner("PATCH", term_items + "/visibility", {"name": "ไม่มีรายการนี้", "visible": False}))
+    record(g, "ครูอื่นกดสวิตช์ของภาคเรียนเรา",
+           *other("PATCH", term_items + "/visibility", {"name": "คะแนนดิบทดสอบ", "visible": False}))
     record(g, "คนไม่ล็อกอินกดสวิตช์",
-           *anon("PATCH", "/api/items/%d/visibility" % hidden_id, {"visible": False}))
+           *anon("PATCH", term_items + "/visibility", {"name": "คะแนนดิบทดสอบ", "visible": False}))
 
     # เก็บกวาดรายการทดสอบ
     owner("PUT", "/api/scores", {"itemId": hidden_id, "studentId": sid1, "value": None, "expected": 40})
@@ -441,8 +455,8 @@ def run():
     record(g, "ตอบเรื่องที่ปิดแล้ว", *owner("POST", "/api/appeals/%d/messages" % appeal_id, {"body": "ตอบต่อ"}))
     record(g, "ปิดแล้วเปิดเรื่องใหม่รายการเดิมได้", stu("POST", "/api/appeals", {"itemId": item_id, "body": "ยังไม่เคลียร์"})[0])
 
-    # ---------------------------------------------------------------- นำเข้า Excel (all-or-nothing)
-    g = "IMPORT"
+    # ---------------------------------------------- เครื่องมือสร้างไฟล์ Excel สำหรับเทสต์ด้านล่าง
+    g = "EXPORT"
     import zipfile
     from xml.sax.saxutils import escape
 
@@ -527,96 +541,32 @@ def run():
         except urllib.error.HTTPError as e:
             return e.code, e.headers.get("Content-Type"), e.read()
 
+    def sheet_names(data):
+        """ชื่อชีทในไฟล์ .xlsx ที่ดาวน์โหลดมา"""
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
+            book = z.read("xl/workbook.xml").decode("utf-8")
+        # ClosedXML เขียน tag แบบมี namespace prefix (<x:sheet …>) จึงต้องจับแบบไม่ผูกกับ prefix
+        return re.findall(r'<(?:\w+:)?sheet name="([^"]+)"', book)
+
     def errors_of(res):
         return [(e["row"], e["column"], e["message"]) for e in res["errors"]] if isinstance(res, dict) else res
 
     def field(res, key):
         return res.get(key) if isinstance(res, dict) else res
 
-    status, room3 = owner("POST", "/api/terms/%d/classrooms" % term_id, {"name": "E2E นำเข้า"})
-    record(g, "สร้างห้องสำหรับทดสอบนำเข้า", status)
-    room3_id = room3["id"]
-    base = "/api/classrooms/%d/import" % room3_id
-    names = {s["studentCode"]: (s["firstName"], s["lastName"])
-             for s in owner("GET", "/api/classrooms/%d/students" % room_id)[1]}
-    a_first, a_last = names["90001"]
-    b_first, b_last = names["90002"]
-    roster_head = ["เลขที่", "รหัสนักเรียน", "ชื่อ", "นามสกุล"]
-    roster_ok = xlsx([roster_head, [1, "90001", a_first, a_last], [2, "90002", b_first, b_last]])
+    # ส่งออก Excel ของห้อง · ขาออกอย่างเดียว การนำเข้ามีทางเดียวคือไฟล์ครูทั้งภาคเรียน
+    g = "EXPORT"
+    base = "/api/classrooms/%d/export" % room_id
+    record(g, "คนไม่ล็อกอินส่งออก", download(anon, base)[0])
+    record(g, "นักเรียนส่งออก", download(stu, base)[0])
+    record(g, "ครูอื่นส่งออกห้องของเรา", download(other, base)[0])
 
-    record(g, "คนไม่ล็อกอินโหลด template", download(anon, base + "/students/template")[0])
-    record(g, "นักเรียนโหลด template", download(stu, base + "/students/template")[0])
-    record(g, "ครูอื่นโหลด template ห้องที่ไม่ใช่ของตัวเอง", download(other, base + "/students/template")[0])
-    for label, kind in (("นักเรียน", "students"), ("คะแนน", "scores")):
-        status, ctype, data = download(owner, "%s/%s/template" % (base, kind))
-        record(g, "โหลด template " + label, status)
-        value(g, "  เป็นไฟล์ xlsx", (ctype, data[:2] == b"PK"))
+    status, ctype, body = download(owner, base)
+    record(g, "ครูส่งออก", status)
+    value(g, "  ได้ไฟล์ xlsx จริง", (ctype, body[:2] == b"PK"))
+    value(g, "  มี 2 ชีท นักเรียนกับคะแนน", sheet_names(body))
 
-    record(g, "ไม่ได้ส่งเป็นไฟล์ (JSON)", *owner("POST", base + "/students/preview", {"file": "x"}))
-    record(g, "ส่ง form แต่ไม่มีไฟล์", *upload(owner, base + "/students/preview", [], [("note", "x")]))
-    record(g, "ไฟล์ .csv", *upload(owner, base + "/students/preview", [("file", "roster.csv", b"a,b\n")]))
-    record(g, "ไฟล์ขยะที่ตั้งชื่อเป็น .xlsx", *upload(owner, base + "/students/preview", [("file", "roster.xlsx", b"not excel")]))
-    record(g, "ไฟล์ว่าง", *upload(owner, base + "/students/preview", [("file", "roster.xlsx", b"")]))
-    record(g, "ไฟล์ใหญ่เกิน 2 MB", *upload(owner, base + "/students/preview",
-                                            [("file", "roster.xlsx", b"0" * (2 * 1024 * 1024 + 1))]))
-    record(g, "ส่ง 2 ไฟล์พร้อมกัน", *upload(owner, base + "/students/preview",
-                                            [("file", "a.xlsx", roster_ok), ("file", "b.xlsx", roster_ok)]))
-    record(g, "ครูอื่นตรวจไฟล์ห้องที่ไม่ใช่ของตัวเอง", *upload(other, base + "/students/preview", [("file", "r.xlsx", roster_ok)]))
-    record(g, "นักเรียนตรวจไฟล์", *upload(stu, base + "/students/preview", [("file", "r.xlsx", roster_ok)]))
-    record(g, "นักเรียนยืนยันนำเข้า", *upload(stu, base + "/scores/commit", [("file", "r.xlsx", roster_ok)]))
-
-    roster_bad = xlsx([roster_head, [1, "90001", "ชื่อผิด", a_last], [1, "90002", b_first, b_last], [3, "9000#", "ก", "ข"]])
-    status, res = upload(owner, base + "/students/preview", [("file", "roster.xlsx", roster_bad)])
-    record(g, "ตรวจไฟล์รายชื่อที่มีจุดผิด", status)
-    value(g, "  จุดผิดที่เจอ", errors_of(res))
-    record(g, "ยืนยันไฟล์รายชื่อที่มีจุดผิด", *upload(owner, base + "/students/commit", [("file", "roster.xlsx", roster_bad)]))
-    value(g, "  ห้องยังว่าง ไม่บันทึกอะไรเลย", owner("GET", "/api/classrooms/%d/students" % room3_id)[1])
-
-    status, res = upload(owner, base + "/students/preview", [("file", "roster.xlsx", roster_ok)])
-    record(g, "ตรวจไฟล์รายชื่อที่ถูกต้อง", status)
-    value(g, "  สรุป", field(res, "summary"))
-    value(g, "  ตรวจอย่างเดียวยังไม่บันทึก", owner("GET", "/api/classrooms/%d/students" % room3_id)[1])
-    status, res = upload(owner, base + "/students/commit", [("file", "roster.xlsx", roster_ok)])
-    record(g, "ยืนยันนำเข้ารายชื่อ", status)
-    value(g, "  นักเรียนในห้องหลังนำเข้า",
-          [(s["no"], s["studentCode"]) for s in owner("GET", "/api/classrooms/%d/students" % room3_id)[1]])
-    status, res = upload(owner, base + "/students/preview", [("file", "roster.xlsx", roster_ok)])
-    value(g, "  ตรวจไฟล์เดิมซ้ำ ไม่มีอะไรเปลี่ยน", (status, field(res, "hasChanges")))
-
-    score_head = roster_head + ["งานกลุ่ม (10)"]
-    scores_bad = xlsx([score_head, [1, "90001", a_first, a_last, 8.5], [2, "90002", b_first, b_last, 11],
-                       [3, "90003", "ซี", "สาม", 5]])
-    status, res = upload(owner, base + "/scores/preview", [("file", "scores.xlsx", scores_bad)])
-    record(g, "ตรวจไฟล์คะแนนที่มีจุดผิด", status)
-    value(g, "  จุดผิดที่เจอ", errors_of(res))
-    record(g, "ยืนยันไฟล์คะแนนที่มีจุดผิด", *upload(owner, base + "/scores/commit", [("file", "scores.xlsx", scores_bad)]))
-    value(g, "  ไม่มีรายการใหม่ถูกสร้าง", owner("GET", "/api/classrooms/%d/items" % room3_id)[1])
-    status, res = upload(owner, base + "/students/preview", [("file", "s.xlsx", scores_bad)])
-    record(g, "เอาไฟล์คะแนนไปใส่หน้านำเข้ารายชื่อ", status)
-    value(g, "  จุดผิดที่เจอ", errors_of(res))
-
-    scores_ok = xlsx([score_head, [1, "90001", a_first, a_last, 8.5], [2, "90002", b_first, b_last, None]])
-    status, res = upload(owner, base + "/scores/preview", [("file", "scores.xlsx", scores_ok)])
-    record(g, "ตรวจไฟล์คะแนนที่ถูกต้อง", status)
-    value(g, "  สรุป", field(res, "summary"))
-    record(g, "ยืนยันนำเข้าคะแนน", upload(owner, base + "/scores/commit", [("file", "scores.xlsx", scores_ok)])[0])
-    status, grid = owner("GET", "/api/classrooms/%d/scores" % room3_id)
-    value(g, "  รายการในห้อง", [(i["name"], i["maxScore"]) for i in grid["items"]])
-    value(g, "  คะแนนที่บันทึก", [s["value"] for s in grid["scores"]])
-    item3 = grid["items"][0]["id"] if grid["items"] else 0
-    sid_a = next((s["studentId"] for s in grid["students"] if s["studentCode"] == "90001"), 0)
-    value(g, "  มีประวัติการแก้ (audit)", [(a["oldValue"], a["newValue"]) for a in
-                                          owner("GET", "/api/scores/audits?itemId=%d&studentId=%d" % (item3, sid_a))[1] or []])
-    blank = xlsx([score_head, [1, "90001", a_first, a_last, None]])
-    status, res = upload(owner, base + "/scores/preview", [("file", "scores.xlsx", blank)])
-    value(g, "  ช่องว่างไม่ล้างคะแนนเดิม", (status, field(res, "hasChanges")))
-
-    # เก็บกวาดห้องนำเข้า: ล้างคะแนน → ลบรายการ → เอานักเรียนออก → ลบห้อง
-    owner("PUT", "/api/scores", {"itemId": item3, "studentId": sid_a, "value": None, "expected": 8.5})
-    owner("DELETE", "/api/items/%d" % item3)
-    for s in owner("GET", "/api/classrooms/%d/students" % room3_id)[1] or []:
-        owner("DELETE", "/api/classrooms/%d/students/%d" % (room3_id, s["studentId"]))
-    owner("DELETE", "/api/classrooms/%d" % room3_id)
+    record(g, "ส่งออกห้องที่ไม่มีอยู่", download(owner, "/api/classrooms/999999/export")[0])
 
     # ---------------------------------------------------------------- นำเข้าไฟล์ครู (หลายชีท)
     g = "BOOK"

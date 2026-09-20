@@ -50,7 +50,7 @@ app.MapStudents();
 app.MapItems();
 app.MapTermItems();
 app.MapScores();
-app.MapImport();
+app.MapExport();
 app.MapBookImport();
 app.MapPublic();
 app.MapMe();
