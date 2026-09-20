@@ -1,4 +1,4 @@
-# Krugift-chiangmai
+# Math Aj.Gift (Krugift-chiangmai)
 
 ระบบคะแนนวิชาคณิต: ครูกรอกหรือ import คะแนนจาก Excel ส่วนนักเรียนเข้ามาดูคะแนนของตัวเองและท้วงคะแนนได้
 

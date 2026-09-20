@@ -12,7 +12,7 @@ export default function Login() {
   if (me) return <Navigate to={homeOf(me.role)} replace />
 
   return (
-    <AuthCard title="Krugift คะแนนคณิต">
+    <AuthCard title="Math Aj.Gift" description="ระบบดูคะแนนวิชาคณิตศาสตร์">
       {params.get('error') && (
         <Alert variant="destructive">
           <AlertDescription>

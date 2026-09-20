@@ -107,7 +107,7 @@ export function AppLayout() {
         <div className="mx-auto flex max-w-5xl items-center gap-4 px-4 py-2.5">
           <Link to={nav[0]?.to ?? routes.login} className="flex min-w-0 shrink-0 items-center gap-2 font-semibold">
             <Mascot name="orange" priority className="h-9 w-auto shrink-0" />
-            <span className="truncate">Math Krugift</span>
+            <span className="truncate">Math Aj.Gift</span>
           </Link>
 
           <nav aria-label="เมนูหลัก" className="hidden flex-1 items-center gap-1 md:flex">
