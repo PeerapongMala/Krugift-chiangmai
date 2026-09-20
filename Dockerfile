@@ -27,6 +27,10 @@ RUN dotnet publish backend/src/Api/Api.csproj -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
 WORKDIR /app
 
+# Npgsql พยายามโหลด GSSAPI ตอนต่อ Postgres ถ้าไม่มีไลบรารีนี้จะขึ้น error ใน log ทุกครั้งที่ start
+# (ต่อ DB ได้ปกติ แต่ log รกจนกลบ error จริง)
+RUN apk add --no-cache krb5-libs
+
 # ไม่รันด้วย root · image ของ .NET มี user ชื่อ app มาให้แล้ว
 USER app
 
